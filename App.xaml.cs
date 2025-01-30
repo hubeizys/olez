@@ -2,6 +2,7 @@ using Prism.DryIoc;
 using Prism.Ioc;
 using System.Windows;
 using YourNamespace.Views;
+using YourNamespace.Services;
 
 namespace YourNamespace
 {
@@ -14,7 +15,7 @@ namespace YourNamespace
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            // 在这里注册你的服务和视图
+            containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();
         }
     }
 } 
