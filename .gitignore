@@ -1,0 +1,70 @@
+# Visual Studio 缓存目录
+.vs/
+.vscode/
+
+# 编译输出目录
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio 生成的文件
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Visual Studio Code 设置
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Visual Studio 临时文件
+*.tmp
+*.tmp_proj
+*_i.c
+*_p.c
+*.ncb
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+*.lib
+*.sbr
+
+# NuGet
+packages/
+*.nupkg
+# NuGet Symbol Packages
+*.snupkg
+# NuGet v3's project.json files produces more ignorable files
+*.nuget.props
+*.nuget.targets
+
+# Windows 系统文件
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# 日志文件
+*.log
+logs/
+
+# 其他常见临时文件
+*.swp
+*.*~
+project.lock.json
+.DS_Store 
