@@ -25,7 +25,6 @@ namespace YourNamespace.Services
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = "nvidia-smi",
-                        Arguments = "--query-gpu=driver_version,cuda_version --format=csv,noheader",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         CreateNoWindow = true
@@ -38,10 +37,35 @@ namespace YourNamespace.Services
 
                 if (process.ExitCode == 0 && !string.IsNullOrEmpty(output))
                 {
-                    var parts = output.Trim().Split(',');
                     info.IsAvailable = true;
-                    info.DriverVersion = parts[0].Trim();
-                    info.Version = parts[1].Trim();
+
+                    // 解析第一行获取版本信息
+                    var lines = output.Split('\n');
+                    if (lines.Length > 0)
+                    {
+                        var firstLine = lines[0].Trim();
+                        
+                        // 解析 NVIDIA-SMI 版本
+                        var smiVersionMatch = System.Text.RegularExpressions.Regex.Match(firstLine, @"NVIDIA-SMI\s+(\d+\.\d+)");
+                        if (smiVersionMatch.Success)
+                        {
+                            info.SmiVersion = smiVersionMatch.Groups[1].Value;
+                        }
+
+                        // 解析驱动版本
+                        var driverVersionMatch = System.Text.RegularExpressions.Regex.Match(firstLine, @"Driver Version:\s+(\d+\.\d+)");
+                        if (driverVersionMatch.Success)
+                        {
+                            info.DriverVersion = driverVersionMatch.Groups[1].Value;
+                        }
+
+                        // 解析CUDA版本
+                        var cudaVersionMatch = System.Text.RegularExpressions.Regex.Match(firstLine, @"CUDA Version:\s+(\d+\.\d+)");
+                        if (cudaVersionMatch.Success)
+                        {
+                            info.Version = cudaVersionMatch.Groups[1].Value;
+                        }
+                    }
                 }
             }
             catch

@@ -7,6 +7,7 @@ namespace YourNamespace.Services
         public bool IsAvailable { get; set; }
         public string Version { get; set; }
         public string DriverVersion { get; set; }
+        public string SmiVersion { get; set; }
     }
 
     public class OllamaInfo
