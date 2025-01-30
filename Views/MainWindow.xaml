@@ -32,7 +32,7 @@
                 <!-- CUDA 状态 -->
                 <StackPanel>
                     <DockPanel>
-                        <materialDesign:PackIcon Kind="ChipText" />
+                        <materialDesign:PackIcon Kind="Chip" />
                         <TextBlock
                             Margin="8,0,0,0"
                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
