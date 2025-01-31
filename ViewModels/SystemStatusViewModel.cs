@@ -1,16 +1,23 @@
+/*
+ * 文件名：SystemStatusViewModel.cs
+ * 创建者：yunsong
+ * 创建时间：2024/03/21
+ * 描述：系统状态视图的视图模型
+ */
+
 using Prism.Commands;
 using Prism.Mvvm;
 using System.Threading.Tasks;
 using ollez.Services;
-using Prism.Regions;
-using System.Diagnostics;
 
 namespace ollez.ViewModels
 {
-    public class MainWindowViewModel : BindableBase
+    /// <summary>
+    /// 系统状态视图的视图模型
+    /// </summary>
+    public class SystemStatusViewModel : BindableBase
     {
         private readonly ISystemCheckService _systemCheckService;
-        private readonly IRegionManager _regionManager;
         
         private CudaInfo _cudaInfo;
         public CudaInfo CudaInfo
@@ -34,20 +41,14 @@ namespace ollez.ViewModels
         }
 
         public DelegateCommand CheckSystemCommand { get; }
-        public DelegateCommand<string> NavigateCommand { get; }
 
-        public MainWindowViewModel(ISystemCheckService systemCheckService, IRegionManager regionManager)
+        public SystemStatusViewModel(ISystemCheckService systemCheckService)
         {
             _systemCheckService = systemCheckService;
-            _regionManager = regionManager;
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystemAsync());
-            NavigateCommand = new DelegateCommand<string>(Navigate);
             
             // 初始化时自动检查
             _ = CheckSystemAsync();
-
-            // 默认导航到系统状态页面
-            Navigate("SystemStatusView");
         }
 
         private async Task CheckSystemAsync()
@@ -56,15 +57,6 @@ namespace ollez.ViewModels
             CudaInfo = await _systemCheckService.CheckCudaAsync();
             OllamaInfo = await _systemCheckService.CheckOllamaAsync();
             IsChecking = false;
-        }
-
-        private void Navigate(string viewName)
-        {
-            Debug.WriteLine($"Navigate: {viewName}");
-            _regionManager.RequestNavigate("ContentRegion", viewName, navigationResult =>
-            {
-                Debug.WriteLine($"Navigation completed: {navigationResult.Result}, Error: {navigationResult.Error?.Message}");
-            });
         }
     }
 } 
