@@ -5,75 +5,144 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/"
     prism:ViewModelLocator.AutoWireViewModel="True">
-
+    <UserControl.Resources>
+        <Style x:Key="CustomScrollViewerStyle" TargetType="ScrollViewer">
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="PanningMode" Value="Both" />
+            <Setter Property="PanningDeceleration" Value="0.975" />
+            <Setter Property="PanningRatio" Value="1" />
+        </Style>
+    </UserControl.Resources>
     <ScrollViewer Style="{StaticResource CustomScrollViewerStyle}">
         <StackPanel Margin="16">
             <TextBlock
+                Margin="0,0,0,24"
                 Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                Text="关于"
-                Margin="0,0,0,24"/>
+                Text="关于" />
 
-            <materialDesign:Card Padding="16" Margin="0,0,0,16">
+            <materialDesign:Card Margin="0,0,0,16" Padding="16">
                 <StackPanel>
                     <DockPanel>
-                        <materialDesign:PackIcon Kind="Information" Width="24" Height="24" VerticalAlignment="Center"/>
+                        <materialDesign:PackIcon
+                            Width="24"
+                            Height="24"
+                            VerticalAlignment="Center"
+                            Kind="Information" />
                         <TextBlock
                             Margin="8,0,0,0"
                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                            Text="项目说明"/>
+                            Text="项目说明" />
                     </DockPanel>
-                    
+
                     <TextBlock
                         Margin="0,16,0,0"
-                        TextWrapping="Wrap"
-                        Style="{StaticResource MaterialDesignBody1TextBlock}">
+                        Style="{StaticResource MaterialDesignBody1TextBlock}"
+                        TextWrapping="Wrap">
                         Ollez 助手是一个专门为 Ollama 设计的图形界面管理工具。它能帮助用户轻松管理和使用各种大语言模型，特别是 DeepSeek 系列模型。本工具提供了系统环境检查、模型管理、对话交互等功能，让用户能够更便捷地使用 AI 模型。
                     </TextBlock>
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Padding="16" Margin="0,0,0,16">
+            <materialDesign:Card Margin="0,0,0,16" Padding="16">
                 <StackPanel>
                     <DockPanel>
-                        <materialDesign:PackIcon Kind="CodeBraces" Width="24" Height="24" VerticalAlignment="Center"/>
+                        <materialDesign:PackIcon
+                            Width="24"
+                            Height="24"
+                            VerticalAlignment="Center"
+                            Kind="CodeBraces" />
                         <TextBlock
                             Margin="8,0,0,0"
                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                            Text="技术栈"/>
+                            Text="技术栈" />
                     </DockPanel>
-                    
+
                     <Grid Margin="0,16,0,0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="开发语言：" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="Medium" Margin="0,0,16,8"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="C# 12.0" Style="{StaticResource MaterialDesignBody1TextBlock}" Margin="0,0,0,8"/>
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="0,0,16,8"
+                            FontWeight="Medium"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text="开发语言：" />
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Margin="0,0,0,8"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text="C# 12.0" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="运行时：" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="Medium" Margin="0,0,16,8"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text=".NET 8.0" Style="{StaticResource MaterialDesignBody1TextBlock}" Margin="0,0,0,8"/>
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="0,0,16,8"
+                            FontWeight="Medium"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text="运行时：" />
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="0,0,0,8"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text=".NET 8.0" />
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="UI框架：" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="Medium" Margin="0,0,16,8"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" Text="WPF (Windows Presentation Foundation)" Style="{StaticResource MaterialDesignBody1TextBlock}" Margin="0,0,0,8"/>
+                        <TextBlock
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            Margin="0,0,16,8"
+                            FontWeight="Medium"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text="UI框架：" />
+                        <TextBlock
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Margin="0,0,0,8"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text="WPF (Windows Presentation Foundation)" />
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="设计模式：" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="Medium" Margin="0,0,16,8"/>
-                        <TextBlock Grid.Row="3" Grid.Column="1" Text="MVVM (Model-View-ViewModel)" Style="{StaticResource MaterialDesignBody1TextBlock}" Margin="0,0,0,8"/>
+                        <TextBlock
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            Margin="0,0,16,8"
+                            FontWeight="Medium"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text="设计模式：" />
+                        <TextBlock
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            Margin="0,0,0,8"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text="MVVM (Model-View-ViewModel)" />
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="主要依赖：" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="Medium" Margin="0,0,16,8"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource MaterialDesignBody1TextBlock}" TextWrapping="Wrap">
-                            • Prism.DryIoc - MVVM框架和依赖注入<LineBreak/>
-                            • MaterialDesignThemes - Material Design风格UI组件<LineBreak/>
-                            • Serilog - 结构化日志记录<LineBreak/>
-                            • CommunityToolkit.Mvvm - MVVM工具包
-                        </TextBlock>
+                        <TextBlock
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            Margin="0,0,16,8"
+                            FontWeight="Medium"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text="主要依赖：" />
+                        <TextBlock
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            TextWrapping="Wrap">
+                            • Prism.DryIoc - MVVM框架和依赖注入<LineBreak />
+                            • MaterialDesignThemes - Material Design风格UI组件<LineBreak />
+                            • Serilog - 结构化日志记录<LineBreak />
+                            • CommunityToolkit.Mvvm - MVVM工具包</TextBlock>
                     </Grid>
                 </StackPanel>
             </materialDesign:Card>
@@ -81,22 +150,29 @@
             <materialDesign:Card Padding="16">
                 <StackPanel>
                     <DockPanel>
-                        <materialDesign:PackIcon Kind="License" Width="24" Height="24" VerticalAlignment="Center"/>
+                        <materialDesign:PackIcon
+                            Width="24"
+                            Height="24"
+                            VerticalAlignment="Center"
+                            Kind="License" />
                         <TextBlock
                             Margin="8,0,0,0"
                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                            Text="开源协议"/>
+                            Text="开源协议" />
                     </DockPanel>
-                    
+
                     <TextBlock
                         Margin="0,16,0,0"
-                        TextWrapping="Wrap"
-                        Style="{StaticResource MaterialDesignBody1TextBlock}">
+                        Style="{StaticResource MaterialDesignBody1TextBlock}"
+                        TextWrapping="Wrap">
                         本项目采用 MIT 开源协议。您可以自由使用、修改和分发本软件，但需要保留原始版权声明和许可声明。
                     </TextBlock>
 
-                    <TextBlock Margin="0,16,0,0" Style="{StaticResource MaterialDesignBody2TextBlock}" Foreground="{DynamicResource MaterialDesignBodyLight}">
-                        版本：<Run Text="{Binding Version}"/>
+                    <TextBlock
+                        Margin="0,16,0,0"
+                        Foreground="{DynamicResource MaterialDesignBodyLight}"
+                        Style="{StaticResource MaterialDesignBody2TextBlock}">
+                        版本：<Run Text="{Binding Version}" />
                     </TextBlock>
                 </StackPanel>
             </materialDesign:Card>
