@@ -19,6 +19,7 @@
             <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
             <converters:AvailabilityConverter x:Key="AvailabilityConverter"/>
             <converters:RunningConverter x:Key="RunningConverter"/>
+            <converters:MessageIconConverter x:Key="MessageIconConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </prism:PrismApplication> 

@@ -2,12 +2,14 @@ using Prism.Commands;
 using Prism.Mvvm;
 using System.Threading.Tasks;
 using ollez.Services;
+using Prism.Regions;
 
 namespace ollez.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
         private readonly ISystemCheckService _systemCheckService;
+        private readonly IRegionManager _regionManager;
         
         private CudaInfo _cudaInfo;
         public CudaInfo CudaInfo
@@ -31,14 +33,20 @@ namespace ollez.ViewModels
         }
 
         public DelegateCommand CheckSystemCommand { get; }
+        public DelegateCommand<string> NavigateCommand { get; }
 
-        public MainWindowViewModel(ISystemCheckService systemCheckService)
+        public MainWindowViewModel(ISystemCheckService systemCheckService, IRegionManager regionManager)
         {
             _systemCheckService = systemCheckService;
+            _regionManager = regionManager;
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystemAsync());
+            NavigateCommand = new DelegateCommand<string>(Navigate);
             
             // 初始化时自动检查
             _ = CheckSystemAsync();
+
+            // 默认导航到系统状态页面
+            Navigate("SystemStatusView");
         }
 
         private async Task CheckSystemAsync()
@@ -47,6 +55,11 @@ namespace ollez.ViewModels
             CudaInfo = await _systemCheckService.CheckCudaAsync();
             OllamaInfo = await _systemCheckService.CheckOllamaAsync();
             IsChecking = false;
+        }
+
+        private void Navigate(string viewName)
+        {
+            _regionManager.RequestNavigate("ContentRegion", viewName);
         }
     }
 } 

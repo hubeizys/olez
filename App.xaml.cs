@@ -16,6 +16,10 @@ namespace ollez
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();
+            containerRegistry.RegisterSingleton<IChatService, ChatService>();
+
+            containerRegistry.RegisterForNavigation<SystemStatusView>();
+            containerRegistry.RegisterForNavigation<ChatView>();
         }
     }
 } 

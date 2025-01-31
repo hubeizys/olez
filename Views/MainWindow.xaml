@@ -5,132 +5,108 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/"
     Title="系统检查工具"
-    Width="800"
-    Height="600"
-    prism:ViewModelLocator.AutoWireViewModel="True"
-    Background="{DynamicResource MaterialDesignPaper}"
+    Width="1000"
+    Height="700"
+    AllowsTransparency="True"
+    Background="Transparent"
     FontFamily="{DynamicResource MaterialDesignFont}"
+    MouseLeftButtonDown="Window_MouseLeftButtonDown"
     TextElement.FontSize="13"
     TextElement.FontWeight="Regular"
     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-    WindowStartupLocation="CenterScreen">
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None"
+    prism:ViewModelLocator.AutoWireViewModel="True">
 
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <materialDesign:Card UniformCornerRadius="15">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <TextBlock
-            Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-            Text="系统环境检查"
-            Margin="0,0,0,16"/>
+            <!-- 自定义标题栏 -->
+            <Grid Grid.Row="0" Background="{DynamicResource PrimaryHueDarkBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="1">
-            <materialDesign:Card Padding="16" Margin="0,0,0,16">
-                <!-- CUDA 状态 -->
-                <StackPanel>
-                    <DockPanel>
-                        <materialDesign:PackIcon Kind="Chip" />
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                            Text="CUDA 状态"/>
-                    </DockPanel>
+                <!-- 标题和导航区域 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <materialDesign:PackIcon
+                        Kind="Robot"
+                        Width="24"
+                        Height="24"
+                        Margin="16,0,8,0"
+                        VerticalAlignment="Center"
+                        Foreground="White"/>
                     
-                    <TextBlock Margin="0,16,0,0">
-                        <Run Text="状态："/>
-                        <Run Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"
-                             Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}"/>
-                    </TextBlock>
-                    
-                    <TextBlock Margin="0,8,0,0"
-                             Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Run Text="CUDA 版本："/>
-                        <Run Text="{Binding CudaInfo.Version}"/>
-                    </TextBlock>
-                    
-                    <TextBlock Margin="0,8,0,0"
-                             Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Run Text="驱动版本："/>
-                        <Run Text="{Binding CudaInfo.DriverVersion}"/>
-                    </TextBlock>
-                    
-                    <TextBlock Margin="0,8,0,0"
-                             TextWrapping="Wrap"
-                             Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                        <Hyperlink NavigateUri="https://developer.nvidia.com/cuda-downloads"
-                                 RequestNavigate="Hyperlink_RequestNavigate">
-                            点击此处下载安装 CUDA Toolkit
-                        </Hyperlink>
-                    </TextBlock>
+                    <TextBlock
+                        Text="Ollez 助手"
+                        VerticalAlignment="Center"
+                        Foreground="White"
+                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                        Margin="0,16"/>
                 </StackPanel>
-            </materialDesign:Card>
 
-            <materialDesign:Card Padding="16">
-                <!-- Ollama 状态 -->
-                <StackPanel>
-                    <DockPanel>
-                        <materialDesign:PackIcon Kind="Robot" />
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                            Text="Ollama 状态"/>
-                    </DockPanel>
+                <!-- 导航按钮 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="32,0,0,0">
+                    <RadioButton
+                        Style="{StaticResource MaterialDesignTabRadioButton}"
+                        Content="系统状态"
+                        IsChecked="True"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="SystemStatusView"
+                        Foreground="White"
+                        Margin="4"/>
                     
-                    <TextBlock Margin="0,16,0,0">
-                        <Run Text="状态："/>
-                        <Run Foreground="{Binding OllamaInfo.IsRunning, Converter={StaticResource BoolToColorConverter}}"
-                             Text="{Binding OllamaInfo.IsRunning, Converter={StaticResource RunningConverter}}"/>
-                    </TextBlock>
-                    
-                    <TextBlock Margin="0,8,0,0"
-                             Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Run Text="版本："/>
-                        <Run Text="{Binding OllamaInfo.Version}"/>
-                    </TextBlock>
-                    
-                    <TextBlock Margin="0,8,0,0"
-                             TextWrapping="Wrap"
-                             Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                        <Hyperlink NavigateUri="https://ollama.ai/download"
-                                 RequestNavigate="Hyperlink_RequestNavigate">
-                            点击此处下载安装 Ollama
-                        </Hyperlink>
-                    </TextBlock>
+                    <RadioButton
+                        Style="{StaticResource MaterialDesignTabRadioButton}"
+                        Content="聊天"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="ChatView"
+                        Foreground="White"
+                        Margin="4"/>
                 </StackPanel>
-            </materialDesign:Card>
-        </StackPanel>
 
-        <Button
-            Grid.Row="2"
-            Margin="0,16,0,0"
-            Command="{Binding CheckSystemCommand}"
-            Content="重新检查"
-            Style="{StaticResource MaterialDesignOutlinedButton}">
-            <Button.IsEnabled>
-                <Binding Path="IsChecking" Converter="{StaticResource InverseBooleanConverter}"/>
-            </Button.IsEnabled>
-        </Button>
+                <!-- 窗口控制按钮 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,8,0">
+                    <Button
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Height="34"
+                        Width="34"
+                        Padding="0"
+                        Click="MinimizeButton_Click">
+                        <materialDesign:PackIcon Kind="WindowMinimize" />
+                    </Button>
+                    
+                    <Button
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Height="34"
+                        Width="34"
+                        Padding="0"
+                        Click="MaximizeButton_Click">
+                        <materialDesign:PackIcon Kind="WindowMaximize" />
+                    </Button>
+                    
+                    <Button
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Height="34"
+                        Width="34"
+                        Padding="0"
+                        Click="CloseButton_Click">
+                        <materialDesign:PackIcon Kind="Close" />
+                    </Button>
+                </StackPanel>
+            </Grid>
 
-        <materialDesign:Card
-            Grid.Row="0"
-            Grid.RowSpan="3"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Padding="16"
-            Visibility="{Binding IsChecking, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <StackPanel>
-                <ProgressBar
-                    IsIndeterminate="True"
-                    Style="{StaticResource MaterialDesignCircularProgressBar}"
-                    Value="0" />
-                <TextBlock
-                    Margin="0,8,0,0"
-                    HorizontalAlignment="Center"
-                    Text="正在检查系统环境..." />
-            </StackPanel>
-        </materialDesign:Card>
-    </Grid>
+            <!-- 内容区域 -->
+            <ContentControl
+                Grid.Row="1"
+                prism:RegionManager.RegionName="ContentRegion"
+                Margin="16"/>
+        </Grid>
+    </materialDesign:Card>
 </Window> 
