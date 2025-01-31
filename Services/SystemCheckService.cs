@@ -128,15 +128,45 @@ namespace ollez.Services
         {
             new ModelRequirements
             {
-                Name = "deepseek-coder-6.7b-base",
-                MinimumVram = 8000,  // 8GB
-                Description = "适合基础编程任务，资源占用较少"
+                Name = "DeepSeek-R1-Distill-Qwen-1.5B",
+                MinimumVram = 2000,  // 2GB
+                Description = "运行命令：ollama run deepseek-r1:1.5b"
             },
             new ModelRequirements
             {
-                Name = "deepseek-coder-33b-base",
-                MinimumVram = 16000, // 16GB
-                Description = "大型模型，适合复杂编程任务，代码质量更高"
+                Name = "DeepSeek-R1-Distill-Qwen-7B",
+                MinimumVram = 4000,  // 4GB
+                Description = "运行命令：ollama run deepseek-r1:7b"
+            },
+            new ModelRequirements
+            {
+                Name = "DeepSeek-R1-Distill-Llama-8B",
+                MinimumVram = 4000,  // 4GB
+                Description = "运行命令：ollama run deepseek-r1:8b"
+            },
+            new ModelRequirements
+            {
+                Name = "DeepSeek-R1-Distill-Qwen-14B",
+                MinimumVram = 6000,  // 6GB
+                Description = "运行命令：ollama run deepseek-r1:14b"
+            },
+            new ModelRequirements
+            {
+                Name = "DeepSeek-R1-Distill-Qwen-32B",
+                MinimumVram = 8000,  // 8GB
+                Description = "运行命令：ollama run deepseek-r1:32b"
+            },
+            new ModelRequirements
+            {
+                Name = "DeepSeek-R1-Distill-Llama-70B",
+                MinimumVram = 8000,  // 8GB
+                Description = "运行命令：ollama run deepseek-r1:70b"
+            },
+            new ModelRequirements
+            {
+                Name = "DeepSeek-R1",
+                MinimumVram = 8000,  // 8GB
+                Description = "运行命令：ollama run deepseek-r1:671b"
             }
         };
 
@@ -157,23 +187,50 @@ namespace ollez.Services
             int maxAvailableVram = cudaInfo.Gpus.Max(g => g.MemoryTotal);
             string gpuName = cudaInfo.Gpus[0].Name;
 
-            if (maxAvailableVram >= 24000) // 24GB
+            // 根据显存大小推荐模型，平衡性能和体验
+            if (maxAvailableVram >= 16000) // 16GB及以上，如4090
             {
                 recommendation.CanRunLargeModels = true;
-                recommendation.RecommendedModel = _deepseekModels[1];
-                recommendation.RecommendationReason = $"检测到高性能GPU ({gpuName})，显存充足 ({maxAvailableVram}MB)，可以运行33B大模型以获得最佳效果。";
+                recommendation.RecommendedModel = _deepseekModels[5]; // 推荐70B
+                recommendation.RecommendationReason = $"检测到强大的GPU ({gpuName})，显存充沛 ({maxAvailableVram}MB)。\n" +
+                    "推荐命令：ollama run deepseek-r1:70b（超流畅运行）\n" +
+                    "• 同样流畅：DeepSeek-R1-Distill-Qwen-32B\n" +
+                    "• 更大规模：DeepSeek-R1 (671B)";
             }
-            else if (maxAvailableVram >= 8000) // 8GB
+            else if (maxAvailableVram >= 12000) // 12GB，如3080Ti
+            {
+                recommendation.CanRunLargeModels = true;
+                recommendation.RecommendedModel = _deepseekModels[3]; // 推荐14B
+                recommendation.RecommendationReason = $"检测到高性能GPU ({gpuName})，显存{maxAvailableVram}MB。\n" +
+                    "推荐命令：ollama run deepseek-r1:14b（流畅运行）\n" +
+                    "• 极致流畅：DeepSeek-R1-Distill-Llama-8B\n" +
+                    "• 可尝试：DeepSeek-R1-Distill-Qwen-32B（运行较慢）";
+            }
+            else if (maxAvailableVram >= 6000) // 6GB
             {
                 recommendation.CanRunLargeModels = false;
-                recommendation.RecommendedModel = _deepseekModels[0];
-                recommendation.RecommendationReason = $"检测到GPU ({gpuName})，显存{maxAvailableVram}MB，建议使用6.7B基础模型以获得流畅体验。";
+                recommendation.RecommendedModel = _deepseekModels[2]; // 推荐8B
+                recommendation.RecommendationReason = $"检测到性能不俗的GPU ({gpuName})，显存{maxAvailableVram}MB。\n" +
+                    "推荐命令：ollama run deepseek-r1:8b（流畅运行）\n" +
+                    "• 极致流畅：DeepSeek-R1-Distill-Qwen-7B\n" +
+                    "• 可尝试：DeepSeek-R1-Distill-Qwen-14B（需要更多耐心）";
+            }
+            else if (maxAvailableVram >= 4000) // 4GB
+            {
+                recommendation.CanRunLargeModels = false;
+                recommendation.RecommendedModel = _deepseekModels[1]; // 推荐7B
+                recommendation.RecommendationReason = $"检测到配置适中的GPU ({gpuName})，显存{maxAvailableVram}MB。\n" +
+                    "推荐命令：ollama run deepseek-r1:7b（正常运行）\n" +
+                    "• 超流畅：DeepSeek-R1-Distill-Qwen-1.5B\n" +
+                    "• 可尝试：DeepSeek-R1-Distill-Llama-8B（运行稍慢）";
             }
             else
             {
                 recommendation.CanRunLargeModels = false;
-                recommendation.RecommendedModel = _deepseekModels[0];
-                recommendation.RecommendationReason = $"检测到GPU ({gpuName})显存较小 ({maxAvailableVram}MB)，建议使用6.7B基础模型，但可能会遇到性能瓶颈。";
+                recommendation.RecommendedModel = _deepseekModels[0]; // 1.5B
+                recommendation.RecommendationReason = $"检测到基础配置GPU ({gpuName})，显存{maxAvailableVram}MB。\n" +
+                    "推荐命令：ollama run deepseek-r1:1.5b（流畅运行）\n" +
+                    "• 可尝试：DeepSeek-R1-Distill-Qwen-7B（需要更多耐心）";
             }
 
             return recommendation;
