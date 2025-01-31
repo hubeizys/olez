@@ -211,16 +211,26 @@ namespace ollez.Services
 
         private LogEntry ParseLogLine(string line)
         {
+            if (string.IsNullOrWhiteSpace(line)) return null;
+
             try
             {
-                var match = LogEntryPattern.Match(line);
-                if (match.Success)
+                // 尝试匹配 Serilog 的默认输出格式
+                var match = Regex.Match(line, @"^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}(?:\.\d+)?)\s+\[(\w+)\]\s+(.+)$");
+                if (!match.Success)
+                {
+                    // 尝试匹配简单格式
+                    match = LogEntryPattern.Match(line);
+                    if (!match.Success) return null;
+                }
+
+                if (DateTime.TryParse(match.Groups[1].Value, out DateTime timestamp))
                 {
                     return new LogEntry
                     {
-                        Timestamp = DateTime.Parse(match.Groups[1].Value),
+                        Timestamp = timestamp,
                         Level = match.Groups[2].Value,
-                        Message = match.Groups[3].Value
+                        Message = match.Groups[3].Value.Trim()
                     };
                 }
             }
@@ -228,6 +238,7 @@ namespace ollez.Services
             {
                 System.Diagnostics.Debug.WriteLine($"解析日志行时出错: {ex.Message}");
             }
+
             return null;
         }
 

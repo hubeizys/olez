@@ -33,23 +33,33 @@ namespace ollez.ViewModels
 
         public LogViewModel(ILogService logService)
         {
-            _logService = logService;
-            ClearCommand = new DelegateCommand(() => LogEntries.Clear());
+            _logService = logService ?? throw new ArgumentNullException(nameof(logService));
+            ClearCommand = new DelegateCommand(() => 
+            {
+                LogEntries.Clear();
+                _logService.StartMonitoring(); // 清除后重新开始监控
+            });
             
             // 监听日志更新以触发滚动
             LogEntries.CollectionChanged += (s, e) =>
             {
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add && AutoScroll)
                 {
-                    ScrollToEndRequested?.Invoke(this, System.EventArgs.Empty);
+                    ScrollToEndRequested?.Invoke(this, EventArgs.Empty);
                 }
             };
+
+            // 立即开始监控
+            _logService.StartMonitoring();
         }
 
         public void OnNavigatedTo(NavigationContext navigationContext)
         {
             CurrentLogFile = _logService.CurrentLogFile;
-            _logService.StartMonitoring();
+            if (!string.IsNullOrEmpty(CurrentLogFile))
+            {
+                _logService.StartMonitoring();
+            }
         }
 
         public bool IsNavigationTarget(NavigationContext navigationContext)
