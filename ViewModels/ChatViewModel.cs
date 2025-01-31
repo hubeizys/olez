@@ -87,7 +87,7 @@ namespace ollez.ViewModels
             return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing && !string.IsNullOrEmpty(SelectedModel);
         }
 
-        private async Task SendMessageAsync()
+         private async Task SendMessageAsync()
         {
             if (string.IsNullOrWhiteSpace(InputMessage) || IsProcessing || string.IsNullOrEmpty(SelectedModel))
                 return;
@@ -105,12 +105,19 @@ namespace ollez.ViewModels
 
             try
             {
-                var response = await _chatService.SendMessageAsync(message, SelectedModel);
-                Messages.Add(new ChatMessage
+                var assistantMessage = new ChatMessage
                 {
-                    Content = response,
+                    Content = string.Empty,
                     IsUser = false
-                });
+                };
+                Messages.Add(assistantMessage);
+
+                var responseStream = await _chatService.SendMessageStreamAsync(message, SelectedModel);
+                await foreach (var chunk in responseStream)
+                {
+                    assistantMessage.Content += chunk;
+                    RaisePropertyChanged(nameof(Messages)); // 通知 UI 更新
+                }
             }
             finally
             {
