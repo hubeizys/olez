@@ -5,302 +5,358 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/"
     prism:ViewModelLocator.AutoWireViewModel="True">
+    
+    <UserControl.Resources>
+        <Style x:Key="CustomScrollBarStyle" TargetType="{x:Type ScrollBar}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+            <Setter Property="Width" Value="8"/>
+        </Style>
+        
+        <Style x:Key="CustomScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ScrollContentPresenter Grid.Column="0"/>
+                            <ScrollBar x:Name="PART_VerticalScrollBar"
+                                     Grid.Column="1"
+                                     Value="{TemplateBinding VerticalOffset}"
+                                     Maximum="{TemplateBinding ScrollableHeight}"
+                                     ViewportSize="{TemplateBinding ViewportHeight}"
+                                     Style="{StaticResource CustomScrollBarStyle}"
+                                     Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <TextBlock
-            Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-            Text="系统环境检查"
-            Margin="0,0,0,16"/>
-
-        <Grid Grid.Row="1">
+    <ScrollViewer Style="{StaticResource CustomScrollViewerStyle}">
+        <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
 
-            <!-- CUDA 状态 -->
-            <materialDesign:Card Grid.Column="0" Padding="16" Margin="0,0,8,16">
-                <StackPanel>
-                    <DockPanel>
-                        <materialDesign:PackIcon Kind="Chip" Width="24" Height="24" VerticalAlignment="Center"/>
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                            Text="CUDA 状态"/>
-                    </DockPanel>
-                    
-                    <Grid Margin="0,16,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+            <TextBlock
+                Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                Text="系统环境检查"
+                Margin="0,0,0,16"/>
 
-                        <TextBlock Grid.Column="0" Grid.Row="0" Text="状态：" Margin="0,0,8,0"/>
-                        <TextBlock Grid.Column="1" Grid.Row="0">
-                            <Run Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"
-                                 Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}"/>
-                        </TextBlock>
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Grid.Row="1" Text="CUDA 版本："
-                                 Margin="0,8,8,0"
-                                 Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                        <TextBlock Grid.Column="1" Grid.Row="1"
-                                 Margin="0,8,0,0"
-                                 Text="{Binding CudaInfo.Version}"
-                                 Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <!-- CUDA 状态 -->
+                <materialDesign:Card Grid.Column="0" Padding="16" Margin="0,0,8,16">
+                    <StackPanel>
+                        <DockPanel>
+                            <materialDesign:PackIcon Kind="Chip" Width="24" Height="24" VerticalAlignment="Center"/>
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                Text="CUDA 状态"/>
+                        </DockPanel>
+                        
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Column="0" Grid.Row="2" Text="驱动版本："
-                                 Margin="0,8,8,0"
-                                 Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                        <TextBlock Grid.Column="1" Grid.Row="2"
-                                 Margin="0,8,0,0"
-                                 Text="{Binding CudaInfo.DriverVersion}"
-                                 Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                    </Grid>
+                            <TextBlock Grid.Column="0" Grid.Row="0" Text="状态：" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="1" Grid.Row="0">
+                                <Run Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"
+                                     Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}"/>
+                            </TextBlock>
 
-                    <ItemsControl Margin="0,16,0,0"
-                                ItemsSource="{Binding CudaInfo.Gpus}"
-                                Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="0,8,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
+                            <TextBlock Grid.Column="0" Grid.Row="1" Text="CUDA 版本："
+                                     Margin="0,8,8,0"
+                                     Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBlock Grid.Column="1" Grid.Row="1"
+                                     Margin="0,8,0,0"
+                                     Text="{Binding CudaInfo.Version}"
+                                     Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-                                    <TextBlock Grid.Column="0" Grid.Row="0" Text="GPU型号：" Margin="0,0,8,0"/>
-                                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Name}"/>
+                            <TextBlock Grid.Column="0" Grid.Row="2" Text="驱动版本："
+                                     Margin="0,8,8,0"
+                                     Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBlock Grid.Column="1" Grid.Row="2"
+                                     Margin="0,8,0,0"
+                                     Text="{Binding CudaInfo.DriverVersion}"
+                                     Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        </Grid>
 
-                                    <TextBlock Grid.Column="0" Grid.Row="1" Text="显存总量：" Margin="0,4,8,0"/>
-                                    <TextBlock Grid.Column="1" Grid.Row="1" Margin="0,4,0,0">
-                                        <Run Text="{Binding MemoryTotal}"/>
-                                        <Run Text="MB"/>
-                                    </TextBlock>
+                        <ItemsControl Margin="0,16,0,0"
+                                    ItemsSource="{Binding CudaInfo.Gpus}"
+                                    Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Column="0" Grid.Row="2" Text="可用显存：" Margin="0,4,8,0"/>
-                                    <TextBlock Grid.Column="1" Grid.Row="2" Margin="0,4,0,0">
-                                        <Run Text="{Binding MemoryFree}"/>
-                                        <Run Text="MB"/>
-                                    </TextBlock>
+                                        <TextBlock Grid.Column="0" Grid.Row="0" Text="GPU型号：" Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Name}"/>
 
-                                    <TextBlock Grid.Column="0" Grid.Row="3" Text="架构：" Margin="0,4,8,0"/>
-                                    <TextBlock Grid.Column="1" Grid.Row="3" Margin="0,4,0,0" Text="{Binding Architecture}"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    
-                    <TextBlock Margin="0,8,0,0"
-                              TextWrapping="Wrap"
-                              Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                        <Hyperlink NavigateUri="https://developer.nvidia.com/cuda-downloads"
-                                 RequestNavigate="Hyperlink_RequestNavigate">
-                            点击此处下载安装 CUDA Toolkit
-                        </Hyperlink>
-                    </TextBlock>
-                </StackPanel>
-            </materialDesign:Card>
-
-            <!-- Ollama 状态 -->
-            <materialDesign:Card Grid.Column="1" Padding="16" Margin="8,0,0,16">
-                <StackPanel>
-                    <DockPanel>
-                        <materialDesign:PackIcon Kind="Robot" Width="24" Height="24" VerticalAlignment="Center"/>
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                            Text="Ollama 状态"/>
-                    </DockPanel>
-                    
-                    <Grid Margin="0,16,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Column="0" Grid.Row="0" Text="状态：" Margin="0,0,8,0"/>
-                        <TextBlock Grid.Column="1" Grid.Row="0">
-                            <Run Foreground="{Binding OllamaInfo.IsRunning, Converter={StaticResource BoolToColorConverter}}"
-                                 Text="{Binding OllamaInfo.IsRunning, Converter={StaticResource RunningConverter}}"/>
-                        </TextBlock>
-
-                        <TextBlock Grid.Column="0" Grid.Row="1" Text="版本："
-                                 Margin="0,8,8,0"
-                                 Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                        <TextBlock Grid.Column="1" Grid.Row="1"
-                                  Margin="0,8,0,0"
-                                  Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <Run Text="{Binding OllamaInfo.Version}"/>
-                            <Run Text=" "/>
-                            <Run Text="{Binding OllamaInfo.BuildType}"/>
-                            <Run Text=" ("/>
-                            <Run Text="{Binding OllamaInfo.CommitHash}"/>
-                            <Run Text=")"/>
-                        </TextBlock>
-                    </Grid>
-
-                    <!-- 已安装的模型列表 -->
-                    <ItemsControl Margin="0,16,0,0"
-                                ItemsSource="{Binding OllamaInfo.InstalledModels}"
-                                Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="0,8,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="{Binding Name}" FontWeight="Medium"/>
-                                        <TextBlock Margin="0,4,0,0" Opacity="0.6">
-                                            <Run Text="大小: "/>
-                                            <Run Text="{Binding Size, StringFormat='{}{0:N0}'}"/>
-                                            <Run Text=" 字节"/>
+                                        <TextBlock Grid.Column="0" Grid.Row="1" Text="显存总量：" Margin="0,4,8,0"/>
+                                        <TextBlock Grid.Column="1" Grid.Row="1" Margin="0,4,0,0">
+                                            <Run Text="{Binding MemoryTotal}"/>
+                                            <Run Text="MB"/>
                                         </TextBlock>
-                                        <TextBlock Text="{Binding ModifiedAt}" Opacity="0.6"/>
-                                    </StackPanel>
 
-                                    <TextBlock Grid.Column="1" Margin="16,0,0,0"
-                                             Foreground="{Binding IsRunning, Converter={StaticResource BoolToColorConverter}}"
-                                             Text="{Binding Status}"
-                                             VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="0" Grid.Row="2" Text="可用显存：" Margin="0,4,8,0"/>
+                                        <TextBlock Grid.Column="1" Grid.Row="2" Margin="0,4,0,0">
+                                            <Run Text="{Binding MemoryFree}"/>
+                                            <Run Text="MB"/>
+                                        </TextBlock>
 
-                                    <materialDesign:PackIcon Grid.Column="2" Margin="8,0,0,0"
-                                                          Kind="Check"
-                                                          Foreground="Green"
-                                                          Width="20" Height="20"
-                                                          VerticalAlignment="Center"
-                                                          Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    
-                    <TextBlock Margin="0,16,0,0"
-                             TextWrapping="Wrap"
-                             Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                        <Hyperlink NavigateUri="https://ollama.ai/download"
-                                 RequestNavigate="Hyperlink_RequestNavigate">
-                            点击此处下载安装 Ollama
-                        </Hyperlink>
-                    </TextBlock>
-                </StackPanel>
-            </materialDesign:Card>
-
-            <!-- 模型推荐 -->
-            <materialDesign:Card Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="16">
-                <StackPanel>
-                    <DockPanel>
-                        <materialDesign:PackIcon Kind="Brain" Width="24" Height="24" VerticalAlignment="Center"/>
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                            Text="模型推荐"/>
-                    </DockPanel>
-
-                    <Grid Margin="0,16,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Column="0" Grid.Row="0" Text="推荐模型：" Margin="0,0,8,0"/>
-                        <TextBlock Grid.Column="1" Grid.Row="0" 
-                                 Text="{Binding ModelRecommendation.RecommendedModel.Name}"
-                                 FontWeight="Bold"/>
-
-                        <TextBlock Grid.Column="2" Grid.Row="0" Text="所需最小显存："
-                                 Margin="32,0,8,0"/>
-                        <TextBlock Grid.Column="3" Grid.Row="0">
-                            <Run Text="{Binding ModelRecommendation.RecommendedModel.MinimumVram}"/>
-                            <Run Text="MB"/>
+                                        <TextBlock Grid.Column="0" Grid.Row="3" Text="架构：" Margin="0,4,8,0"/>
+                                        <TextBlock Grid.Column="1" Grid.Row="3" Margin="0,4,0,0" Text="{Binding Architecture}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        
+                        <TextBlock Margin="0,8,0,0"
+                                  TextWrapping="Wrap"
+                                  Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                            <Hyperlink NavigateUri="https://developer.nvidia.com/cuda-downloads"
+                                     RequestNavigate="Hyperlink_RequestNavigate">
+                                点击此处下载安装 CUDA Toolkit
+                            </Hyperlink>
                         </TextBlock>
+                    </StackPanel>
+                </materialDesign:Card>
 
-                        <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4"
-                                 Margin="0,8,0,0"
-                                 TextWrapping="Wrap"
-                                 Text="{Binding ModelRecommendation.RecommendedModel.Description}"/>
+                <!-- Ollama 状态 -->
+                <materialDesign:Card Grid.Column="1" Padding="16" Margin="8,0,0,16">
+                    <StackPanel>
+                        <DockPanel>
+                            <materialDesign:PackIcon Kind="Robot" Width="24" Height="24" VerticalAlignment="Center"/>
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                Text="Ollama 状态"/>
+                        </DockPanel>
+                        
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4"
-                                 Margin="0,16,0,0"
-                                 TextWrapping="Wrap"
-                                 Text="{Binding ModelRecommendation.RecommendationReason}"/>
-                    </Grid>
+                            <TextBlock Grid.Column="0" Grid.Row="0" Text="状态：" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="1" Grid.Row="0">
+                                <Run Foreground="{Binding OllamaInfo.IsRunning, Converter={StaticResource BoolToColorConverter}}"
+                                     Text="{Binding OllamaInfo.IsRunning, Converter={StaticResource RunningConverter}}"/>
+                            </TextBlock>
 
-                    <TextBlock Margin="0,16,0,0"
-                             FontWeight="Bold"
-                             Visibility="{Binding ModelRecommendation, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Run Text="大型模型支持："/>
-                        <Run Foreground="{Binding ModelRecommendation.CanRunLargeModels, Converter={StaticResource BoolToColorConverter}}"
-                             Text="{Binding ModelRecommendation.CanRunLargeModels, Converter={StaticResource AvailabilityConverter}}"/>
-                    </TextBlock>
+                            <TextBlock Grid.Column="0" Grid.Row="1" Text="版本："
+                                     Margin="0,8,8,0"
+                                     Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBlock Grid.Column="1" Grid.Row="1"
+                                      Margin="0,8,0,0"
+                                      Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Run Text="{Binding OllamaInfo.Version}"/>
+                                <Run Text=" "/>
+                                <Run Text="{Binding OllamaInfo.BuildType}"/>
+                            </TextBlock>
+
+                            <TextBlock Grid.Column="0" Grid.Row="2" Text="API端点："
+                                     Margin="0,8,8,0"
+                                     Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBlock Grid.Column="1" Grid.Row="2"
+                                      Margin="0,8,0,0"
+                                      Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                      Text="{Binding OllamaInfo.Endpoint}"/>
+                        </Grid>
+
+                        <!-- 已安装的模型列表 -->
+                        <TextBlock 
+                            Margin="0,24,0,8"
+                            Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                            Text="已安装的模型"
+                            Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        
+                        <ItemsControl 
+                            ItemsSource="{Binding OllamaInfo.InstalledModels}"
+                            Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <materialDesign:Card Margin="0,4" UniformCornerRadius="4">
+                                        <Grid Margin="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Column="0" Grid.Row="0" 
+                                                     Text="{Binding Name}" 
+                                                     FontWeight="Medium"/>
+                                            
+                                            <StackPanel Grid.Column="1" Grid.Row="0" 
+                                                      Orientation="Horizontal">
+                                                <Border Background="#E8F5E9" 
+                                                        CornerRadius="2" 
+                                                        Padding="4,2"
+                                                        Margin="0,0,4,0"
+                                                        Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                    <TextBlock Text="运行中" 
+                                                             Foreground="#2E7D32" 
+                                                             FontSize="12"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding Size, Converter={StaticResource FileSizeConverter}}"
+                                                         Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="0" Grid.Row="1" 
+                                                     Grid.ColumnSpan="2"
+                                                     Text="{Binding Status}"
+                                                     Margin="0,4,0,0"
+                                                     Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                     TextWrapping="Wrap"/>
+                                        </Grid>
+                                    </materialDesign:Card>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- 错误信息显示 -->
+                        <TextBlock 
+                            Text="{Binding OllamaInfo.Error}"
+                            Foreground="Red"
+                            TextWrapping="Wrap"
+                            Margin="0,8,0,0"
+                            Visibility="{Binding OllamaInfo.HasError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <!-- 模型推荐 -->
+                <materialDesign:Card Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="16">
+                    <StackPanel>
+                        <DockPanel>
+                            <materialDesign:PackIcon Kind="Brain" Width="24" Height="24" VerticalAlignment="Center"/>
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                Text="模型推荐"/>
+                        </DockPanel>
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Column="0" Grid.Row="0" Text="推荐模型：" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="1" Grid.Row="0" 
+                                     Text="{Binding ModelRecommendation.RecommendedModel.Name}"
+                                     FontWeight="Bold"/>
+
+                            <TextBlock Grid.Column="2" Grid.Row="0" Text="所需最小显存："
+                                     Margin="32,0,8,0"/>
+                            <TextBlock Grid.Column="3" Grid.Row="0">
+                                <Run Text="{Binding ModelRecommendation.RecommendedModel.MinimumVram}"/>
+                                <Run Text="MB"/>
+                            </TextBlock>
+
+                            <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4"
+                                     Margin="0,8,0,0"
+                                     TextWrapping="Wrap"
+                                     Text="{Binding ModelRecommendation.RecommendedModel.Description}"/>
+
+                            <TextBlock Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4"
+                                     Margin="0,16,0,0"
+                                     TextWrapping="Wrap"
+                                     Text="{Binding ModelRecommendation.RecommendationReason}"/>
+                        </Grid>
+
+                        <TextBlock Margin="0,16,0,0"
+                                 FontWeight="Bold"
+                                 Visibility="{Binding ModelRecommendation, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Run Text="大型模型支持："/>
+                            <Run Foreground="{Binding ModelRecommendation.CanRunLargeModels, Converter={StaticResource BoolToColorConverter}}"
+                                 Text="{Binding ModelRecommendation.CanRunLargeModels, Converter={StaticResource AvailabilityConverter}}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </materialDesign:Card>
+            </Grid>
+
+            <Button
+                Grid.Row="2"
+                Margin="0,16,0,0"
+                Command="{Binding CheckSystemCommand}"
+                Content="重新检查"
+                Style="{StaticResource MaterialDesignOutlinedButton}">
+                <Button.IsEnabled>
+                    <Binding Path="IsChecking" Converter="{StaticResource InverseBooleanConverter}"/>
+                </Button.IsEnabled>
+            </Button>
+
+            <materialDesign:Card
+                Grid.Row="0"
+                Grid.RowSpan="3"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Padding="16"
+                Visibility="{Binding IsChecking, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel>
+                    <ProgressBar
+                        IsIndeterminate="True"
+                        Style="{StaticResource MaterialDesignCircularProgressBar}"
+                        Value="0" />
+                    <TextBlock
+                        Margin="0,8,0,0"
+                        HorizontalAlignment="Center"
+                        Text="正在检查系统环境..." />
                 </StackPanel>
             </materialDesign:Card>
         </Grid>
-
-        <Button
-            Grid.Row="2"
-            Margin="0,16,0,0"
-            Command="{Binding CheckSystemCommand}"
-            Content="重新检查"
-            Style="{StaticResource MaterialDesignOutlinedButton}">
-            <Button.IsEnabled>
-                <Binding Path="IsChecking" Converter="{StaticResource InverseBooleanConverter}"/>
-            </Button.IsEnabled>
-        </Button>
-
-        <materialDesign:Card
-            Grid.Row="0"
-            Grid.RowSpan="3"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Padding="16"
-            Visibility="{Binding IsChecking, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <StackPanel>
-                <ProgressBar
-                    IsIndeterminate="True"
-                    Style="{StaticResource MaterialDesignCircularProgressBar}"
-                    Value="0" />
-                <TextBlock
-                    Margin="0,8,0,0"
-                    HorizontalAlignment="Center"
-                    Text="正在检查系统环境..." />
-            </StackPanel>
-        </materialDesign:Card>
-    </Grid>
+    </ScrollViewer>
 </UserControl>

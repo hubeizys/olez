@@ -349,9 +349,7 @@ namespace ollez.Services
                             var modelInfo = new OllamaModelInfo
                             {
                                 Name = parts[0],
-                                Size = parts[1].EndsWith("GB") ?
-                                    long.Parse(parts[1].Replace("GB", "")) * 1024 * 1024 * 1024 :
-                                    long.Parse(parts[1].Replace("MB", "")) * 1024 * 1024,
+                                Size = ParseSize(parts[1]),
                                 ModifiedAt = parts.Length > 2 ? string.Join(" ", parts.Skip(2)) : string.Empty,
                                 IsRunning = false,
                                 Status = "已安装"
@@ -403,6 +401,44 @@ namespace ollez.Services
 
             Log.Information("Ollama检查结果: {@Info}", info);
             return info;
+        }
+
+        private long ParseSize(string sizeStr)
+        {
+            try
+            {
+                sizeStr = sizeStr.Trim();
+                if (string.IsNullOrEmpty(sizeStr))
+                    return 0;
+
+                // 移除可能的空格
+                sizeStr = sizeStr.Replace(" ", "");
+
+                if (sizeStr.EndsWith("GB", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (double.TryParse(sizeStr.Replace("GB", ""), out double gbSize))
+                        return (long)(gbSize * 1024 * 1024 * 1024);
+                }
+                else if (sizeStr.EndsWith("MB", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (double.TryParse(sizeStr.Replace("MB", ""), out double mbSize))
+                        return (long)(mbSize * 1024 * 1024);
+                }
+                else if (sizeStr.EndsWith("KB", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (double.TryParse(sizeStr.Replace("KB", ""), out double kbSize))
+                        return (long)(kbSize * 1024);
+                }
+                else if (double.TryParse(sizeStr, out double bytes))
+                {
+                    return (long)bytes;
+                }
+                return 0;
+            }
+            catch
+            {
+                return 0;
+            }
         }
     }
 } 
