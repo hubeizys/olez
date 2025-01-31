@@ -4,6 +4,6 @@ namespace ollez.Services
 {
     public interface IChatService
     {
-        Task<string> SendMessageAsync(string message);
+        Task<string> SendMessageAsync(string message, string model);
     }
 } 

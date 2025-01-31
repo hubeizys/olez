@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Linq;
 using Prism.Commands;
 using Prism.Mvvm;
 using ollez.Models;
@@ -11,11 +12,26 @@ namespace ollez.ViewModels
     public class ChatViewModel : BindableBase
     {
         private readonly IChatService _chatService;
+        private readonly ISystemCheckService _systemCheckService;
         private string _inputMessage;
         private bool _isProcessing;
+        private string _selectedModel;
+        private ObservableCollection<string> _availableModels;
 
         public ObservableCollection<ChatMessage> Messages { get; } = new();
         
+        public ObservableCollection<string> AvailableModels
+        {
+            get => _availableModels;
+            private set => SetProperty(ref _availableModels, value);
+        }
+
+        public string SelectedModel
+        {
+            get => _selectedModel;
+            set => SetProperty(ref _selectedModel, value);
+        }
+
         public string InputMessage
         {
             get => _inputMessage;
@@ -29,21 +45,51 @@ namespace ollez.ViewModels
         }
 
         public ICommand SendMessageCommand { get; }
+        public ICommand RefreshModelsCommand { get; }
 
-        public ChatViewModel(IChatService chatService)
+        public ChatViewModel(IChatService chatService, ISystemCheckService systemCheckService)
         {
             _chatService = chatService;
+            _systemCheckService = systemCheckService;
             SendMessageCommand = new DelegateCommand(async () => await SendMessageAsync(), CanSendMessage);
+            RefreshModelsCommand = new DelegateCommand(async () => await RefreshModelsAsync());
+            
+            AvailableModels = new ObservableCollection<string>();
+            _ = InitializeAsync();
+        }
+
+        private async Task InitializeAsync()
+        {
+            await RefreshModelsAsync();
+        }
+
+        private async Task RefreshModelsAsync()
+        {
+            var ollamaInfo = await _systemCheckService.CheckOllamaAsync();
+            if (ollamaInfo.IsRunning && ollamaInfo.InstalledModels != null)
+            {
+                var models = ollamaInfo.InstalledModels.Select(m => m.Name).OrderBy(n => n).ToList();
+                AvailableModels.Clear();
+                foreach (var model in models)
+                {
+                    AvailableModels.Add(model);
+                }
+
+                if (string.IsNullOrEmpty(SelectedModel) && AvailableModels.Any())
+                {
+                    SelectedModel = AvailableModels.First();
+                }
+            }
         }
 
         private bool CanSendMessage()
         {
-            return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing;
+            return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing && !string.IsNullOrEmpty(SelectedModel);
         }
 
         private async Task SendMessageAsync()
         {
-            if (string.IsNullOrWhiteSpace(InputMessage) || IsProcessing)
+            if (string.IsNullOrWhiteSpace(InputMessage) || IsProcessing || string.IsNullOrEmpty(SelectedModel))
                 return;
 
             var userMessage = new ChatMessage
@@ -59,7 +105,7 @@ namespace ollez.ViewModels
 
             try
             {
-                var response = await _chatService.SendMessageAsync(message);
+                var response = await _chatService.SendMessageAsync(message, SelectedModel);
                 Messages.Add(new ChatMessage
                 {
                     Content = response,

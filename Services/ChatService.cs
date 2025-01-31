@@ -9,7 +9,7 @@ namespace ollez.Services
     public class ChatService : IChatService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "http://localhost:11434/api";
+        private const string BaseUrl = "http://localhost:11434"; // 注意：BaseUrl 不需要包含 "/api"
 
         public ChatService()
         {
@@ -19,11 +19,11 @@ namespace ollez.Services
             };
         }
 
-        public async Task<string> SendMessageAsync(string message)
+        public async Task<string> SendMessageAsync(string message, string model)
         {
             var request = new
             {
-                model = "gemma",
+                model = model,
                 messages = new[]
                 {
                     new { role = "user", content = message }
@@ -36,12 +36,20 @@ namespace ollez.Services
                 Encoding.UTF8,
                 "application/json");
 
-            var response = await _httpClient.PostAsync("/chat", content);
+            // 修改 API 路径为 "/api/chat"
+            var response = await _httpClient.PostAsync("/api/chat", content);
             response.EnsureSuccessStatusCode();
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(jsonResponse);
-            return doc.RootElement.GetProperty("message").GetProperty("content").GetString();
+
+            // 根据 Ollama 的 API 响应格式解析
+            var messageContent = doc.RootElement
+                .GetProperty("message")
+                .GetProperty("content")
+                .GetString();
+
+            return messageContent;
         }
     }
-} 
+}

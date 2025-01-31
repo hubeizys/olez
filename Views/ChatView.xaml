@@ -17,7 +17,23 @@
         <TextBlock
             Style="{StaticResource MaterialDesignHeadline5TextBlock}"
             Text="Ollama 聊天"
-            Margin="0,0,0,16"/>
+            Margin="0,0,0,8"/>
+
+        <!-- 模型选择 -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+            <Button
+                DockPanel.Dock="Right"
+                Margin="8,0,0,0"
+                Command="{Binding RefreshModelsCommand}"
+                Style="{StaticResource MaterialDesignOutlinedButton}">
+                <materialDesign:PackIcon Kind="Refresh"/>
+            </Button>
+            <ComboBox
+                materialDesign:HintAssist.Hint="选择模型"
+                Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                ItemsSource="{Binding AvailableModels}"
+                SelectedItem="{Binding SelectedModel}"/>
+        </DockPanel>
 
         <!-- 聊天记录 -->
         <ScrollViewer Grid.Row="1" x:Name="ChatScrollViewer">
