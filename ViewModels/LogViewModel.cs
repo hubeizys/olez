@@ -32,6 +32,13 @@ namespace ollez.ViewModels
             set => SetProperty(ref _autoScroll, value);
         }
 
+        private bool _isLoggingCollectionChanges = false;
+        public bool IsLoggingCollectionChanges
+        {
+            get => _isLoggingCollectionChanges;
+            set => SetProperty(ref _isLoggingCollectionChanges, value);
+        }
+
         public LogViewModel(ILogService logService)
         {
             Log.Debug("LogViewModel: 构造函数被调用");
@@ -46,7 +53,11 @@ namespace ollez.ViewModels
             
             LogEntries.CollectionChanged += (s, e) =>
             {
-                Log.Debug("LogViewModel: 集合变更事件触发 - 动作类型: {Action}, 当前日志条数: {Count}", e.Action, LogEntries.Count);
+                if (IsLoggingCollectionChanges)
+                {
+                    Log.Debug("LogViewModel: 集合变更事件触发 - 动作类型: {Action}, 当前日志条数: {Count}", e.Action, LogEntries.Count);
+                }
+                
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add && AutoScroll)
                 {
                     ScrollToEndRequested?.Invoke(this, EventArgs.Empty);

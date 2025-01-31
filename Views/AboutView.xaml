@@ -147,7 +147,7 @@
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Padding="16">
+            <materialDesign:Card Margin="0,0,0,16" Padding="16">
                 <StackPanel>
                     <DockPanel>
                         <materialDesign:PackIcon
@@ -173,6 +173,35 @@
                         Foreground="{DynamicResource MaterialDesignBodyLight}"
                         Style="{StaticResource MaterialDesignBody2TextBlock}">
                         版本：<Run Text="{Binding Version}" />
+                    </TextBlock>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <materialDesign:Card Margin="0,0,0,16" Padding="16">
+                <StackPanel>
+                    <DockPanel>
+                        <materialDesign:PackIcon
+                            Width="24"
+                            Height="24"
+                            VerticalAlignment="Center"
+                            Kind="Account" />
+                        <TextBlock
+                            Margin="8,0,0,0"
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Text="作者信息" />
+                    </DockPanel>
+
+                    <TextBlock
+                        Margin="0,16,0,0"
+                        Style="{StaticResource MaterialDesignBody1TextBlock}"
+                        TextWrapping="Wrap">
+                        名称：凶残的朱哥
+                    </TextBlock>
+                    <TextBlock
+                        Margin="0,8,0,0"
+                        Style="{StaticResource MaterialDesignBody1TextBlock}"
+                        TextWrapping="Wrap">
+                        邮件：laozhu_shangxin@hotmail.com
                     </TextBlock>
                 </StackPanel>
             </materialDesign:Card>

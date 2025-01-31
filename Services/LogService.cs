@@ -22,6 +22,8 @@ namespace ollez.Services
         private DateTime _lastProcessTime = DateTime.MinValue;
         private const int MAX_LOG_ENTRIES = 1000; // 最大保留的日志条数
         private const string LOG_FILE_PREFIX = "app_"; // 监控的日志前缀
+        private long _lastPosition = 0;
+        private bool _semaphoreAcquired = false;
 
         public ObservableCollection<LogEntry> LogEntries { get; }
         public string CurrentLogFile { get; private set; }
@@ -80,7 +82,7 @@ namespace ollez.Services
             {
                 Filter = $"{LOG_FILE_PREFIX}*.log",
                 EnableRaisingEvents = true,
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
             };
 
             Log.Debug("LogService: 文件监视器已设置");
@@ -89,35 +91,45 @@ namespace ollez.Services
             {
                 if (e.FullPath != CurrentLogFile) return;
 
+                bool acquired = false;
                 try
                 {
-                    await _semaphore.WaitAsync();
-                    
-                    if ((DateTime.Now - _lastProcessTime).TotalMilliseconds < 100)
+                    acquired = await _semaphore.WaitAsync(0);
+                    if (!acquired) return;
+
+                    var now = DateTime.Now;
+                    if ((now - _lastProcessTime).TotalMilliseconds < 100)
                     {
                         return;
                     }
-                    _lastProcessTime = DateTime.Now;
+                    _lastProcessTime = now;
 
                     await ReadNewLines();
                 }
                 finally
                 {
-                    _semaphore.Release();
+                    if (acquired)
+                    {
+                        _semaphore.Release();
+                    }
                 }
             };
 
             _watcher.Created += async (s, e) =>
             {
+                bool acquired = false;
                 try
                 {
-                    await _semaphore.WaitAsync();
+                    acquired = await _semaphore.WaitAsync(0);
+                    if (!acquired) return;
+                    
                     await Task.Delay(500);
                     
                     if (File.Exists(e.FullPath) && 
                         Path.GetFileName(e.FullPath).StartsWith(LOG_FILE_PREFIX, StringComparison.OrdinalIgnoreCase) &&
                         File.GetLastWriteTime(e.FullPath) > File.GetLastWriteTime(CurrentLogFile))
                     {
+                        _lastPosition = 0;
                         CurrentLogFile = e.FullPath;
                         LogEntries.Clear(); // 新日志文件，清空旧内容
                         LoadExistingLogs();
@@ -129,12 +141,12 @@ namespace ollez.Services
                 }
                 finally
                 {
-                    _semaphore.Release();
+                    if (acquired)
+                    {
+                        _semaphore.Release();
+                    }
                 }
             };
-
-            // 开始监视文件末尾的新行
-            _ = ReadNewLines();
         }
 
         private void LoadExistingLogs()
@@ -142,40 +154,50 @@ namespace ollez.Services
             Log.Debug("LogService: 开始加载现有日志");
             try
             {
+                var lines = new List<string>();
                 using (var stream = new FileStream(CurrentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var reader = new StreamReader(stream))
                 {
-                    var lines = new List<string>();
                     string line;
                     while ((line = reader.ReadLine()) != null)
                     {
                         lines.Add(line);
                     }
 
-                    // 只保留最后1000行
-                    var lastLines = lines.Skip(Math.Max(0, lines.Count - MAX_LOG_ENTRIES));
-                    
-                    App.Current.Dispatcher.Invoke(() =>
-                    {
-                        LogEntries.Clear();
-                        foreach (var logLine in lastLines)
-                        {
-                            var match = LogEntryPattern.Match(logLine);
-                            if (match.Success)
-                            {
-                                var entry = new LogEntry
-                                {
-                                    Timestamp = DateTime.Parse(match.Groups[1].Value),
-                                    Level = match.Groups[2].Value,
-                                    Message = match.Groups[3].Value
-                                };
-                                LogEntries.Add(entry);
-                            }
-                        }
-                    });
-                    
-                    Log.Debug("LogService: 已加载 {Count} 条现有日志记录", LogEntries.Count);
+                    _lastPosition = stream.Position;
                 }
+
+                // 只保留最后1000行
+                if (lines.Count > MAX_LOG_ENTRIES)
+                {
+                    lines = lines.Skip(lines.Count - MAX_LOG_ENTRIES).ToList();
+                }
+
+                var entries = new List<LogEntry>();
+                foreach (var line in lines)
+                {
+                    var match = LogEntryPattern.Match(line);
+                    if (match.Success)
+                    {
+                        entries.Add(new LogEntry
+                        {
+                            Timestamp = DateTime.Parse(match.Groups[1].Value),
+                            Level = match.Groups[2].Value,
+                            Message = match.Groups[3].Value
+                        });
+                    }
+                }
+
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    LogEntries.Clear();
+                    foreach (var entry in entries)
+                    {
+                        LogEntries.Add(entry);
+                    }
+                });
+
+                Log.Debug("LogService: 已加载 {Count} 条现有日志记录", LogEntries.Count);
             }
             catch (Exception ex)
             {
@@ -185,38 +207,60 @@ namespace ollez.Services
 
         private async Task ReadNewLines()
         {
+            if (!_isMonitoring) return;
+            
             Log.Debug("LogService: 开始读取新日志行");
             try
             {
+                var newEntries = new List<LogEntry>();
                 using (var stream = new FileStream(CurrentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (var reader = new StreamReader(stream))
                 {
-                    stream.Seek(0, SeekOrigin.End);
-                    
-                    string line;
-                    while ((line = await reader.ReadLineAsync()) != null)
+                    // 如果文件被截断了，从头开始读取
+                    if (stream.Length < _lastPosition)
                     {
-                        var match = LogEntryPattern.Match(line);
-                        if (match.Success)
-                        {
-                            var entry = new LogEntry
-                            {
-                                Timestamp = DateTime.Parse(match.Groups[1].Value),
-                                Level = match.Groups[2].Value,
-                                Message = match.Groups[3].Value
-                            };
-                            
-                            App.Current.Dispatcher.Invoke(() =>
-                            {
-                                LogEntries.Add(entry);
-                                // 如果超过最大条数，移除最旧的日志
-                                while (LogEntries.Count > MAX_LOG_ENTRIES)
-                                {
-                                    LogEntries.RemoveAt(0);
-                                }
-                            });
-                        }
+                        _lastPosition = 0;
+                        LogEntries.Clear();
                     }
+
+                    stream.Position = _lastPosition;
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string line;
+                        while ((line = await reader.ReadLineAsync()) != null)
+                        {
+                            var match = LogEntryPattern.Match(line);
+                            if (match.Success)
+                            {
+                                newEntries.Add(new LogEntry
+                                {
+                                    Timestamp = DateTime.Parse(match.Groups[1].Value),
+                                    Level = match.Groups[2].Value,
+                                    Message = match.Groups[3].Value
+                                });
+                            }
+                        }
+                        _lastPosition = stream.Position;
+                    }
+                }
+
+                if (newEntries.Count > 0)
+                {
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        foreach (var entry in newEntries)
+                        {
+                            LogEntries.Add(entry);
+                        }
+
+                        while (LogEntries.Count > MAX_LOG_ENTRIES)
+                        {
+                            var removeCount = Math.Min(LogEntries.Count - MAX_LOG_ENTRIES, 100);
+                            for (int i = 0; i < removeCount; i++)
+                            {
+                                LogEntries.RemoveAt(0);
+                            }
+                        }
+                    });
                 }
             }
             catch (Exception ex)
@@ -229,8 +273,12 @@ namespace ollez.Services
         {
             Log.Debug("LogService: 停止监控");
             _isMonitoring = false;
-            _watcher?.Dispose();
-            _watcher = null;
+            if (_watcher != null)
+            {
+                _watcher.EnableRaisingEvents = false;
+                _watcher.Dispose();
+                _watcher = null;
+            }
             _reader?.Dispose();
             _reader = null;
         }
