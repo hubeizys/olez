@@ -77,6 +77,14 @@
                         CommandParameter="LogView"
                         Foreground="White"
                         Margin="4"/>
+
+                    <RadioButton
+                        Style="{StaticResource MaterialDesignTabRadioButton}"
+                        Content="关于"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="AboutView"
+                        Foreground="White"
+                        Margin="4"/>
                 </StackPanel>
 
                 <!-- 窗口控制按钮 -->
