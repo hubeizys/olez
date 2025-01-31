@@ -7,7 +7,9 @@
 
 using Prism.Commands;
 using Prism.Mvvm;
+using Prism.Regions;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using ollez.Services;
 
 namespace ollez.ViewModels
@@ -15,7 +17,7 @@ namespace ollez.ViewModels
     /// <summary>
     /// 系统状态视图的视图模型
     /// </summary>
-    public class SystemStatusViewModel : BindableBase
+    public class SystemStatusViewModel : BindableBase, INavigationAware
     {
         private readonly ISystemCheckService _systemCheckService;
         
@@ -46,9 +48,6 @@ namespace ollez.ViewModels
         {
             _systemCheckService = systemCheckService;
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystemAsync());
-            
-            // 初始化时自动检查
-            _ = CheckSystemAsync();
         }
 
         private async Task CheckSystemAsync()
@@ -58,5 +57,24 @@ namespace ollez.ViewModels
             OllamaInfo = await _systemCheckService.CheckOllamaAsync();
             IsChecking = false;
         }
+
+        public void OnNavigatedTo(NavigationContext navigationContext)
+        {
+            Debug.WriteLine("SystemStatusView - OnNavigatedTo");
+            // 当导航到此视图时，确保数据已经加载
+            _ = CheckSystemAsync();
+        }
+
+        public bool IsNavigationTarget(NavigationContext navigationContext)
+        {
+            // 总是允许导航到此视图
+            return true;
+        }
+
+        public void OnNavigatedFrom(NavigationContext navigationContext)
+        {
+            // 当离开此视图时的处理逻辑
+            Debug.WriteLine("SystemStatusView - OnNavigatedFrom");
+        }
     }
-} 
+}

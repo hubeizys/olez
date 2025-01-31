@@ -46,8 +46,11 @@ namespace ollez.ViewModels
             // 初始化时自动检查
             _ = CheckSystemAsync();
 
-            // 默认导航到系统状态页面
-            Navigate("SystemStatusView");
+            // 使用Loaded事件后导航到默认页面
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new System.Action(() =>
+            {
+                Navigate("SystemStatusView");
+            }));
         }
 
         private async Task CheckSystemAsync()
@@ -61,10 +64,23 @@ namespace ollez.ViewModels
         private void Navigate(string viewName)
         {
             Debug.WriteLine($"Navigate: {viewName}");
-            _regionManager.RequestNavigate("ContentRegion", viewName, navigationResult =>
+            try
             {
-                Debug.WriteLine($"Navigation completed: {navigationResult.Result}, Error: {navigationResult.Error?.Message}");
-            });
+                _regionManager.RequestNavigate("ContentRegion", viewName, navigationResult =>
+                {
+                    if (navigationResult.Error != null)
+                    {
+                        Debug.WriteLine($"Navigation Error: {navigationResult.Error}");
+                        Debug.WriteLine($"Error Stack Trace: {navigationResult.Error.StackTrace}");
+                    }
+                    Debug.WriteLine($"Navigation completed: {navigationResult.Result}, Error: {navigationResult.Error?.Message}");
+                });
+            }
+            catch (System.Exception ex)
+            {
+                Debug.WriteLine($"Navigation exception: {ex}");
+                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
         }
     }
 } 

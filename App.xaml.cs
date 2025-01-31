@@ -10,6 +10,7 @@ using Prism.Ioc;
 using System.Windows;
 using ollez.Views;
 using ollez.Services;
+using ollez.ViewModels;
 
 namespace ollez
 {
