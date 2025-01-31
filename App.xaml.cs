@@ -55,9 +55,11 @@ namespace ollez
         {
             containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();
             containerRegistry.RegisterSingleton<IChatService, ChatService>();
+            containerRegistry.RegisterSingleton<ILogService, LogService>();
 
             containerRegistry.RegisterForNavigation<SystemStatusView, SystemStatusViewModel>();
             containerRegistry.RegisterForNavigation<ChatView, ChatViewModel>();
+            containerRegistry.RegisterForNavigation<LogView, LogViewModel>();
         }
     }
 } 

@@ -69,6 +69,14 @@
                         CommandParameter="ChatView"
                         Foreground="White"
                         Margin="4"/>
+
+                    <RadioButton
+                        Style="{StaticResource MaterialDesignTabRadioButton}"
+                        Content="系统日志"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="LogView"
+                        Foreground="White"
+                        Margin="4"/>
                 </StackPanel>
 
                 <!-- 窗口控制按钮 -->
