@@ -35,6 +35,13 @@ namespace ollez.ViewModels
             set => SetProperty(ref _ollamaInfo, value);
         }
 
+        private ModelRecommendation _modelRecommendation;
+        public ModelRecommendation ModelRecommendation
+        {
+            get => _modelRecommendation;
+            set => SetProperty(ref _modelRecommendation, value);
+        }
+
         private bool _isChecking;
         public bool IsChecking
         {
@@ -55,6 +62,7 @@ namespace ollez.ViewModels
             IsChecking = true;
             CudaInfo = await _systemCheckService.CheckCudaAsync();
             OllamaInfo = await _systemCheckService.CheckOllamaAsync();
+            ModelRecommendation = await _systemCheckService.GetModelRecommendationAsync();
             IsChecking = false;
         }
 

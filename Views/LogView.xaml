@@ -34,34 +34,78 @@
                       Grid.Row="1"
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding LogEntries}">
+            <ItemsControl ItemsSource="{Binding LogEntries}"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         VirtualizingPanel.VirtualizationMode="Recycling"
+                         VirtualizingPanel.ScrollUnit="Pixel">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Margin="0,2">
-                            <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" 
-                                     Margin="0,0,8,0"/>
-                            <TextBlock Text="{Binding Level}"
-                                     Width="60"
-                                     Margin="0,0,8,0">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
+                        <Grid Margin="0,1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" 
+                                     Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                                     Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                            
+                            <Border Grid.Column="1" 
+                                    Margin="4,0"
+                                    CornerRadius="2"
+                                    Padding="4,0">
+                                <Border.Style>
+                                    <Style TargetType="Border">
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Level}" Value="Error">
-                                                <Setter Property="Foreground" Value="Red"/>
+                                            <DataTrigger Binding="{Binding Level}" Value="ERROR">
+                                                <Setter Property="Background" Value="#FFEBEE"/>
                                             </DataTrigger>
-                                            <DataTrigger Binding="{Binding Level}" Value="Warning">
-                                                <Setter Property="Foreground" Value="Orange"/>
+                                            <DataTrigger Binding="{Binding Level}" Value="WARN">
+                                                <Setter Property="Background" Value="#FFF3E0"/>
                                             </DataTrigger>
-                                            <DataTrigger Binding="{Binding Level}" Value="Information">
-                                                <Setter Property="Foreground" Value="Green"/>
+                                            <DataTrigger Binding="{Binding Level}" Value="INFO">
+                                                <Setter Property="Background" Value="#E8F5E9"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Level}" Value="DBG">
+                                                <Setter Property="Background" Value="#E3F2FD"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <TextBlock Text="{Binding Message}" 
+                                </Border.Style>
+                                
+                                <TextBlock Text="{Binding Level}"
+                                         HorizontalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Level}" Value="ERROR">
+                                                    <Setter Property="Foreground" Value="#D32F2F"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Level}" Value="WARN">
+                                                    <Setter Property="Foreground" Value="#F57C00"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Level}" Value="INFO">
+                                                    <Setter Property="Foreground" Value="#388E3C"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Level}" Value="DBG">
+                                                    <Setter Property="Foreground" Value="#1976D2"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
+                            
+                            <TextBlock Grid.Column="2" 
+                                     Text="{Binding Message}"
                                      TextWrapping="Wrap"/>
-                        </StackPanel>
+                        </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
