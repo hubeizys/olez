@@ -39,7 +39,8 @@
 
         <!-- 聊天记录 -->
         <ScrollViewer Grid.Row="1" x:Name="ChatScrollViewer">
-            <ItemsControl ItemsSource="{Binding Messages}">
+            <ItemsControl ItemsSource="{Binding Messages, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}"
+                         VirtualizingPanel.IsVirtualizing="False">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <materialDesign:Card Margin="0,8" UniformCornerRadius="8">
@@ -60,7 +61,7 @@
                                 <!-- 消息内容 -->
                                 <TextBlock
                                     Grid.Column="1"
-                                    Text="{Binding Content}"
+                                    Text="{Binding Content, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}"
                                     TextWrapping="Wrap"
                                     Style="{StaticResource MaterialDesignBody1TextBlock}"/>
                             </Grid>
@@ -94,23 +95,27 @@
         </Grid>
 
         <!-- 加载指示器 -->
-        <materialDesign:Card
-            Grid.Row="0"
-            Grid.RowSpan="3"
-            HorizontalAlignment="Center"
+        <Border
+            Grid.Row="2"
+            HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            Padding="16"
+            Margin="0,0,80,0"
+            Background="{DynamicResource MaterialDesignPaper}"
+            CornerRadius="4"
+            Padding="8"
             Visibility="{Binding IsProcessing, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <ProgressBar
                     IsIndeterminate="True"
                     Style="{StaticResource MaterialDesignCircularProgressBar}"
+                    Width="20"
+                    Height="20"
+                    Margin="0,0,8,0"
                     Value="0"/>
                 <TextBlock
-                    Margin="0,8,0,0"
-                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
                     Text="正在思考..."/>
             </StackPanel>
-        </materialDesign:Card>
+        </Border>
     </Grid>
 </UserControl> 

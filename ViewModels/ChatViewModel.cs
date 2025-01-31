@@ -9,6 +9,7 @@ using ollez.Models;
 using ollez.Services;
 using System.Diagnostics;
 using Serilog;
+using System.Windows;
 
 namespace ollez.ViewModels
 {
@@ -20,9 +21,14 @@ namespace ollez.ViewModels
         private bool _isProcessing;
         private string _selectedModel;
         private ObservableCollection<string> _availableModels;
+        private ObservableCollection<ChatMessage> _messages;
 
-        public ObservableCollection<ChatMessage> Messages { get; } = new ObservableCollection<ChatMessage>();
-        
+        public ObservableCollection<ChatMessage> Messages
+        {
+            get => _messages;
+            private set => SetProperty(ref _messages, value);
+        }
+
         public ObservableCollection<string> AvailableModels
         {
             get => _availableModels;
@@ -56,7 +62,8 @@ namespace ollez.ViewModels
             _systemCheckService = systemCheckService;
             SendMessageCommand = new DelegateCommand(async () => await SendMessageAsync(), CanSendMessage);
             RefreshModelsCommand = new DelegateCommand(async () => await RefreshModelsAsync());
-            
+
+            Messages = new ObservableCollection<ChatMessage>();
             AvailableModels = new ObservableCollection<string>();
             _ = InitializeAsync();
         }
@@ -90,7 +97,7 @@ namespace ollez.ViewModels
             return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing && !string.IsNullOrEmpty(SelectedModel);
         }
 
-         private async Task SendMessageAsync()
+        private async Task SendMessageAsync()
         {
             if (string.IsNullOrWhiteSpace(InputMessage) || IsProcessing || string.IsNullOrEmpty(SelectedModel))
             {
@@ -122,15 +129,19 @@ namespace ollez.ViewModels
 
                 Log.Information("[ChatViewModel] 开始获取流式响应");
                 var responseStream = await _chatService.SendMessageStreamAsync(message, SelectedModel);
-                
+                IsProcessing = false; // 在开始处理流式响应前关闭加载指示器
+
                 Log.Information("[ChatViewModel] 开始处理流式响应");
                 await foreach (var chunk in responseStream)
                 {
                     Log.Information($"[ChatViewModel] 收到chunk内容: '{chunk}'");
                     if (!string.IsNullOrEmpty(chunk))
                     {
-                        assistantMessage.Content += chunk;
-                        RaisePropertyChanged(nameof(Messages));
+                        // 确保更新 Content 属性是在 UI 线程上执行的
+                        await Application.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            assistantMessage.Content += chunk;
+                        });
                         Log.Information($"[ChatViewModel] 当前完整消息: '{assistantMessage.Content.Length}' 字符");
                     }
                 }
@@ -151,5 +162,6 @@ namespace ollez.ViewModels
                 Log.Information("[ChatViewModel] 消息处理完成");
             }
         }
-    }
-} 
+       
+    } 
+}
