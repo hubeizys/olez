@@ -5,6 +5,7 @@ using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Regions;
 using ollez.Services;
+using Serilog;
 
 namespace ollez.ViewModels
 {
@@ -33,33 +34,33 @@ namespace ollez.ViewModels
 
         public LogViewModel(ILogService logService)
         {
+            Log.Debug("LogViewModel: 构造函数被调用");
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
+            
             ClearCommand = new DelegateCommand(() => 
             {
+                Log.Debug("LogViewModel: 清除命令被执行");
                 LogEntries.Clear();
-                _logService.StartMonitoring(); // 清除后重新开始监控
+                _logService.StartMonitoring();
             });
             
-            // 监听日志更新以触发滚动
             LogEntries.CollectionChanged += (s, e) =>
             {
+                Log.Debug("LogViewModel: 集合变更事件触发 - 动作类型: {Action}, 当前日志条数: {Count}", e.Action, LogEntries.Count);
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add && AutoScroll)
                 {
                     ScrollToEndRequested?.Invoke(this, EventArgs.Empty);
                 }
             };
-
-            // 立即开始监控
-            _logService.StartMonitoring();
         }
 
         public void OnNavigatedTo(NavigationContext navigationContext)
         {
+            Log.Debug("LogViewModel: OnNavigatedTo被调用");
+            _logService.StartMonitoring();
             CurrentLogFile = _logService.CurrentLogFile;
-            if (!string.IsNullOrEmpty(CurrentLogFile))
-            {
-                _logService.StartMonitoring();
-            }
+            Log.Debug("LogViewModel: 当前日志文件路径: {FilePath}", CurrentLogFile);
+            Log.Debug("LogViewModel: 当前日志条数: {Count}", LogEntries.Count);
         }
 
         public bool IsNavigationTarget(NavigationContext navigationContext)
@@ -69,6 +70,7 @@ namespace ollez.ViewModels
 
         public void OnNavigatedFrom(NavigationContext navigationContext)
         {
+            Log.Debug("LogViewModel: OnNavigatedFrom被调用");
             _logService.StopMonitoring();
         }
     }

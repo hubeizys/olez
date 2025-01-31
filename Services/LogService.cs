@@ -6,6 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Serilog;
 
 namespace ollez.Services
 {
@@ -18,37 +19,90 @@ namespace ollez.Services
         private static readonly Regex LogEntryPattern = new(@"^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s+\[(\w+)\]\s+(.+)$");
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private DateTime _lastProcessTime = DateTime.MinValue;
+        private const string APP_LOG_PREFIX = "app_";  // 应用程序自身的日志前缀
+        private const string MONITOR_LOG_PREFIX = "monitor_";  // 要监控的日志前缀
 
         public ObservableCollection<LogEntry> LogEntries { get; }
         public string CurrentLogFile { get; private set; }
 
         public LogService()
         {
+            Log.Debug("LogService: 构造函数被调用");
             LogEntries = new ObservableCollection<LogEntry>();
             _logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            Log.Debug("LogService: 日志目录路径: {DirectoryPath}", _logDirectory);
             
             if (!Directory.Exists(_logDirectory))
             {
+                Log.Debug("LogService: 创建日志目录");
                 Directory.CreateDirectory(_logDirectory);
+            }
+
+            // 如果没有监控日志文件，创建一个示例文件
+            EnsureMonitorLogFileExists();
+        }
+
+        private void EnsureMonitorLogFileExists()
+        {
+            var defaultLogFile = Path.Combine(_logDirectory, $"{MONITOR_LOG_PREFIX}default.log");
+            if (!File.Exists(defaultLogFile))
+            {
+                Log.Debug("LogService: 创建示例日志文件");
+                try
+                {
+                    using (var writer = File.CreateText(defaultLogFile))
+                    {
+                        writer.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [INFO] 系统启动");
+                        writer.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [INFO] 这是一个示例日志文件");
+                        writer.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [WARN] 这是一条警告消息");
+                        writer.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [ERROR] 这是一条错误消息");
+                    }
+                    Log.Debug("LogService: 示例日志文件创建成功");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "LogService: 创建示例日志文件时出错");
+                }
             }
         }
 
         private string FindLatestLogFile()
         {
-            var logFiles = Directory.GetFiles(_logDirectory, "app*.log")
+            Log.Debug("LogService: 查找最新日志文件");
+            var logFiles = Directory.GetFiles(_logDirectory, $"{MONITOR_LOG_PREFIX}*.log")  // 只监控指定前缀的日志
                                   .OrderByDescending(f => File.GetLastWriteTime(f))
                                   .ToList();
-            return logFiles.FirstOrDefault();
+            Log.Debug("LogService: 找到 {Count} 个日志文件", logFiles.Count);
+            
+            var result = logFiles.FirstOrDefault();
+            if (string.IsNullOrEmpty(result))
+            {
+                // 如果没有找到日志文件，确保创建一个
+                EnsureMonitorLogFileExists();
+                // 重新查找
+                result = Directory.GetFiles(_logDirectory, $"{MONITOR_LOG_PREFIX}*.log")
+                                .OrderByDescending(f => File.GetLastWriteTime(f))
+                                .FirstOrDefault();
+            }
+            return result;
         }
 
         public void StartMonitoring()
         {
-            if (_isMonitoring) return;
+            Log.Debug("LogService: StartMonitoring被调用");
+            if (_isMonitoring)
+            {
+                Log.Debug("LogService: 已经在监控中，跳过");
+                return;
+            }
             _isMonitoring = true;
 
             CurrentLogFile = FindLatestLogFile();
+            Log.Debug("LogService: 当前日志文件: {FilePath}", CurrentLogFile);
+            
             if (string.IsNullOrEmpty(CurrentLogFile))
             {
+                Log.Debug("LogService: 未找到日志文件");
                 return;
             }
 
@@ -58,9 +112,12 @@ namespace ollez.Services
             // 设置文件监视
             _watcher = new FileSystemWatcher(_logDirectory)
             {
-                Filter = "app*.log",
-                EnableRaisingEvents = true
+                Filter = $"{MONITOR_LOG_PREFIX}*.log",  // 只监控指定前缀的日志
+                EnableRaisingEvents = true,
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime
             };
+
+            Log.Debug("LogService: 文件监视器已设置");
 
             _watcher.Changed += async (s, e) =>
             {
@@ -103,7 +160,7 @@ namespace ollez.Services
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"处理新日志文件时出错: {ex.Message}");
+                    Log.Error(ex, "处理新日志文件时出错");
                 }
                 finally
                 {
@@ -117,137 +174,80 @@ namespace ollez.Services
 
         private void LoadExistingLogs()
         {
+            Log.Debug("LogService: 开始加载现有日志");
             try
             {
-                App.Current.Dispatcher.Invoke(() =>
+                using (var stream = new FileStream(CurrentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
                 {
-                    LogEntries.Clear();
-                });
-
-                var lastLines = File.ReadAllLines(CurrentLogFile)
-                                  .TakeLast(100) // 只加载最后100行
-                                  .Select(ParseLogLine)
-                                  .Where(entry => entry != null);
-
-                foreach (var entry in lastLines)
-                {
-                    App.Current.Dispatcher.Invoke(() =>
+                    string line;
+                    int count = 0;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        LogEntries.Add(entry);
-                    });
+                        var match = LogEntryPattern.Match(line);
+                        if (match.Success)
+                        {
+                            var entry = new LogEntry
+                            {
+                                Timestamp = DateTime.Parse(match.Groups[1].Value),
+                                Level = match.Groups[2].Value,
+                                Message = match.Groups[3].Value
+                            };
+                            LogEntries.Add(entry);
+                            count++;
+                        }
+                    }
+                    Log.Debug("LogService: 已加载 {Count} 条现有日志记录", count);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"加载现有日志时出错: {ex.Message}");
+                Log.Error(ex, "LogService: 加载现有日志时出错");
             }
         }
 
         private async Task ReadNewLines()
         {
-            const int maxRetries = 3;
-            int retryCount = 0;
-
-            while (_isMonitoring && retryCount <= maxRetries)
-            {
-                try
-                {
-                    if (_reader == null)
-                    {
-                        await Task.Delay(100); // 等待文件解锁
-                        var fs = new FileStream(CurrentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                        _reader = new StreamReader(fs);
-                        
-                        // 检查文件是否被截断
-                        if (fs.Length < _reader.BaseStream.Position)
-                        {
-                            _reader.BaseStream.Seek(0, SeekOrigin.Begin);
-                        }
-                        else if (_reader.BaseStream.Position == 0)
-                        {
-                            _reader.BaseStream.Seek(0, SeekOrigin.End);
-                        }
-                    }
-
-                    string line;
-                    while (_isMonitoring && (line = await _reader.ReadLineAsync()) != null)
-                    {
-                        var entry = ParseLogLine(line);
-                        if (entry != null)
-                        {
-                            App.Current.Dispatcher.Invoke(() =>
-                            {
-                                LogEntries.Add(entry);
-                                // 保持最新的1000条记录
-                                while (LogEntries.Count > 1000)
-                                {
-                                    LogEntries.RemoveAt(0);
-                                }
-                            });
-                        }
-                        retryCount = 0; // 成功读取后重置重试计数
-                    }
-
-                    // 正常读取完成后等待一小段时间
-                    if (_isMonitoring)
-                    {
-                        await Task.Delay(50);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"读取新日志行时出错: {ex.Message}");
-                    _reader?.Dispose();
-                    _reader = null;
-
-                    retryCount++;
-                    if (retryCount <= maxRetries)
-                    {
-                        await Task.Delay(Math.Min(100 * retryCount, 1000)); // 指数退避，最大1秒
-                    }
-                }
-            }
-        }
-
-        private LogEntry ParseLogLine(string line)
-        {
-            if (string.IsNullOrWhiteSpace(line)) return null;
-
+            Log.Debug("LogService: 开始读取新日志行");
             try
             {
-                // 尝试匹配 Serilog 的默认输出格式
-                var match = Regex.Match(line, @"^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}(?:\.\d+)?)\s+\[(\w+)\]\s+(.+)$");
-                if (!match.Success)
+                using (var stream = new FileStream(CurrentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
                 {
-                    // 尝试匹配简单格式
-                    match = LogEntryPattern.Match(line);
-                    if (!match.Success) return null;
-                }
-
-                if (DateTime.TryParse(match.Groups[1].Value, out DateTime timestamp))
-                {
-                    return new LogEntry
+                    stream.Seek(0, SeekOrigin.End);
+                    
+                    string line;
+                    while ((line = await reader.ReadLineAsync()) != null)
                     {
-                        Timestamp = timestamp,
-                        Level = match.Groups[2].Value,
-                        Message = match.Groups[3].Value.Trim()
-                    };
+                        var match = LogEntryPattern.Match(line);
+                        if (match.Success)
+                        {
+                            var entry = new LogEntry
+                            {
+                                Timestamp = DateTime.Parse(match.Groups[1].Value),
+                                Level = match.Groups[2].Value,
+                                Message = match.Groups[3].Value
+                            };
+                            App.Current.Dispatcher.Invoke(() => LogEntries.Add(entry));
+                            Log.Debug("LogService: 添加新日志 - {Timestamp} [{Level}] {Message}", 
+                                entry.Timestamp, entry.Level, entry.Message);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"解析日志行时出错: {ex.Message}");
+                Log.Error(ex, "LogService: 读取新日志行时出错");
             }
-
-            return null;
         }
 
         public void StopMonitoring()
         {
+            Log.Debug("LogService: 停止监控");
             _isMonitoring = false;
             _watcher?.Dispose();
-            _reader?.Dispose();
             _watcher = null;
+            _reader?.Dispose();
             _reader = null;
         }
 

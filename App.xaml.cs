@@ -29,11 +29,15 @@ namespace ollez
         protected override Window CreateShell()
         {
             // 初始化 Serilog
-            var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "app.log");
+            var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "app_.log");
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .WriteTo.Debug()
-                .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
+                .WriteTo.Debug(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.File(logPath, 
+                    rollingInterval: RollingInterval.Day,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                    shared: true,
+                    flushToDiskInterval: TimeSpan.FromSeconds(1))
                 .CreateLogger();
 
             Log.Information("应用程序启动");
