@@ -24,7 +24,7 @@
             MaxWidth="600"
             Padding="32"
             Background="{DynamicResource MaterialDesignBackground}"
-            Effect="{materialDesign:ShadowAssist Level=5}"
+            materialDesign:ElevationAssist.Elevation="Dp3"
             UniformCornerRadius="15"
             VerticalAlignment="Center">
             <StackPanel Opacity="0">
