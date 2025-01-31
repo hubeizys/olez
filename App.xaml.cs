@@ -1,10 +1,10 @@
 using Prism.DryIoc;
 using Prism.Ioc;
 using System.Windows;
-using YourNamespace.Views;
-using YourNamespace.Services;
+using ollez.Views;
+using ollez.Services;
 
-namespace YourNamespace
+namespace ollez
 {
     public partial class App : PrismApplication
     {

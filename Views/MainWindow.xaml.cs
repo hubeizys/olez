@@ -2,7 +2,7 @@ using System.Windows;
 using System.Diagnostics;
 using System.Windows.Navigation;
 
-namespace YourNamespace.Views
+namespace ollez.Views
 {
     public partial class MainWindow : Window
     {

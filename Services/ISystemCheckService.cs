@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace YourNamespace.Services
+namespace ollez.Services
 {
     public class CudaInfo
     {

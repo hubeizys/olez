@@ -1,9 +1,9 @@
 using Prism.Commands;
 using Prism.Mvvm;
 using System.Threading.Tasks;
-using YourNamespace.Services;
+using ollez.Services;
 
-namespace YourNamespace.ViewModels
+namespace ollez.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace YourNamespace.Services
+namespace ollez.Services
 {
     public class SystemCheckService : ISystemCheckService
     {

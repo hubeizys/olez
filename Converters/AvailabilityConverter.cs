@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace YourNamespace.Converters
+namespace ollez.Converters
 {
     public class AvailabilityConverter : IValueConverter
     {
