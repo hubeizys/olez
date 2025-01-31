@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -115,9 +116,21 @@ namespace ollez.ViewModels
                 var responseStream = await _chatService.SendMessageStreamAsync(message, SelectedModel);
                 await foreach (var chunk in responseStream)
                 {
-                    assistantMessage.Content += chunk;
-                    RaisePropertyChanged(nameof(Messages)); // 通知 UI 更新
+                    if (!string.IsNullOrEmpty(chunk))
+                    {
+                        assistantMessage.Content += chunk;
+                        RaisePropertyChanged(nameof(Messages));
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                // 添加错误消息
+                Messages.Add(new ChatMessage
+                {
+                    Content = $"发生错误: {ex.Message}",
+                    IsUser = false
+                });
             }
             finally
             {
