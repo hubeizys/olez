@@ -236,6 +236,73 @@ namespace ollez.Services
             return recommendation;
         }
 
+        private async Task<bool> CheckOllamaServiceAsync()
+        {
+            try
+            {
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "ollama",
+                        Arguments = "list",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.Start();
+                string error = await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (!string.IsNullOrEmpty(error) && error.Contains("connect: connection refused"))
+                {
+                    Log.Warning("Ollama服务未运行，请使用命令：ollama serve");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "检查Ollama服务状态时发生错误");
+                return false;
+            }
+        }
+
+        private async Task<(string Output, string Error)> ExecuteOllamaCommandAsync(string command)
+        {
+            try
+            {
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "ollama",
+                        Arguments = command,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.Start();
+                string output = await process.StandardOutput.ReadToEndAsync();
+                string error = await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                return (output, error);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"执行Ollama命令时发生错误: {command}");
+                return (string.Empty, ex.Message);
+            }
+        }
+
         public async Task<OllamaInfo> CheckOllamaAsync()
         {
             var info = new OllamaInfo
@@ -243,20 +310,98 @@ namespace ollez.Services
                 Endpoint = "http://localhost:11434"
             };
 
+            // 首先检查ollama服务是否运行
+            info.IsRunning = await CheckOllamaServiceAsync();
+            if (!info.IsRunning)
+            {
+                Log.Warning("Ollama服务未运行。请执行命令：ollama serve");
+                info.HasError = true;
+                info.Error = "Ollama服务未运行，请执行命令：ollama serve";
+                return info;
+            }
+
             try
             {
-                var response = await _httpClient.GetAsync($"{info.Endpoint}/api/version");
-                if (response.IsSuccessStatusCode)
+                // 获取版本信息
+                var (versionOutput, versionError) = await ExecuteOllamaCommandAsync("version");
+                if (string.IsNullOrEmpty(versionError))
                 {
-                    var version = await response.Content.ReadAsStringAsync();
-                    info.IsRunning = true;
-                    info.Version = version;
+                    var versionLines = versionOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    if (versionLines.Length > 0)
+                    {
+                        info.Version = versionLines[0].Trim();
+                        info.BuildType = "正式版";  // 可以根据版本号格式判断是否为正式版
+                    }
+                }
+                
+                // 获取已安装的模型列表
+                var (listOutput, listError) = await ExecuteOllamaCommandAsync("list");
+                if (string.IsNullOrEmpty(listError))
+                {
+                    var modelsList = new List<OllamaModelInfo>();
+                    var lines = listOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    
+                    foreach (var line in lines.Skip(1)) // 跳过标题行
+                    {
+                        var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length >= 2)
+                        {
+                            var modelInfo = new OllamaModelInfo
+                            {
+                                Name = parts[0],
+                                Size = parts[1].EndsWith("GB") ?
+                                    long.Parse(parts[1].Replace("GB", "")) * 1024 * 1024 * 1024 :
+                                    long.Parse(parts[1].Replace("MB", "")) * 1024 * 1024,
+                                ModifiedAt = parts.Length > 2 ? string.Join(" ", parts.Skip(2)) : string.Empty,
+                                IsRunning = false,
+                                Status = "已安装"
+                            };
+                            modelsList.Add(modelInfo);
+                        }
+                    }
+
+                    // 获取正在运行的模型状态
+                    var (psOutput, psError) = await ExecuteOllamaCommandAsync("ps");
+                    if (string.IsNullOrEmpty(psError) && !string.IsNullOrEmpty(psOutput))
+                    {
+                        var psLines = psOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var line in psLines.Skip(1)) // 跳过标题行
+                        {
+                            var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length >= 1)
+                            {
+                                var modelName = parts[0];
+                                var model = modelsList.FirstOrDefault(m => m.Name == modelName);
+                                if (model != null)
+                                {
+                                    model.IsRunning = true;
+                                    model.Status = "运行中";
+                                    if (parts.Length > 1)
+                                    {
+                                        model.Status = $"运行中 - {string.Join(" ", parts.Skip(1))}";
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    info.InstalledModels = modelsList.OrderBy(m => m.Name).ToArray();
+                }
+                else
+                {
+                    Log.Warning("获取Ollama模型列表失败: {Error}", listError);
+                    info.HasError = true;
+                    info.Error = $"获取模型列表失败: {listError}";
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                info.IsRunning = false;
+                info.HasError = true;
+                info.Error = ex.Message;
+                Log.Error(ex, "检查Ollama状态时发生错误");
             }
+
+            Log.Information("Ollama检查结果: {@Info}", info);
             return info;
         }
     }

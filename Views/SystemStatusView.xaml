@@ -154,10 +154,55 @@
                                  Margin="0,8,8,0"
                                  Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                         <TextBlock Grid.Column="1" Grid.Row="1"
-                                 Margin="0,8,0,0"
-                                 Text="{Binding OllamaInfo.Version}"
-                                 Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                  Margin="0,8,0,0"
+                                  Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Run Text="{Binding OllamaInfo.Version}"/>
+                            <Run Text=" "/>
+                            <Run Text="{Binding OllamaInfo.BuildType}"/>
+                            <Run Text=" ("/>
+                            <Run Text="{Binding OllamaInfo.CommitHash}"/>
+                            <Run Text=")"/>
+                        </TextBlock>
                     </Grid>
+
+                    <!-- 已安装的模型列表 -->
+                    <ItemsControl Margin="0,16,0,0"
+                                ItemsSource="{Binding OllamaInfo.InstalledModels}"
+                                Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Name}" FontWeight="Medium"/>
+                                        <TextBlock Margin="0,4,0,0" Opacity="0.6">
+                                            <Run Text="大小: "/>
+                                            <Run Text="{Binding Size, StringFormat='{}{0:N0}'}"/>
+                                            <Run Text=" 字节"/>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding ModifiedAt}" Opacity="0.6"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1" Margin="16,0,0,0"
+                                             Foreground="{Binding IsRunning, Converter={StaticResource BoolToColorConverter}}"
+                                             Text="{Binding Status}"
+                                             VerticalAlignment="Center"/>
+
+                                    <materialDesign:PackIcon Grid.Column="2" Margin="8,0,0,0"
+                                                          Kind="Check"
+                                                          Foreground="Green"
+                                                          Width="20" Height="20"
+                                                          VerticalAlignment="Center"
+                                                          Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                     
                     <TextBlock Margin="0,16,0,0"
                              TextWrapping="Wrap"

@@ -34,11 +34,28 @@ namespace ollez.Services
         public string RecommendationReason { get; set; }    // 推荐原因
     }
 
+    public class OllamaModelInfo
+    {
+        public string Name { get; set; }           // 模型名称
+        public string Digest { get; set; }         // 模型摘要
+        public long Size { get; set; }             // 模型大小
+        public string ModifiedAt { get; set; }     // 最后修改时间
+        public bool IsRunning { get; set; }        // 是否正在运行
+        public bool HasError { get; set; }         // 是否有错误
+        public string Error { get; set; }          // 错误信息
+        public string Status { get; set; }         // 运行状态
+    }
+
     public class OllamaInfo
     {
-        public bool IsRunning { get; set; }
-        public string Version { get; set; }
-        public string Endpoint { get; set; }
+        public bool IsRunning { get; set; }        // 服务是否运行
+        public string Version { get; set; }        // 版本号
+        public string BuildType { get; set; }      // 构建类型
+        public string CommitHash { get; set; }     // 提交哈希
+        public string Endpoint { get; set; }       // API端点
+        public bool HasError { get; set; }         // 是否有错误
+        public string Error { get; set; }          // 错误信息
+        public OllamaModelInfo[] InstalledModels { get; set; }  // 已安装的模型
     }
 
     public interface ISystemCheckService
