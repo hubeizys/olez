@@ -11,6 +11,9 @@ using System.Windows;
 using ollez.Views;
 using ollez.Services;
 using ollez.ViewModels;
+using Serilog;
+using System.IO;
+using System;
 
 namespace ollez
 {
@@ -25,7 +28,23 @@ namespace ollez
         /// <returns>应用程序的主窗口</returns>
         protected override Window CreateShell()
         {
+            // 初始化 Serilog
+            var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "app.log");
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Debug()
+                .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+
+            Log.Information("应用程序启动");
+            
             return Container.Resolve<MainWindow>();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            Log.CloseAndFlush();
+            base.OnExit(e);
         }
 
         /// <summary>
