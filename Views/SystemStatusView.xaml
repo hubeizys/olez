@@ -181,8 +181,7 @@
                             Text="模型推荐"/>
                     </DockPanel>
 
-                    <Grid Margin="0,16,0,0"
-                          Visibility="{Binding ModelRecommendation, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid Margin="0,16,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
