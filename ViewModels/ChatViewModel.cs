@@ -141,8 +141,11 @@ namespace ollez.ViewModels
                         await Application.Current.Dispatcher.InvokeAsync(() =>
                         {
                             assistantMessage.Content += chunk;
+                            var index = Messages.IndexOf(assistantMessage);
+                            Messages[index] = null;  // 触发集合变化
+                            Messages[index] = assistantMessage;
+                            Log.Information($"[ChatViewModel] 当前完整消息: '{assistantMessage.Content.Length}' 字符");
                         });
-                        Log.Information($"[ChatViewModel] 当前完整消息: '{assistantMessage.Content.Length}' 字符");
                     }
                 }
                 Log.Information("[ChatViewModel] 流式响应处理完成");
@@ -162,6 +165,6 @@ namespace ollez.ViewModels
                 Log.Information("[ChatViewModel] 消息处理完成");
             }
         }
-       
-    } 
+
+    }
 }

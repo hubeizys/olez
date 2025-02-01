@@ -62,7 +62,7 @@
                                 <!-- 消息内容 -->
                                 <TextBlock
                                     Grid.Column="1"
-                                    Text="{Binding Content}"
+                                    Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     TextWrapping="Wrap"
                                     Style="{StaticResource MaterialDesignBody1TextBlock}"/>
                             </Grid>
