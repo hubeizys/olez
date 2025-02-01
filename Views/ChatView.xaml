@@ -38,9 +38,10 @@
         </StackPanel>
 
         <!-- 聊天记录 -->
-        <ScrollViewer Grid.Row="1" x:Name="ChatScrollViewer">
-            <ItemsControl ItemsSource="{Binding Messages, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}"
-                         VirtualizingPanel.IsVirtualizing="False">
+        <ScrollViewer Grid.Row="1" 
+                     x:Name="ChatScrollViewer"
+                     ScrollChanged="ChatScrollViewer_ScrollChanged">
+            <ItemsControl ItemsSource="{Binding Messages}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <materialDesign:Card Margin="0,8" UniformCornerRadius="8">
@@ -61,7 +62,7 @@
                                 <!-- 消息内容 -->
                                 <TextBlock
                                     Grid.Column="1"
-                                    Text="{Binding Content, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}"
+                                    Text="{Binding Content}"
                                     TextWrapping="Wrap"
                                     Style="{StaticResource MaterialDesignBody1TextBlock}"/>
                             </Grid>
@@ -118,4 +119,4 @@
             </StackPanel>
         </Border>
     </Grid>
-</UserControl> 
+</UserControl>
