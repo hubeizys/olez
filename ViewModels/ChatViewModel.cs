@@ -16,11 +16,14 @@ using System.Windows.Media;
 using System.Threading;
 using Serilog.Core;
 using Serilog.Events;
+using ollez.Attributes;
 
 namespace ollez.ViewModels
 {
-    public class ChatViewModel : BindableBase
+    public class ChatViewModel : ViewModelBase
     {
+        [Logger("ui_debug", MinimumLevel = LogEventLevel.Debug)]
+        private readonly ILogger _debugLogger;
 
         private StringBuilder _contentBuilder = new StringBuilder();
         private readonly IChatService _chatService;
@@ -34,7 +37,6 @@ namespace ollez.ViewModels
         private StringBuilder _pendingContent;
         private DateTime _lastUpdateTime;
         private const int UI_UPDATE_INTERVAL_MS = 200;
-        private readonly ILogger _debugLogger;
 
         private string _testContent;
 
@@ -96,11 +98,6 @@ namespace ollez.ViewModels
             _pendingContent = new StringBuilder();
             _lastUpdateTime = DateTime.Now;
             
-            // 创建专门的调试日志记录器
-            _debugLogger = new LoggerConfiguration()
-                .WriteTo.File("logs/ui_debug.log", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
-                
             _ = InitializeAsync();
         }
 
