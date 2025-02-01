@@ -4,67 +4,70 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/"
+    xmlns:converters="clr-namespace:ollez.Converters"
     prism:ViewModelLocator.AutoWireViewModel="True">
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="500" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- 标题 -->
+        <!--  标题  -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock
+                Margin="0,0,0,16"
                 Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                Text="Ollama 聊天"
-                Margin="0,0,0,16"/>
+                Text="Ollama 聊天" />
 
-            <!-- 模型选择 -->
+            <!--  模型选择  -->
             <DockPanel>
                 <Button
-                    DockPanel.Dock="Right"
                     Margin="8,0,0,0"
                     Command="{Binding RefreshModelsCommand}"
+                    DockPanel.Dock="Right"
                     Style="{StaticResource MaterialDesignOutlinedButton}">
-                    <materialDesign:PackIcon Kind="Refresh"/>
+                    <materialDesign:PackIcon Kind="Refresh" />
                 </Button>
                 <ComboBox
                     materialDesign:HintAssist.Hint="选择模型"
-                    Style="{StaticResource MaterialDesignOutlinedComboBox}"
                     ItemsSource="{Binding AvailableModels}"
-                    SelectedItem="{Binding SelectedModel}"/>
+                    SelectedItem="{Binding SelectedModel}"
+                    Style="{StaticResource MaterialDesignOutlinedComboBox}" />
             </DockPanel>
         </StackPanel>
 
-        <!-- 聊天记录 -->
-        <ScrollViewer Grid.Row="1" 
-                     x:Name="ChatScrollViewer"
-                     ScrollChanged="ChatScrollViewer_ScrollChanged">
+        <!--  聊天记录  -->
+        <ScrollViewer
+            x:Name="ChatScrollViewer"
+            Grid.Row="1"
+            ScrollChanged="ChatScrollViewer_ScrollChanged">
             <ItemsControl ItemsSource="{Binding Messages}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <materialDesign:Card Margin="0,8" UniformCornerRadius="8">
                             <Grid Margin="16">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <!-- 用户图标 -->
+                                <!--  用户图标  -->
                                 <materialDesign:PackIcon
-                                    Kind="{Binding IsUser, Converter={StaticResource MessageIconConverter}}"
                                     Width="24"
                                     Height="24"
                                     Margin="0,0,16,0"
-                                    VerticalAlignment="Top"/>
+                                    VerticalAlignment="Top"
+                                    Kind="{Binding IsUser, Converter={StaticResource MessageIconConverter}}" />
 
-                                <!-- 消息内容 -->
+                                <!--  消息内容  -->
                                 <TextBlock
                                     Grid.Column="1"
+                                    Style="{StaticResource MaterialDesignBody1TextBlock}"
                                     Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    TextWrapping="Wrap"
-                                    Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                    TextWrapping="Wrap" />
                             </Grid>
                         </materialDesign:Card>
                     </DataTemplate>
@@ -72,50 +75,67 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- 输入区域 -->
-        <Grid Grid.Row="2" Margin="0,16,0,0">
+        <RichTextBox
+            Grid.Row="2"
+            Height="500"
+            Margin="0,8"
+            Padding="8"
+            Background="AliceBlue"
+            BorderThickness="1"
+            BorderBrush="{DynamicResource MaterialDesignDivider}"
+            IsReadOnly="True"
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollBarVisibility="Auto"
+            converters:DocumentBindingBehavior.Document="{Binding TestDocument, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+            <RichTextBox.Resources>
+                <Style TargetType="{x:Type Paragraph}">
+                    <Setter Property="Margin" Value="0"/>
+                </Style>
+            </RichTextBox.Resources>
+        </RichTextBox>
+
+        <!--  输入区域  -->
+        <Grid Grid.Row="3" Margin="0,16,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <TextBox
                 x:Name="MessageInput"
-                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                Margin="0,0,16,0"
                 materialDesign:HintAssist.Hint="输入消息..."
-                Text="{Binding InputMessage, UpdateSourceTrigger=PropertyChanged}"
                 KeyDown="MessageInput_KeyDown"
-                Margin="0,0,16,0"/>
+                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                Text="{Binding InputMessage, UpdateSourceTrigger=PropertyChanged}" />
 
             <Button
                 Grid.Column="1"
                 Command="{Binding SendMessageCommand}"
                 Style="{StaticResource MaterialDesignFloatingActionButton}">
-                <materialDesign:PackIcon Kind="Send"/>
+                <materialDesign:PackIcon Kind="Send" />
             </Button>
         </Grid>
 
-        <!-- 加载指示器 -->
+        <!--  加载指示器  -->
         <Border
             Grid.Row="2"
+            Margin="0,0,80,0"
+            Padding="8"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            Margin="0,0,80,0"
             Background="{DynamicResource MaterialDesignPaper}"
             CornerRadius="4"
-            Padding="8"
             Visibility="{Binding IsProcessing, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel Orientation="Horizontal">
                 <ProgressBar
-                    IsIndeterminate="True"
-                    Style="{StaticResource MaterialDesignCircularProgressBar}"
                     Width="20"
                     Height="20"
                     Margin="0,0,8,0"
-                    Value="0"/>
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Text="正在思考..."/>
+                    IsIndeterminate="True"
+                    Style="{StaticResource MaterialDesignCircularProgressBar}"
+                    Value="0" />
+                <TextBlock VerticalAlignment="Center" Text="正在思考..." />
             </StackPanel>
         </Border>
     </Grid>

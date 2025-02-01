@@ -10,11 +10,16 @@ using ollez.Services;
 using System.Diagnostics;
 using Serilog;
 using System.Windows;
+using System.Text;
+using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace ollez.ViewModels
 {
     public class ChatViewModel : BindableBase
     {
+
+        private StringBuilder _contentBuilder = new StringBuilder();
         private readonly IChatService _chatService;
         private readonly ISystemCheckService _systemCheckService;
         private string _inputMessage;
@@ -22,6 +27,21 @@ namespace ollez.ViewModels
         private string _selectedModel;
         private ObservableCollection<string> _availableModels;
         private ObservableCollection<ChatMessage> _messages;
+        private FlowDocument _testDocument;
+
+        private string _testContent;
+
+        public string TestContent
+        {
+            get => _testContent;
+            set => SetProperty(ref _testContent, value);
+        }
+
+        public FlowDocument TestDocument
+        {
+            get => _testDocument;
+            set => SetProperty(ref _testDocument, value);
+        }
 
         public ObservableCollection<ChatMessage> Messages
         {
@@ -65,6 +85,7 @@ namespace ollez.ViewModels
 
             Messages = new ObservableCollection<ChatMessage>();
             AvailableModels = new ObservableCollection<string>();
+            TestDocument = new FlowDocument();
             _ = InitializeAsync();
         }
 
@@ -95,6 +116,22 @@ namespace ollez.ViewModels
         private bool CanSendMessage()
         {
             return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing && !string.IsNullOrEmpty(SelectedModel);
+        }
+
+        private async Task UpdateUIAsync(string chunk)
+        {
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                if (TestDocument.Blocks.Count == 0)
+                {
+                    TestDocument.Blocks.Add(new Paragraph());
+                }
+
+                var paragraph = TestDocument.Blocks.FirstBlock as Paragraph;
+                paragraph.Inlines.Add(new Run(chunk));
+                RaisePropertyChanged(nameof(TestDocument));
+                Log.Information($"[ChatViewModel] 更新文档内容，添加chunk: '{chunk}'");
+            });
         }
 
         private async Task SendMessageAsync()
@@ -135,16 +172,19 @@ namespace ollez.ViewModels
                 await foreach (var chunk in responseStream)
                 {
                     Log.Information($"[ChatViewModel] 收到chunk内容: '{chunk}'");
+                    await UpdateUIAsync(chunk);
                     if (!string.IsNullOrEmpty(chunk))
                     {
                         // 确保更新 Content 属性是在 UI 线程上执行的
                         await Application.Current.Dispatcher.InvokeAsync(() =>
                         {
+                  
                             assistantMessage.Content += chunk;
                             var index = Messages.IndexOf(assistantMessage);
                             Messages[index] = null;  // 触发集合变化
                             Messages[index] = assistantMessage;
                             Log.Information($"[ChatViewModel] 当前完整消息: '{assistantMessage.Content.Length}' 字符");
+
                         });
                     }
                 }
