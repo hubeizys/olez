@@ -13,6 +13,7 @@ using System.Windows;
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Threading;
 
 namespace ollez.ViewModels
 {
@@ -28,6 +29,9 @@ namespace ollez.ViewModels
         private ObservableCollection<string> _availableModels;
         private ObservableCollection<ChatMessage> _messages;
         private FlowDocument _testDocument;
+        private StringBuilder _pendingContent;
+        private DateTime _lastUpdateTime;
+        private const int UI_UPDATE_INTERVAL_MS = 200;
 
         private string _testContent;
 
@@ -86,6 +90,8 @@ namespace ollez.ViewModels
             Messages = new ObservableCollection<ChatMessage>();
             AvailableModels = new ObservableCollection<string>();
             TestDocument = new FlowDocument();
+            _pendingContent = new StringBuilder();
+            _lastUpdateTime = DateTime.Now;
             _ = InitializeAsync();
         }
 
@@ -120,17 +126,45 @@ namespace ollez.ViewModels
 
         private async Task UpdateUIAsync(string chunk)
         {
+            Log.Information($"[ChatViewModel] 收到新的chunk: '{chunk}'");
+            
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                if (TestDocument.Blocks.Count == 0)
-                {
-                    TestDocument.Blocks.Add(new Paragraph());
-                }
+                _pendingContent.Append(chunk);
+                Log.Information($"[ChatViewModel] 当前缓冲区大小: {_pendingContent.Length} 字符");
+                
+                var now = DateTime.Now;
+                var timeSinceLastUpdate = (now - _lastUpdateTime).TotalMilliseconds;
+                Log.Information($"[ChatViewModel] 距离上次更新过去了: {timeSinceLastUpdate}ms");
 
-                var paragraph = TestDocument.Blocks.FirstBlock as Paragraph;
-                paragraph.Inlines.Add(new Run(chunk));
-                RaisePropertyChanged(nameof(TestDocument));
-                Log.Information($"[ChatViewModel] 更新文档内容，添加chunk: '{chunk}'");
+                if (timeSinceLastUpdate >= UI_UPDATE_INTERVAL_MS)
+                {
+                    try 
+                    {
+                        Log.Information($"[ChatViewModel] 开始更新UI，当前缓冲区内容长度: {_pendingContent.Length}");
+                        
+                        if (TestDocument.Blocks.Count == 0)
+                        {
+                            TestDocument.Blocks.Add(new Paragraph());
+                            Log.Information("[ChatViewModel] 创建了新的段落");
+                        }
+
+                        var paragraph = TestDocument.Blocks.FirstBlock as Paragraph;
+                        string contentToAdd = _pendingContent.ToString();
+                        paragraph.Inlines.Add(new Run(contentToAdd));
+                        
+                        Log.Information($"[ChatViewModel] 成功添加内容到文档，长度: {contentToAdd.Length}");
+                        
+                        _pendingContent.Clear();
+                        _lastUpdateTime = now;
+                        
+                        RaisePropertyChanged(nameof(TestDocument));
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"[ChatViewModel] 更新UI时发生错误: {ex}");
+                    }
+                }
             });
         }
 
@@ -142,20 +176,30 @@ namespace ollez.ViewModels
                 return;
             }
 
-            Log.Information($"[ChatViewModel] 开始发送消息: Model={SelectedModel}, Message={InputMessage}");
-            var userMessage = new ChatMessage
-            {
-                Content = InputMessage.Trim(),
-                IsUser = true
-            };
-
-            Messages.Add(userMessage);
-            var message = InputMessage;
-            InputMessage = string.Empty;
-            IsProcessing = true;
-
             try
             {
+                // 清空之前的内容
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    TestDocument.Blocks.Clear();
+                    _pendingContent.Clear();
+                    Log.Information("[ChatViewModel] 清空了文档和缓冲区");
+                });
+                
+                _lastUpdateTime = DateTime.Now;
+
+                Log.Information($"[ChatViewModel] 开始发送消息: Model={SelectedModel}, Message={InputMessage}");
+                var userMessage = new ChatMessage
+                {
+                    Content = InputMessage.Trim(),
+                    IsUser = true
+                };
+
+                Messages.Add(userMessage);
+                var message = InputMessage;
+                InputMessage = string.Empty;
+                IsProcessing = true;
+
                 Log.Information("[ChatViewModel] 创建助手消息");
                 var assistantMessage = new ChatMessage
                 {
@@ -173,20 +217,6 @@ namespace ollez.ViewModels
                 {
                     Log.Information($"[ChatViewModel] 收到chunk内容: '{chunk}'");
                     await UpdateUIAsync(chunk);
-                    if (!string.IsNullOrEmpty(chunk))
-                    {
-                        // 确保更新 Content 属性是在 UI 线程上执行的
-                        await Application.Current.Dispatcher.InvokeAsync(() =>
-                        {
-                  
-                            assistantMessage.Content += chunk;
-                            var index = Messages.IndexOf(assistantMessage);
-                            Messages[index] = null;  // 触发集合变化
-                            Messages[index] = assistantMessage;
-                            Log.Information($"[ChatViewModel] 当前完整消息: '{assistantMessage.Content.Length}' 字符");
-
-                        });
-                    }
                 }
                 Log.Information("[ChatViewModel] 流式响应处理完成");
             }
