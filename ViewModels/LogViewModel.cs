@@ -12,11 +12,11 @@ namespace ollez.ViewModels
     public class LogViewModel : BindableBase, INavigationAware
     {
         private readonly ILogService _logService;
-        public event EventHandler ScrollToEndRequested;
+        public event EventHandler? ScrollToEndRequested;
         
         public ObservableCollection<LogEntry> LogEntries => _logService.LogEntries;
 
-        private string _currentLogFile;
+        private string _currentLogFile = string.Empty;
         public string CurrentLogFile
         {
             get => _currentLogFile;

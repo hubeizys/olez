@@ -23,14 +23,14 @@ namespace ollez.ViewModels
     public class ChatViewModel : ViewModelBase
     {
         [Logger("ui_debug", MinimumLevel = LogEventLevel.Debug)]
-        private readonly ILogger _debugLogger;
+        private readonly ILogger _debugLogger = null!;
 
         private StringBuilder _contentBuilder = new StringBuilder();
         private readonly IChatService _chatService;
         private readonly ISystemCheckService _systemCheckService;
-        private string _inputMessage;
+        private string _inputMessage = string.Empty;
         private bool _isProcessing;
-        private string _selectedModel;
+        private string _selectedModel = string.Empty;
         private ObservableCollection<string> _availableModels;
         private ObservableCollection<ChatMessage> _messages;
         private FlowDocument _testDocument;
@@ -38,7 +38,7 @@ namespace ollez.ViewModels
         private DateTime _lastUpdateTime;
         private const int UI_UPDATE_INTERVAL_MS = 200;
 
-        private string _testContent;
+        private string _testContent = string.Empty;
 
         public string TestContent
         {

@@ -1,5 +1,6 @@
 using Prism.Commands;
 using Prism.Mvvm;
+using System;
 using System.Threading.Tasks;
 using ollez.Services;
 using Prism.Regions;
@@ -12,14 +13,20 @@ namespace ollez.ViewModels
         private readonly ISystemCheckService _systemCheckService;
         private readonly IRegionManager _regionManager;
         
-        private CudaInfo _cudaInfo;
+        private CudaInfo _cudaInfo = new();
         public CudaInfo CudaInfo
         {
             get => _cudaInfo;
             set => SetProperty(ref _cudaInfo, value);
         }
 
-        private OllamaInfo _ollamaInfo;
+        private OllamaInfo _ollamaInfo = new()
+        {
+            IsRunning = false,
+            HasError = false,
+            Endpoint = "http://localhost:11434",
+            InstalledModels = Array.Empty<OllamaModelInfo>()
+        };
         public OllamaInfo OllamaInfo
         {
             get => _ollamaInfo;
@@ -43,14 +50,25 @@ namespace ollez.ViewModels
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystemAsync());
             NavigateCommand = new DelegateCommand<string>(Navigate);
             
-            // 初始化时自动检查
-            _ = CheckSystemAsync();
+            // 初始化时自动检查并导航到默认页面
+            InitializeAsync();
+        }
 
-            // 使用Loaded事件后导航到默认页面
-            System.Windows.Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new System.Action(() =>
+        private async void InitializeAsync()
+        {
+            try
             {
-                Navigate("SystemStatusView");
-            }));
+                await CheckSystemAsync();
+                // 确保 UI 更新在主线程上执行
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    Navigate("SystemStatusView");
+                }, System.Windows.Threading.DispatcherPriority.Loaded);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Initialization error: {ex}");
+            }
         }
 
         private async Task CheckSystemAsync()

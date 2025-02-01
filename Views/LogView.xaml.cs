@@ -6,7 +6,7 @@ namespace ollez.Views
 {
     public partial class LogView : UserControl
     {
-        private LogViewModel _viewModel;
+        private LogViewModel _viewModel = null!;
         private LogViewModel ViewModel
         {
             get => _viewModel;
@@ -16,9 +16,10 @@ namespace ollez.Views
                 {
                     _viewModel.ScrollToEndRequested -= OnScrollToEndRequested;
                 }
-                _viewModel = value;
-                if (_viewModel != null)
+                
+                if (value is LogViewModel viewModel)
                 {
+                    _viewModel = viewModel;
                     _viewModel.ScrollToEndRequested += OnScrollToEndRequested;
                 }
             }
@@ -27,10 +28,16 @@ namespace ollez.Views
         public LogView()
         {
             InitializeComponent();
-            DataContextChanged += (s, e) => ViewModel = DataContext as LogViewModel;
+            DataContextChanged += (s, e) =>
+            {
+                if (DataContext is LogViewModel vm)
+                {
+                    ViewModel = vm;
+                }
+            };
         }
 
-        private void OnScrollToEndRequested(object sender, System.EventArgs e)
+        private void OnScrollToEndRequested(object? sender, System.EventArgs e)
         {
             Dispatcher.InvokeAsync(() =>
             {

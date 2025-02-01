@@ -21,6 +21,8 @@
             <converters:RunningConverter x:Key="RunningConverter"/>
             <converters:MessageIconConverter x:Key="MessageIconConverter"/>
             <converters:FileSizeConverter x:Key="FileSizeConverter"/>
+            <converters:BooleanTo1Or2Converter x:Key="BooleanTo1Or2Converter"/>
+            <converters:UserMessageBackgroundConverter x:Key="UserMessageBackgroundConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </prism:PrismApplication> 

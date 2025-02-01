@@ -8,6 +8,7 @@
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Regions;
+using System;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using ollez.Services;
@@ -20,22 +21,37 @@ namespace ollez.ViewModels
     public class SystemStatusViewModel : BindableBase, INavigationAware
     {
         private readonly ISystemCheckService _systemCheckService;
-        
-        private CudaInfo _cudaInfo;
+        private CudaInfo _cudaInfo = new();
         public CudaInfo CudaInfo
         {
             get => _cudaInfo;
             set => SetProperty(ref _cudaInfo, value);
         }
 
-        private OllamaInfo _ollamaInfo;
+        private OllamaInfo _ollamaInfo = new()
+        {
+            IsRunning = false,
+            HasError = false,
+            Endpoint = "http://localhost:11434",
+            InstalledModels = Array.Empty<OllamaModelInfo>()
+        };
         public OllamaInfo OllamaInfo
         {
             get => _ollamaInfo;
             set => SetProperty(ref _ollamaInfo, value);
         }
 
-        private ModelRecommendation _modelRecommendation;
+        private ModelRecommendation _modelRecommendation = new()
+        {
+            CanRunLargeModels = false,
+            RecommendedModel = new ModelRequirements
+            {
+                Name = "初始化中...",
+                Description = "正在检查系统状态...",
+                MinimumVram = 0
+            },
+            RecommendationReason = "正在检查系统状态..."
+        };
         public ModelRecommendation ModelRecommendation
         {
             get => _modelRecommendation;

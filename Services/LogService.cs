@@ -13,8 +13,8 @@ namespace ollez.Services
 {
     public class LogService : ILogService
     {
-        private FileSystemWatcher _watcher;
-        private StreamReader _reader;
+        private FileSystemWatcher? _watcher;
+        private StreamReader? _reader;
         private bool _isMonitoring;
         private readonly string _logDirectory;
         private static readonly Regex LogEntryPattern = new(@"^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s+\[(\w+)\]\s+(.+)$");
@@ -23,10 +23,9 @@ namespace ollez.Services
         private const int MAX_LOG_ENTRIES = 1000; // 最大保留的日志条数
         private const string LOG_FILE_PREFIX = "app_"; // 监控的日志前缀
         private long _lastPosition = 0;
-        private bool _semaphoreAcquired = false;
 
         public ObservableCollection<LogEntry> LogEntries { get; }
-        public string CurrentLogFile { get; private set; }
+        public string CurrentLogFile { get; private set; } = string.Empty;
 
         public LogService()
         {

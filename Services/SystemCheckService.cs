@@ -8,14 +8,38 @@ using Serilog;
 
 namespace ollez.Services
 {
-    public class SystemCheckService : ISystemCheckService
+    public class SystemCheckService : ISystemCheckService, IDisposable
     {
         private readonly HttpClient _httpClient;
+        private bool _disposed = false;
 
         public SystemCheckService()
         {
             _httpClient = new HttpClient();
             _httpClient.Timeout = TimeSpan.FromSeconds(5);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _httpClient?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+
+        ~SystemCheckService()
+        {
+            Dispose(false);
         }
 
         public async Task<CudaInfo> CheckCudaAsync()
@@ -25,7 +49,9 @@ namespace ollez.Services
             {
                 Log.Information("开始检查CUDA状态");
                 
-                var process = new Process
+                string output;
+                string error;
+                using (var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
@@ -36,81 +62,96 @@ namespace ollez.Services
                         RedirectStandardError = true,
                         CreateNoWindow = true
                     }
-                };
-
-                process.Start();
-                string output = await process.StandardOutput.ReadToEndAsync();
-                string error = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                Log.Information("nvidia-smi 退出代码: {ExitCode}", process.ExitCode);
-
-                if (!string.IsNullOrEmpty(error))
+                })
                 {
-                    Log.Warning("nvidia-smi 错误输出: {Error}", error);
-                }
-
-                if (process.ExitCode == 0 && !string.IsNullOrEmpty(output))
-                {
-                    info.IsAvailable = true;
-                    Log.Information("CUDA 可用，GPU信息输出:\n{Output}", output);
-
-                    // 获取GPU信息
-                    var gpuList = new List<GpuInfo>();
-                    var gpuLines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var line in gpuLines)
-                    {
-                        var parts = line.Split(',').Select(p => p.Trim()).ToArray();
-                        if (parts.Length >= 5)
-                        {
-                            var gpuInfo = new GpuInfo
-                            {
-                                Name = parts[0],
-                                MemoryTotal = int.Parse(parts[1]),
-                                MemoryFree = int.Parse(parts[2]),
-                                MemoryUsed = int.Parse(parts[3]),
-                                Architecture = $"Compute {parts[4]}"
-                            };
-                            gpuList.Add(gpuInfo);
-                        }
-                    }
-                    info.Gpus = gpuList.ToArray();
-
-                    // 获取版本信息
-                    process.StartInfo.Arguments = "";
                     process.Start();
-                    string versionOutput = await process.StandardOutput.ReadToEndAsync();
+                    output = await process.StandardOutput.ReadToEndAsync();
+                    error = await process.StandardError.ReadToEndAsync();
                     await process.WaitForExitAsync();
 
-                    var lines = versionOutput.Split('\n');
-                    if (lines.Length > 0)
+                    Log.Information("nvidia-smi 退出代码: {ExitCode}", process.ExitCode);
+
+                    if (!string.IsNullOrEmpty(error))
                     {
-                        var versionLine = lines.FirstOrDefault(l => l.Contains("NVIDIA-SMI") && l.Contains("Driver Version") && l.Contains("CUDA Version"));
-                        if (versionLine != null)
+                        Log.Warning("nvidia-smi 错误输出: {Error}", error);
+                    }
+
+                    if (process.ExitCode == 0 && !string.IsNullOrEmpty(output))
+                    {
+                        info.IsAvailable = true;
+                        Log.Information("CUDA 可用，GPU信息输出:\n{Output}", output);
+
+                        // 获取GPU信息
+                        var gpuList = new List<GpuInfo>();
+                        var gpuLines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var line in gpuLines)
                         {
-                            var smiMatch = System.Text.RegularExpressions.Regex.Match(versionLine, @"NVIDIA-SMI\s+([\d.]+)");
-                            if (smiMatch.Success)
+                            var parts = line.Split(',').Select(p => p.Trim()).ToArray();
+                            if (parts.Length >= 5)
                             {
-                                info.SmiVersion = smiMatch.Groups[1].Value;
+                                var gpuInfo = new GpuInfo
+                                {
+                                    Name = parts[0],
+                                    MemoryTotal = int.Parse(parts[1]),
+                                    MemoryFree = int.Parse(parts[2]),
+                                    MemoryUsed = int.Parse(parts[3]),
+                                    Architecture = $"Compute {parts[4]}"
+                                };
+                                gpuList.Add(gpuInfo);
                             }
+                        }
+                        info.Gpus = gpuList.ToArray();
+                    }
+                }
 
-                            var driverMatch = System.Text.RegularExpressions.Regex.Match(versionLine, @"Driver Version:\s*([\d.]+)");
-                            if (driverMatch.Success)
-                            {
-                                info.DriverVersion = driverMatch.Groups[1].Value;
-                            }
+                // 获取版本信息，使用新的Process实例
+                string versionOutput;
+                using (var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "nvidia-smi",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    }
+                })
+                {
+                    process.Start();
+                    versionOutput = await process.StandardOutput.ReadToEndAsync();
+                    await process.WaitForExitAsync();
+                }
 
-                            var cudaMatch = System.Text.RegularExpressions.Regex.Match(versionLine, @"CUDA Version:\s*([\d.]+)");
-                            if (cudaMatch.Success)
-                            {
-                                info.Version = cudaMatch.Groups[1].Value;
-                            }
+                // 解析版本输出
+                var lines = versionOutput.Split('\n');
+                if (lines.Length > 0)
+                {
+                    var versionLine = lines.FirstOrDefault(l => l.Contains("NVIDIA-SMI") && l.Contains("Driver Version") && l.Contains("CUDA Version"));
+                    if (versionLine != null)
+                    {
+                        var smiMatch = System.Text.RegularExpressions.Regex.Match(versionLine, @"NVIDIA-SMI\s+([\d.]+)");
+                        if (smiMatch.Success)
+                        {
+                            info.SmiVersion = smiMatch.Groups[1].Value;
+                        }
+
+                        var driverMatch = System.Text.RegularExpressions.Regex.Match(versionLine, @"Driver Version:\s*([\d.]+)");
+                        if (driverMatch.Success)
+                        {
+                            info.DriverVersion = driverMatch.Groups[1].Value;
+                        }
+
+                        var cudaMatch = System.Text.RegularExpressions.Regex.Match(versionLine, @"CUDA Version:\s*([\d.]+)");
+                        if (cudaMatch.Success)
+                        {
+                            info.Version = cudaMatch.Groups[1].Value;
                         }
                     }
                 }
-                else
+
+                if (!info.IsAvailable)
                 {
-                    info.IsAvailable = false;
                     Log.Warning("CUDA 不可用");
                 }
             }
@@ -240,7 +281,7 @@ namespace ollez.Services
         {
             try
             {
-                var process = new Process
+                using var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
@@ -276,7 +317,7 @@ namespace ollez.Services
         {
             try
             {
-                var process = new Process
+                using var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
