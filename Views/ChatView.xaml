@@ -133,7 +133,7 @@
                                             Padding="0"
                                             VerticalScrollBarVisibility="Auto"
                                             HorizontalScrollBarVisibility="Auto"
-                                            Document="{Binding MessageDocument, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            converters:DocumentBindingBehavior.Document="{Binding MessageDocument, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                             <RichTextBox.Resources>
                                                 <Style TargetType="{x:Type Paragraph}">
                                                     <Setter Property="Margin" Value="0"/>
