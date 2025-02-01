@@ -11,8 +11,6 @@ using System.Diagnostics;
 using Serilog;
 using System.Windows;
 using System.Text;
-using System.Windows.Documents;
-using System.Windows.Media;
 using System.Threading;
 using Serilog.Core;
 using Serilog.Events;
@@ -33,10 +31,11 @@ namespace ollez.ViewModels
         private string _selectedModel = string.Empty;
         private ObservableCollection<string> _availableModels;
         private ObservableCollection<ChatMessage> _messages;
-        private FlowDocument _testDocument;
         private StringBuilder _pendingContent;
         private DateTime _lastUpdateTime;
         private const int UI_UPDATE_INTERVAL_MS = 200;
+        private ObservableCollection<ChatSession> _chatSessions;
+        private ChatSession _currentSession;
 
         private string _testContent = string.Empty;
 
@@ -44,12 +43,6 @@ namespace ollez.ViewModels
         {
             get => _testContent;
             set => SetProperty(ref _testContent, value);
-        }
-
-        public FlowDocument TestDocument
-        {
-            get => _testDocument;
-            set => SetProperty(ref _testDocument, value);
         }
 
         public ObservableCollection<ChatMessage> Messages
@@ -82,6 +75,18 @@ namespace ollez.ViewModels
             set => SetProperty(ref _isProcessing, value);
         }
 
+        public ObservableCollection<ChatSession> ChatSessions
+        {
+            get => _chatSessions;
+            private set => SetProperty(ref _chatSessions, value);
+        }
+
+        public ChatSession CurrentSession
+        {
+            get => _currentSession;
+            set => SetProperty(ref _currentSession, value);
+        }
+
         public ICommand SendMessageCommand { get; }
         public ICommand RefreshModelsCommand { get; }
 
@@ -94,7 +99,7 @@ namespace ollez.ViewModels
 
             Messages = new ObservableCollection<ChatMessage>();
             AvailableModels = new ObservableCollection<string>();
-            TestDocument = new FlowDocument();
+            ChatSessions = new ObservableCollection<ChatSession>();
             _pendingContent = new StringBuilder();
             _lastUpdateTime = DateTime.Now;
             
@@ -148,19 +153,15 @@ namespace ollez.ViewModels
                 {
                     await Application.Current.Dispatcher.InvokeAsync(() =>
                     {
-                        if (TestDocument.Blocks.Count == 0)
+                        if (Messages.Count > 0)
                         {
-                            TestDocument.Blocks.Add(new Paragraph());
-                            _debugLogger.Information("[UI Debug] 创建了新的段落");
+                            var lastMessage = Messages.Last();
+                            if (!lastMessage.IsUser)
+                            {
+                                lastMessage.Content += _pendingContent.ToString();
+                                RaisePropertyChanged(nameof(Messages));
+                            }
                         }
-
-                        var paragraph = TestDocument.Blocks.FirstBlock as Paragraph;
-                        string contentToAdd = _pendingContent.ToString();
-                        paragraph.Inlines.Add(new Run(contentToAdd));
-                        
-                        _debugLogger.Information($"[UI Debug] 成功添加内容到文档，长度: {contentToAdd.Length}");
-                        
-                        RaisePropertyChanged(nameof(TestDocument));
                     });
 
                     _pendingContent.Clear();
@@ -183,14 +184,7 @@ namespace ollez.ViewModels
 
             try
             {
-                // 清空之前的内容
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    TestDocument.Blocks.Clear();
-                    _pendingContent.Clear();
-                    _debugLogger.Information("[UI Debug] 清空了文档和缓冲区");
-                });
-                
+                _pendingContent.Clear();
                 _lastUpdateTime = DateTime.Now;
 
                 Log.Information($"[ChatViewModel] 开始发送消息: Model={SelectedModel}, Message={InputMessage}");
@@ -209,13 +203,15 @@ namespace ollez.ViewModels
                 var assistantMessage = new ChatMessage
                 {
                     Content = string.Empty,
-                    IsUser = false
+                    IsUser = false,
+                    IsThinking = true
                 };
                 Messages.Add(assistantMessage);
 
                 Log.Information("[ChatViewModel] 开始获取流式响应");
                 var responseStream = await _chatService.SendMessageStreamAsync(message, SelectedModel);
-                IsProcessing = false; // 在开始处理流式响应前关闭加载指示器
+                assistantMessage.IsThinking = false;
+                IsProcessing = false;
 
                 Log.Information("[ChatViewModel] 开始处理流式响应");
                 await Task.Run(async () =>

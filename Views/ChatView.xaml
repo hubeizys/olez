@@ -126,10 +126,20 @@
                                             Visibility="{Binding IsThinking, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                             
                                         <!-- 消息内容 -->
-                                        <TextBlock
-                                            Text="{Binding Content}"
-                                            TextWrapping="Wrap"
-                                            Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                        <RichTextBox
+                                            IsReadOnly="True"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="0"
+                                            VerticalScrollBarVisibility="Auto"
+                                            HorizontalScrollBarVisibility="Auto"
+                                            Document="{Binding MessageDocument, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <RichTextBox.Resources>
+                                                <Style TargetType="{x:Type Paragraph}">
+                                                    <Setter Property="Margin" Value="0"/>
+                                                </Style>
+                                            </RichTextBox.Resources>
+                                        </RichTextBox>
                                     </StackPanel>
                                 </Border>
 

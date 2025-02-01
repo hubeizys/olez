@@ -1,0 +1,13 @@
+using System;
+using System.Collections.ObjectModel;
+
+namespace ollez.Models
+{
+    public class ChatSession
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Title { get; set; } = "新会话";
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public ObservableCollection<ChatMessage> Messages { get; set; } = new ObservableCollection<ChatMessage>();
+    }
+} 
