@@ -14,6 +14,8 @@ using System.Text;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Threading;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace ollez.ViewModels
 {
@@ -32,6 +34,7 @@ namespace ollez.ViewModels
         private StringBuilder _pendingContent;
         private DateTime _lastUpdateTime;
         private const int UI_UPDATE_INTERVAL_MS = 200;
+        private readonly ILogger _debugLogger;
 
         private string _testContent;
 
@@ -92,6 +95,12 @@ namespace ollez.ViewModels
             TestDocument = new FlowDocument();
             _pendingContent = new StringBuilder();
             _lastUpdateTime = DateTime.Now;
+            
+            // 创建专门的调试日志记录器
+            _debugLogger = new LoggerConfiguration()
+                .WriteTo.File("logs/ui_debug.log", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+                
             _ = InitializeAsync();
         }
 
@@ -126,53 +135,52 @@ namespace ollez.ViewModels
 
         private async Task UpdateUIAsync(string chunk)
         {
-            Log.Information($"[ChatViewModel] 收到新的chunk: '{chunk}'");
+            _debugLogger.Information($"[UI Debug] 收到新的chunk: '{chunk}'");
+            _pendingContent.Append(chunk);
+            _debugLogger.Information($"[UI Debug] 当前缓冲区大小: {_pendingContent.Length} 字符");
             
-            await Application.Current.Dispatcher.InvokeAsync(() =>
-            {
-                _pendingContent.Append(chunk);
-                Log.Information($"[ChatViewModel] 当前缓冲区大小: {_pendingContent.Length} 字符");
-                
-                var now = DateTime.Now;
-                var timeSinceLastUpdate = (now - _lastUpdateTime).TotalMilliseconds;
-                Log.Information($"[ChatViewModel] 距离上次更新过去了: {timeSinceLastUpdate}ms");
+            var now = DateTime.Now;
+            var timeSinceLastUpdate = (now - _lastUpdateTime).TotalMilliseconds;
+            _debugLogger.Information($"[UI Debug] 距离上次更新过去了: {timeSinceLastUpdate}ms");
 
-                if (timeSinceLastUpdate >= UI_UPDATE_INTERVAL_MS)
+            if (timeSinceLastUpdate >= UI_UPDATE_INTERVAL_MS)
+            {
+                _debugLogger.Information($"[UI Debug] 准备更新UI，当前缓冲区内容长度: {_pendingContent.Length}");
+                
+                try 
                 {
-                    try 
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
                     {
-                        Log.Information($"[ChatViewModel] 开始更新UI，当前缓冲区内容长度: {_pendingContent.Length}");
-                        
                         if (TestDocument.Blocks.Count == 0)
                         {
                             TestDocument.Blocks.Add(new Paragraph());
-                            Log.Information("[ChatViewModel] 创建了新的段落");
+                            _debugLogger.Information("[UI Debug] 创建了新的段落");
                         }
 
                         var paragraph = TestDocument.Blocks.FirstBlock as Paragraph;
                         string contentToAdd = _pendingContent.ToString();
                         paragraph.Inlines.Add(new Run(contentToAdd));
                         
-                        Log.Information($"[ChatViewModel] 成功添加内容到文档，长度: {contentToAdd.Length}");
-                        
-                        _pendingContent.Clear();
-                        _lastUpdateTime = now;
+                        _debugLogger.Information($"[UI Debug] 成功添加内容到文档，长度: {contentToAdd.Length}");
                         
                         RaisePropertyChanged(nameof(TestDocument));
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error($"[ChatViewModel] 更新UI时发生错误: {ex}");
-                    }
+                    });
+
+                    _pendingContent.Clear();
+                    _lastUpdateTime = now;
                 }
-            });
+                catch (Exception ex)
+                {
+                    _debugLogger.Error($"[UI Debug] 更新UI时发生错误: {ex}");
+                }
+            }
         }
 
         private async Task SendMessageAsync()
         {
             if (string.IsNullOrWhiteSpace(InputMessage) || IsProcessing || string.IsNullOrEmpty(SelectedModel))
             {
-                Log.Error($"[ChatViewModel] 无法发送消息: InputMessage为空={string.IsNullOrWhiteSpace(InputMessage)}, IsProcessing={IsProcessing}, SelectedModel为空={string.IsNullOrEmpty(SelectedModel)}");
+                _debugLogger.Error($"[UI Debug] 无法发送消息: InputMessage为空={string.IsNullOrWhiteSpace(InputMessage)}, IsProcessing={IsProcessing}, SelectedModel为空={string.IsNullOrEmpty(SelectedModel)}");
                 return;
             }
 
@@ -183,7 +191,7 @@ namespace ollez.ViewModels
                 {
                     TestDocument.Blocks.Clear();
                     _pendingContent.Clear();
-                    Log.Information("[ChatViewModel] 清空了文档和缓冲区");
+                    _debugLogger.Information("[UI Debug] 清空了文档和缓冲区");
                 });
                 
                 _lastUpdateTime = DateTime.Now;
@@ -213,11 +221,14 @@ namespace ollez.ViewModels
                 IsProcessing = false; // 在开始处理流式响应前关闭加载指示器
 
                 Log.Information("[ChatViewModel] 开始处理流式响应");
-                await foreach (var chunk in responseStream)
+                await Task.Run(async () =>
                 {
-                    Log.Information($"[ChatViewModel] 收到chunk内容: '{chunk}'");
-                    await UpdateUIAsync(chunk);
-                }
+                    await foreach (var chunk in responseStream)
+                    {
+                        Log.Information($"[ChatViewModel] 收到chunk内容: '{chunk}'");
+                        await UpdateUIAsync(chunk);
+                    }
+                });
                 Log.Information("[ChatViewModel] 流式响应处理完成");
             }
             catch (Exception ex)

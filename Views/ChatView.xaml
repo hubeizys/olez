@@ -118,7 +118,7 @@
         </Grid>
 
         <!--  加载指示器  -->
-        <Border
+        <!-- <Border
             Grid.Row="2"
             Margin="0,0,80,0"
             Padding="8"
@@ -137,6 +137,6 @@
                     Value="0" />
                 <TextBlock VerticalAlignment="Center" Text="正在思考..." />
             </StackPanel>
-        </Border>
+        </Border> -->
     </Grid>
 </UserControl>
