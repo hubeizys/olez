@@ -37,14 +37,6 @@ namespace ollez.ViewModels
         private ObservableCollection<ChatSession> _chatSessions;
         private ChatSession _currentSession;
 
-        private string _testContent = string.Empty;
-
-        public string TestContent
-        {
-            get => _testContent;
-            set => SetProperty(ref _testContent, value);
-        }
-
         public ObservableCollection<ChatMessage> Messages
         {
             get => _messages;
@@ -84,18 +76,31 @@ namespace ollez.ViewModels
         public ChatSession CurrentSession
         {
             get => _currentSession;
-            set => SetProperty(ref _currentSession, value);
+            set
+            {
+                if (SetProperty(ref _currentSession, value))
+                {
+                    if (value != null)
+                    {
+                        _chatService.SetCurrentSessionId(value.Id);
+                        Messages = new ObservableCollection<ChatMessage>(value.Messages);
+                    }
+                }
+            }
         }
 
         public ICommand SendMessageCommand { get; }
         public ICommand RefreshModelsCommand { get; }
+        public ICommand NewSessionCommand { get; }
 
         public ChatViewModel(IChatService chatService, ISystemCheckService systemCheckService)
         {
             _chatService = chatService;
             _systemCheckService = systemCheckService;
+            
             SendMessageCommand = new DelegateCommand(async () => await SendMessageAsync(), CanSendMessage);
             RefreshModelsCommand = new DelegateCommand(async () => await RefreshModelsAsync());
+            NewSessionCommand = new DelegateCommand(async () => await CreateNewSessionAsync());
 
             Messages = new ObservableCollection<ChatMessage>();
             AvailableModels = new ObservableCollection<string>();
@@ -109,6 +114,22 @@ namespace ollez.ViewModels
         private async Task InitializeAsync()
         {
             await RefreshModelsAsync();
+            await CreateNewSessionAsync();
+        }
+
+        private async Task CreateNewSessionAsync()
+        {
+            var sessionId = await _chatService.CreateNewSession();
+            var newSession = new ChatSession
+            {
+                Id = sessionId,
+                Title = "新会话",
+                CreatedAt = DateTime.Now,
+                Messages = new ObservableCollection<ChatMessage>()
+            };
+            
+            ChatSessions.Add(newSession);
+            CurrentSession = newSession;
         }
 
         private async Task RefreshModelsAsync()
@@ -132,7 +153,8 @@ namespace ollez.ViewModels
 
         private bool CanSendMessage()
         {
-            return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing && !string.IsNullOrEmpty(SelectedModel);
+            return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing && 
+                   !string.IsNullOrEmpty(SelectedModel) && CurrentSession != null;
         }
 
         private async Task UpdateUIAsync(string chunk)
@@ -176,9 +198,12 @@ namespace ollez.ViewModels
 
         private async Task SendMessageAsync()
         {
-            if (string.IsNullOrWhiteSpace(InputMessage) || IsProcessing || string.IsNullOrEmpty(SelectedModel))
+            if (string.IsNullOrWhiteSpace(InputMessage) || IsProcessing || 
+                string.IsNullOrEmpty(SelectedModel) || CurrentSession == null)
             {
-                _debugLogger.Error($"[UI Debug] 无法发送消息: InputMessage为空={string.IsNullOrWhiteSpace(InputMessage)}, IsProcessing={IsProcessing}, SelectedModel为空={string.IsNullOrEmpty(SelectedModel)}");
+                _debugLogger.Error($"[UI Debug] 无法发送消息: InputMessage为空={string.IsNullOrWhiteSpace(InputMessage)}, " +
+                                 $"IsProcessing={IsProcessing}, SelectedModel为空={string.IsNullOrEmpty(SelectedModel)}, " +
+                                 $"CurrentSession为空={CurrentSession == null}");
                 return;
             }
 
@@ -195,6 +220,8 @@ namespace ollez.ViewModels
                 };
 
                 Messages.Add(userMessage);
+                CurrentSession.Messages.Add(userMessage);
+                
                 var message = InputMessage;
                 InputMessage = string.Empty;
                 IsProcessing = true;
@@ -207,6 +234,7 @@ namespace ollez.ViewModels
                     IsThinking = true
                 };
                 Messages.Add(assistantMessage);
+                CurrentSession.Messages.Add(assistantMessage);
 
                 Log.Information("[ChatViewModel] 开始获取流式响应");
                 var responseStream = await _chatService.SendMessageStreamAsync(message, SelectedModel);
@@ -227,11 +255,13 @@ namespace ollez.ViewModels
             catch (Exception ex)
             {
                 Log.Error($"[ChatViewModel] 发生错误: {ex}");
-                Messages.Add(new ChatMessage
+                var errorMessage = new ChatMessage
                 {
                     Content = $"发生错误: {ex.Message}",
                     IsUser = false
-                });
+                };
+                Messages.Add(errorMessage);
+                CurrentSession.Messages.Add(errorMessage);
             }
             finally
             {
@@ -239,6 +269,5 @@ namespace ollez.ViewModels
                 Log.Information("[ChatViewModel] 消息处理完成");
             }
         }
-
     }
 }

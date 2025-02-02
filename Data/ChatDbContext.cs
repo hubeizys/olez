@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
-using ollez.Data.Models;
+using ollez.Models;
 using System.IO;
 
 namespace ollez.Data
 {
     public class ChatDbContext : DbContext
     {
-        public DbSet<DbChatSession> ChatSessions { get; set; } = null!;
-        public DbSet<DbChatMessage> ChatMessages { get; set; } = null!;
+        public DbSet<ChatSession> ChatSessions { get; set; } = null!;
+        public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -18,7 +18,7 @@ namespace ollez.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // 配置会话表
-            modelBuilder.Entity<DbChatSession>(entity =>
+            modelBuilder.Entity<ChatSession>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Title).IsRequired();
@@ -26,7 +26,7 @@ namespace ollez.Data
             });
 
             // 配置消息表
-            modelBuilder.Entity<DbChatMessage>(entity =>
+            modelBuilder.Entity<ChatMessage>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Content).IsRequired();

@@ -32,6 +32,7 @@ namespace ollez.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Content = table.Column<string>(type: "TEXT", nullable: false),
                     IsUser = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsThinking = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     SessionId = table.Column<string>(type: "TEXT", nullable: false)
                 },

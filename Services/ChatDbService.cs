@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ollez.Data;
-using ollez.Data.Models;
+using ollez.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,9 +16,9 @@ namespace ollez.Services
             _context = context;
         }
 
-        public async Task<DbChatSession> CreateSessionAsync(string title)
+        public async Task<ChatSession> CreateSessionAsync(string title)
         {
-            var session = new DbChatSession
+            var session = new ChatSession
             {
                 Title = title,
                 CreatedAt = DateTime.Now
@@ -29,23 +29,23 @@ namespace ollez.Services
             return session;
         }
 
-        public async Task<DbChatSession?> GetSessionAsync(string id)
+        public async Task<ChatSession?> GetSessionAsync(string id)
         {
             return await _context.ChatSessions
                 .Include(s => s.Messages)
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task<List<DbChatSession>> GetAllSessionsAsync()
+        public async Task<List<ChatSession>> GetAllSessionsAsync()
         {
             return await _context.ChatSessions
                 .Include(s => s.Messages)
                 .ToListAsync();
         }
 
-        public async Task<DbChatMessage> AddMessageAsync(string sessionId, string content, bool isUser)
+        public async Task<ChatMessage> AddMessageAsync(string sessionId, string content, bool isUser)
         {
-            var message = new DbChatMessage
+            var message = new ChatMessage
             {
                 SessionId = sessionId,
                 Content = content,

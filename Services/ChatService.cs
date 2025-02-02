@@ -5,26 +5,51 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Serilog;
+using ollez.Models;
 
 namespace ollez.Services
 {
     public class ChatService : IChatService
     {
         private readonly HttpClient _httpClient;
+        private readonly IChatDbService _chatDbService;
         private const string BaseUrl = "http://localhost:11434";
+        private string _currentSessionId;
 
-        public ChatService()
+        public ChatService(IChatDbService chatDbService)
         {
             _httpClient = new HttpClient
             {
                 BaseAddress = new Uri(BaseUrl)
             };
+            _chatDbService = chatDbService;
             Log.Information($"[ChatService] 初始化完成，BaseUrl: {BaseUrl}");
+        }
+
+        public async Task<string> CreateNewSession(string title = "新会话")
+        {
+            var session = await _chatDbService.CreateSessionAsync(title);
+            _currentSessionId = session.Id;
+            return session.Id;
+        }
+
+        public string GetCurrentSessionId() => _currentSessionId;
+
+        public void SetCurrentSessionId(string sessionId)
+        {
+            _currentSessionId = sessionId;
         }
 
         public async Task<IAsyncEnumerable<string>> SendMessageStreamAsync(string message, string model)
         {
             Log.Information($"[ChatService] 开始发送消息: Model={model}, Message={message}");
+            
+            // 保存用户消息到数据库
+            if (!string.IsNullOrEmpty(_currentSessionId))
+            {
+                await _chatDbService.AddMessageAsync(_currentSessionId, message, true);
+            }
+
             var request = new
             {
                 model = model,
@@ -47,7 +72,6 @@ namespace ollez.Services
             try
             {
                 Log.Information("[ChatService] 发送HTTP请求到Ollama API");
-                // 使用 ResponseHeadersRead 选项来支持流式响应
                 var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead);
                 response.EnsureSuccessStatusCode();
                 Log.Information($"[ChatService] HTTP请求成功，状态码: {response.StatusCode}");
@@ -66,6 +90,7 @@ namespace ollez.Services
             using var stream = await response.Content.ReadAsStreamAsync();
             using var reader = new System.IO.StreamReader(stream);
             int lineCount = 0;
+            var fullResponse = new StringBuilder();
 
             while (!reader.EndOfStream)
             {
@@ -89,16 +114,27 @@ namespace ollez.Services
                         {
                             isDone = doneElement.GetBoolean();
                         }
+
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            fullResponse.Append(content);
+                        }
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"[ChatService] 处理响应数据失败: {ex.Message}, 原始数据: {line}");
+                        Log.Error($"[ChatService] 解析响应数据失败: {ex.Message}, 原始数据: {line}");
                         throw;
                     }
                     
                     if (!isDone && !string.IsNullOrEmpty(content))
                     {
                         yield return content;
+                    }
+
+                    if (isDone && !string.IsNullOrEmpty(_currentSessionId))
+                    {
+                        // 在流结束时保存完整的助手回复
+                        await _chatDbService.AddMessageAsync(_currentSessionId, fullResponse.ToString(), false);
                     }
                 }
             }
@@ -107,6 +143,12 @@ namespace ollez.Services
 
         public async Task<string> SendMessageAsync(string message, string model)
         {
+            // 保存用户消息到数据库
+            if (!string.IsNullOrEmpty(_currentSessionId))
+            {
+                await _chatDbService.AddMessageAsync(_currentSessionId, message, true);
+            }
+
             var request = new
             {
                 model = model,
@@ -132,6 +174,12 @@ namespace ollez.Services
                 .GetProperty("message")
                 .GetProperty("content")
                 .GetString();
+
+            // 保存助手回复到数据库
+            if (!string.IsNullOrEmpty(_currentSessionId))
+            {
+                await _chatDbService.AddMessageAsync(_currentSessionId, messageContent, false);
+            }
 
             return messageContent;
         }

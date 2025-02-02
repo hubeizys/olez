@@ -1,15 +1,19 @@
 using Prism.Mvvm;
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Windows.Documents;
 
 namespace ollez.Models
 {
     public class ChatMessage : BindableBase
     {
-        private string _content;
+        private string _content = string.Empty;
         private bool _isUser;
         private bool _isThinking;
         private FlowDocument _messageDocument;
 
+        public int Id { get; set; }
+        
         public string Content
         {
             get => _content;
@@ -34,6 +38,7 @@ namespace ollez.Models
             set => SetProperty(ref _isThinking, value);
         }
 
+        [NotMapped]
         public FlowDocument MessageDocument
         {
             get => _messageDocument;
@@ -41,6 +46,14 @@ namespace ollez.Models
         }
 
         public string Role => IsUser ? "user" : "assistant";
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        
+        // 外键
+        public string SessionId { get; set; } = string.Empty;
+        
+        [NotMapped]
+        public ChatSession? Session { get; set; }
 
         public ChatMessage()
         {

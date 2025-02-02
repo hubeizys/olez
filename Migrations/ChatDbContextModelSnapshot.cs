@@ -17,7 +17,7 @@ namespace ollez.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.0");
 
-            modelBuilder.Entity("ollez.Data.Models.DbChatMessage", b =>
+            modelBuilder.Entity("ollez.Models.ChatMessage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -29,6 +29,9 @@ namespace ollez.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsThinking")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsUser")
                         .HasColumnType("INTEGER");
@@ -44,7 +47,7 @@ namespace ollez.Migrations
                     b.ToTable("ChatMessages");
                 });
 
-            modelBuilder.Entity("ollez.Data.Models.DbChatSession", b =>
+            modelBuilder.Entity("ollez.Models.ChatSession", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -61,9 +64,9 @@ namespace ollez.Migrations
                     b.ToTable("ChatSessions");
                 });
 
-            modelBuilder.Entity("ollez.Data.Models.DbChatMessage", b =>
+            modelBuilder.Entity("ollez.Models.ChatMessage", b =>
                 {
-                    b.HasOne("ollez.Data.Models.DbChatSession", "Session")
+                    b.HasOne("ollez.Models.ChatSession", "Session")
                         .WithMany("Messages")
                         .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -72,7 +75,7 @@ namespace ollez.Migrations
                     b.Navigation("Session");
                 });
 
-            modelBuilder.Entity("ollez.Data.Models.DbChatSession", b =>
+            modelBuilder.Entity("ollez.Models.ChatSession", b =>
                 {
                     b.Navigation("Messages");
                 });
