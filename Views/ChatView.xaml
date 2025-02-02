@@ -52,7 +52,8 @@
                     Margin="0,4"
                     Style="{StaticResource MaterialDesignFlatButton}"
                     HorizontalContentAlignment="Left"
-                    Command="{Binding NewChatCommand}">
+                    Command="{Binding NewChatCommand}"
+                    ToolTip="新建聊天">
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon Kind="Plus" Margin="0,0,8,0"/>
                         <TextBlock Text="新对话"/>

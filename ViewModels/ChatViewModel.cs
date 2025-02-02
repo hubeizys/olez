@@ -92,6 +92,8 @@ namespace ollez.ViewModels
         public ICommand SendMessageCommand { get; }
         public ICommand RefreshModelsCommand { get; }
         public ICommand NewSessionCommand { get; }
+        public ICommand NewChatCommand { get; }
+        public ICommand OpenSettingsCommand { get; }
 
         public ChatViewModel(IChatService chatService, ISystemCheckService systemCheckService)
         {
@@ -101,6 +103,8 @@ namespace ollez.ViewModels
             SendMessageCommand = new DelegateCommand(async () => await SendMessageAsync(), CanSendMessage);
             RefreshModelsCommand = new DelegateCommand(async () => await RefreshModelsAsync());
             NewSessionCommand = new DelegateCommand(async () => await CreateNewSessionAsync());
+            NewChatCommand = new DelegateCommand(ExecuteNewChat);
+            OpenSettingsCommand = new DelegateCommand(ExecuteOpenSettings);
 
             Messages = new ObservableCollection<ChatMessage>();
             AvailableModels = new ObservableCollection<string>();
@@ -298,6 +302,22 @@ namespace ollez.ViewModels
                 IsProcessing = false;
                 Log.Information("[ChatViewModel] 消息处理完成");
             }
+        }
+
+        private void ExecuteNewChat()
+        {
+            // 清空当前对话
+            Messages.Clear();
+            CurrentSession.Messages.Clear();
+            CurrentSession.Title = "新会话";
+            CurrentSession.CreatedAt = DateTime.Now;
+            CurrentSession.Id = Guid.NewGuid().ToString();
+        }
+
+        private void ExecuteOpenSettings()
+        {
+            // TODO: 实现打开设置的逻辑
+            MessageBox.Show("设置功能正在开发中...", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }
