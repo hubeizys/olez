@@ -95,8 +95,8 @@ namespace ollez.ViewModels
 
         public ChatViewModel(IChatService chatService, ISystemCheckService systemCheckService)
         {
-            _chatService = chatService;
-            _systemCheckService = systemCheckService;
+            _chatService = chatService ?? throw new ArgumentNullException(nameof(chatService));
+            _systemCheckService = systemCheckService ?? throw new ArgumentNullException(nameof(systemCheckService));
             
             SendMessageCommand = new DelegateCommand(async () => await SendMessageAsync(), CanSendMessage);
             RefreshModelsCommand = new DelegateCommand(async () => await RefreshModelsAsync());
@@ -107,6 +107,13 @@ namespace ollez.ViewModels
             ChatSessions = new ObservableCollection<ChatSession>();
             _pendingContent = new StringBuilder();
             _lastUpdateTime = DateTime.Now;
+            _currentSession = new ChatSession
+            {
+                Id = string.Empty,
+                Title = string.Empty,
+                CreatedAt = DateTime.Now,
+                Messages = new ObservableCollection<ChatMessage>()
+            };
             
             InitializeAsync().ContinueWith(task =>
             {

@@ -51,7 +51,7 @@ namespace ollez.Services
                                   .OrderByDescending(f => File.GetLastWriteTime(f))
                                   .ToList();
             Log.Debug("LogService: 找到 {Count} 个日志文件", logFiles.Count);
-            return logFiles.FirstOrDefault();
+            return logFiles.FirstOrDefault() ?? string.Empty;
         }
 
         public void StartMonitoring()
@@ -178,12 +178,11 @@ namespace ollez.Services
                     var match = LogEntryPattern.Match(line);
                     if (match.Success)
                     {
-                        entries.Add(new LogEntry
-                        {
-                            Timestamp = DateTime.Parse(match.Groups[1].Value),
-                            Level = match.Groups[2].Value,
-                            Message = match.Groups[3].Value
-                        });
+                        entries.Add(new LogEntry(
+                            DateTime.Parse(match.Groups[1].Value),
+                            match.Groups[3].Value,
+                            match.Groups[2].Value
+                        ));
                     }
                 }
 
@@ -224,18 +223,20 @@ namespace ollez.Services
                     stream.Position = _lastPosition;
                     using (var reader = new StreamReader(stream))
                     {
-                        string line;
+                        string? line;
                         while ((line = await reader.ReadLineAsync()) != null)
                         {
-                            var match = LogEntryPattern.Match(line);
-                            if (match.Success)
+                            if (line != null)  // 额外的空值检查
                             {
-                                newEntries.Add(new LogEntry
+                                var match = LogEntryPattern.Match(line);
+                                if (match.Success)
                                 {
-                                    Timestamp = DateTime.Parse(match.Groups[1].Value),
-                                    Level = match.Groups[2].Value,
-                                    Message = match.Groups[3].Value
-                                });
+                                    newEntries.Add(new LogEntry(
+                                        DateTime.Parse(match.Groups[1].Value),
+                                        match.Groups[3].Value,
+                                        match.Groups[2].Value
+                                    ));
+                                }
                             }
                         }
                         _lastPosition = stream.Position;

@@ -14,7 +14,7 @@ namespace ollez.Services
         private readonly HttpClient _httpClient;
         private readonly IChatDbService _chatDbService;
         private const string BaseUrl = "http://localhost:11434";
-        private string _currentSessionId;
+        private string _currentSessionId = string.Empty;
 
         public ChatService(IChatDbService chatDbService)
         {
@@ -22,7 +22,7 @@ namespace ollez.Services
             {
                 BaseAddress = new Uri(BaseUrl)
             };
-            _chatDbService = chatDbService;
+            _chatDbService = chatDbService ?? throw new ArgumentNullException(nameof(chatDbService));
             Log.Information($"[ChatService] 初始化完成，BaseUrl: {BaseUrl}");
         }
 
@@ -143,6 +143,11 @@ namespace ollez.Services
 
         public async Task<string> SendMessageAsync(string message, string model)
         {
+            if (string.IsNullOrEmpty(message))
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             // 保存用户消息到数据库
             if (!string.IsNullOrEmpty(_currentSessionId))
             {
