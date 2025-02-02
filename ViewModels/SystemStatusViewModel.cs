@@ -106,11 +106,13 @@ namespace ollez.ViewModels
             _hardwareMonitorService = hardwareMonitorService;
             _hardwareMonitorService.StartMonitoring();
 
+            // 初始化硬件信息
+            _hardwareInfo = new HardwareInfo();
+
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystem());
             ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
 
             InitializeInstallationSteps();
-            CheckSystem().ConfigureAwait(false);
         }
 
         private void InitializeInstallationSteps()
@@ -178,6 +180,9 @@ namespace ollez.ViewModels
             Debug.WriteLine("SystemStatusView - OnNavigatedTo");
             // 当导航到此视图时，确保数据已经加载
             _ = CheckSystem();
+            
+            // 开始监控
+            _hardwareMonitorService.StartMonitoring();
         }
 
         public bool IsNavigationTarget(NavigationContext navigationContext)

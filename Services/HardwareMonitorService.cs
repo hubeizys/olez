@@ -21,12 +21,24 @@ namespace ollez.Services
         public HardwareMonitorService()
         {
             _logger = Log.Logger;
-            _updateTimer = new Timer(2000);
+            _updateTimer = new Timer(1000);
             _updateTimer.Elapsed += OnTimerElapsed;
             
             _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             _currentProcess = Process.GetCurrentProcess();
-            _currentInfo = new HardwareInfo();
+            
+            // 初始化硬件信息
+            _currentInfo = new HardwareInfo
+            {
+                CpuName = GetProcessorName(),
+                CpuCores = Environment.ProcessorCount,
+                TotalMemory = GetTotalPhysicalMemory(),
+                AvailableMemory = GetAvailablePhysicalMemory(),
+                Drives = new System.Collections.ObjectModel.ObservableCollection<Models.DriveInfo>()
+            };
+            
+            // 初始化时立即更新一次硬盘信息
+            UpdateDriveInfo(_currentInfo);
         }
 
         public void StartMonitoring()
