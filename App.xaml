@@ -26,6 +26,7 @@
             <converters:BooleanToRightLeftConverter x:Key="BooleanToRightLeftConverter"/>
             <converters:MessageMarginConverter x:Key="MessageMarginConverter"/>
             <converters:MessageForegroundConverter x:Key="MessageForegroundConverter"/>
+            <converters:PercentageConverter x:Key="PercentageConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </prism:PrismApplication>
