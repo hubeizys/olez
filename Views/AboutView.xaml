@@ -75,7 +75,6 @@
                             Grid.Row="0"
                             Grid.Column="0"
                             Margin="0,0,16,8"
-                            FontWeight="Medium"
                             Style="{StaticResource MaterialDesignBody1TextBlock}"
                             Text="开发语言：" />
                         <TextBlock
@@ -89,7 +88,6 @@
                             Grid.Row="1"
                             Grid.Column="0"
                             Margin="0,0,16,8"
-                            FontWeight="Medium"
                             Style="{StaticResource MaterialDesignBody1TextBlock}"
                             Text="运行时：" />
                         <TextBlock
@@ -103,7 +101,6 @@
                             Grid.Row="2"
                             Grid.Column="0"
                             Margin="0,0,16,8"
-                            FontWeight="Medium"
                             Style="{StaticResource MaterialDesignBody1TextBlock}"
                             Text="UI框架：" />
                         <TextBlock
@@ -117,7 +114,6 @@
                             Grid.Row="3"
                             Grid.Column="0"
                             Margin="0,0,16,8"
-                            FontWeight="Medium"
                             Style="{StaticResource MaterialDesignBody1TextBlock}"
                             Text="设计模式：" />
                         <TextBlock
@@ -131,7 +127,6 @@
                             Grid.Row="4"
                             Grid.Column="0"
                             Margin="0,0,16,8"
-                            FontWeight="Medium"
                             Style="{StaticResource MaterialDesignBody1TextBlock}"
                             Text="主要依赖：" />
                         <TextBlock
