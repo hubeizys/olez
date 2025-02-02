@@ -43,12 +43,6 @@ namespace ollez
 
             Log.Information("应用程序启动");
 
-            // 确保数据库已创建
-            using (var context = Container.Resolve<ChatDbContext>())
-            {
-                context.Database.EnsureCreated();
-            }
-            
             return Container.Resolve<MainWindow>();
         }
 
@@ -64,9 +58,14 @@ namespace ollez
         /// <param name="containerRegistry">容器注册器</param>
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            // 注册数据库上下文和服务
-            containerRegistry.RegisterSingleton<ChatDbContext>();
-            containerRegistry.RegisterSingleton<IChatDbService, ChatDbService>();
+            // 注册数据库上下文工厂
+            containerRegistry.Register<ChatDbContext>(() => {
+                var context = new ChatDbContext();
+                context.Database.EnsureCreated();
+                return context;
+            });
+            containerRegistry.Register<Func<ChatDbContext>>(container => () => container.Resolve<ChatDbContext>());
+            containerRegistry.Register<IChatDbService, ChatDbService>();
 
             // 注册其他服务
             containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();

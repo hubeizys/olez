@@ -141,7 +141,9 @@ namespace ollez.ViewModels
                     ChatSessions.Add(newSession);
                     CurrentSession = newSession;
                 });
-                
+                _debugLogger.Information($"[ChatViewModel] 创建新会话成功: {sessionId}");
+                //当前会话
+                _debugLogger.Information($"[ChatViewModel] 当前会话: {CurrentSession.Id}");
                 Log.Information($"[ChatViewModel] 创建新会话成功: {sessionId}");
             }
             catch (Exception ex)
@@ -172,6 +174,8 @@ namespace ollez.ViewModels
 
         private bool CanSendMessage()
         {
+            _debugLogger.Information($"[UI Debug] 检查是否可以发送消息: InputMessage={InputMessage}, IsProcessing={IsProcessing}, " +
+                                     $"SelectedModel={SelectedModel}, CurrentSession={CurrentSession}");
             return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing && 
                    !string.IsNullOrEmpty(SelectedModel) && CurrentSession != null;
         }
