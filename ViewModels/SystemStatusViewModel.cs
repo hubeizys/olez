@@ -83,7 +83,7 @@ namespace ollez.ViewModels
             set => SetProperty(ref _isChecking, value);
         }
 
-        private bool _showInstallationGuide = true;
+        private bool _showInstallationGuide = false;
         public bool ShowInstallationGuide
         {
             get => _showInstallationGuide;

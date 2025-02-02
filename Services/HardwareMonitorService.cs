@@ -57,6 +57,11 @@ namespace ollez.Services
         {
             try
             {
+                // 先获取一次 CPU 使用率以初始化计数器
+                _cpuCounter.NextValue();
+                // 等待一小段时间以获取准确的 CPU 使用率
+                await Task.Delay(500);
+
                 _currentInfo = new HardwareInfo
                 {
                     CpuName = GetProcessorName(),
