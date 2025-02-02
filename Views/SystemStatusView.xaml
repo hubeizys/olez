@@ -157,10 +157,21 @@
                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding HardwareInfo.CpuCores}"/>
 
                                 <TextBlock Grid.Row="2" Text="使用率：" Margin="0,4,8,0"/>
-                                <ProgressBar Grid.Row="2" Grid.Column="1" 
-                                           Value="{Binding HardwareInfo.CpuUsage}"
-                                           Maximum="100"
-                                           Style="{StaticResource MaterialDesignLinearProgressBar}"/>
+                                <Grid Grid.Row="2" Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ProgressBar 
+                                        Grid.Column="0"
+                                        Value="{Binding HardwareInfo.CpuUsage}"
+                                        Maximum="100"
+                                        Style="{StaticResource MaterialDesignLinearProgressBar}"/>
+                                    <TextBlock 
+                                        Grid.Column="1"
+                                        Margin="8,0,0,0"
+                                        Text="{Binding HardwareInfo.CpuUsage, StringFormat={}{0:N1}%}"/>
+                                </Grid>
                             </Grid>
                         </StackPanel>
                     </materialDesign:Card>
@@ -200,10 +211,21 @@
                                 </TextBlock>
 
                                 <TextBlock Grid.Row="2" Text="使用率：" Margin="0,4,8,0"/>
-                                <ProgressBar Grid.Row="2" Grid.Column="1"
-                                           Value="{Binding HardwareInfo.MemoryUsage}"
-                                           Maximum="100"
-                                           Style="{StaticResource MaterialDesignLinearProgressBar}"/>
+                                <Grid Grid.Row="2" Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ProgressBar 
+                                        Grid.Column="0"
+                                        Value="{Binding HardwareInfo.MemoryUsage}"
+                                        Maximum="100"
+                                        Style="{StaticResource MaterialDesignLinearProgressBar}"/>
+                                    <TextBlock 
+                                        Grid.Column="1"
+                                        Margin="8,0,0,0"
+                                        Text="{Binding HardwareInfo.MemoryUsage, StringFormat={}{0:N1}%}"/>
+                                </Grid>
                             </Grid>
                         </StackPanel>
                     </materialDesign:Card>

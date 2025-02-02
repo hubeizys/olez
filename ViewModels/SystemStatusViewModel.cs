@@ -104,15 +104,17 @@ namespace ollez.ViewModels
         {
             _systemCheckService = systemCheckService;
             _hardwareMonitorService = hardwareMonitorService;
-            _hardwareMonitorService.StartMonitoring();
 
             // 初始化硬件信息
             _hardwareInfo = new HardwareInfo();
-
+            
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystem());
             ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
 
             InitializeInstallationSteps();
+            
+            // 立即执行一次检查
+            _ = CheckSystem();
         }
 
         private void InitializeInstallationSteps()
@@ -157,6 +159,7 @@ namespace ollez.ViewModels
             {
                 // 获取硬件信息
                 HardwareInfo = await _hardwareMonitorService.GetHardwareInfoAsync();
+                _hardwareMonitorService.StartMonitoring();
 
                 // 执行其他现有的检查...
                 CudaInfo = await _systemCheckService.CheckCudaAsync();

@@ -7,11 +7,21 @@ using IODriveInfo = System.IO.DriveInfo;  // 添加别名
 using System.Runtime.InteropServices;
 using ollez.Models;
 using Serilog;
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace ollez.Services
 {
-    public class HardwareMonitorService : IHardwareMonitorService
+    public class HardwareMonitorService : IHardwareMonitorService, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void RaisePropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         private readonly ILogger _logger;
         private readonly Timer _updateTimer;
         private readonly PerformanceCounter _cpuCounter;
@@ -69,23 +79,23 @@ namespace ollez.Services
         {
             try
             {
-                // 先获取一次 CPU 使用率以初始化计数器
-                _cpuCounter.NextValue();
-                // 等待一小段时间以获取准确的 CPU 使用率
-                await Task.Delay(500);
+                // 获取 CPU 使用率
+                var cpuUsage = _cpuCounter.NextValue();
+                
+                // 获取内存信息
+                var memoryMetrics = GetMemoryMetrics();
 
-                _currentInfo = new HardwareInfo
+                // 在UI线程上更新数据
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    CpuName = GetProcessorName(),
-                    CpuCores = Environment.ProcessorCount,
-                    CpuUsage = _cpuCounter.NextValue(),
-                    TotalMemory = GetTotalPhysicalMemory(),
-                    AvailableMemory = GetAvailablePhysicalMemory(),
-                };
+                    _currentInfo.CpuUsage = cpuUsage;
+                    _currentInfo.TotalMemory = memoryMetrics.Total;
+                    _currentInfo.AvailableMemory = memoryMetrics.Available;
+                    _currentInfo.MemoryUsage = ((memoryMetrics.Total - memoryMetrics.Available) / memoryMetrics.Total) * 100;
 
-                _currentInfo.MemoryUsage = ((_currentInfo.TotalMemory - _currentInfo.AvailableMemory) / _currentInfo.TotalMemory) * 100;
-
-                UpdateDriveInfo(_currentInfo);
+                    // 更新硬盘信息
+                    UpdateDriveInfo(_currentInfo);
+                });
             }
             catch (Exception ex)
             {
