@@ -27,6 +27,7 @@
             <converters:MessageMarginConverter x:Key="MessageMarginConverter"/>
             <converters:MessageForegroundConverter x:Key="MessageForegroundConverter"/>
             <converters:PercentageConverter x:Key="PercentageConverter"/>
+            <converters:StringToUriConverter x:Key="StringToUriConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </prism:PrismApplication>

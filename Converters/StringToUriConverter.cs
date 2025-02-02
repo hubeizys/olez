@@ -15,19 +15,23 @@ namespace ollez.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is string stringValue && !string.IsNullOrEmpty(stringValue))
+            if (value == null || string.IsNullOrEmpty(value.ToString()))
+                return null;
+
+            try
             {
-                return new Uri(stringValue);
+                return new Uri(value.ToString());
             }
-            return null;
+            catch
+            {
+                return null;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is Uri uri)
-            {
                 return uri.ToString();
-            }
             return null;
         }
     }
