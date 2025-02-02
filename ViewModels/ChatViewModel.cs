@@ -108,7 +108,13 @@ namespace ollez.ViewModels
             _pendingContent = new StringBuilder();
             _lastUpdateTime = DateTime.Now;
             
-            _ = InitializeAsync();
+            InitializeAsync().ContinueWith(task =>
+            {
+                if (task.IsFaulted)
+                {
+                    Log.Error($"初始化失败: {task.Exception}");
+                }
+            });
         }
 
         private async Task InitializeAsync()
@@ -119,17 +125,30 @@ namespace ollez.ViewModels
 
         private async Task CreateNewSessionAsync()
         {
-            var sessionId = await _chatService.CreateNewSession();
-            var newSession = new ChatSession
+            try
             {
-                Id = sessionId,
-                Title = "新会话",
-                CreatedAt = DateTime.Now,
-                Messages = new ObservableCollection<ChatMessage>()
-            };
-            
-            ChatSessions.Add(newSession);
-            CurrentSession = newSession;
+                var sessionId = await _chatService.CreateNewSession();
+                var newSession = new ChatSession
+                {
+                    Id = sessionId,
+                    Title = "新会话",
+                    CreatedAt = DateTime.Now,
+                    Messages = new ObservableCollection<ChatMessage>()
+                };
+                
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    ChatSessions.Add(newSession);
+                    CurrentSession = newSession;
+                });
+                
+                Log.Information($"[ChatViewModel] 创建新会话成功: {sessionId}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[ChatViewModel] 创建新会话失败: {ex}");
+                throw;
+            }
         }
 
         private async Task RefreshModelsAsync()
