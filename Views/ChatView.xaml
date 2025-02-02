@@ -150,24 +150,26 @@
                                     <!-- 消息气泡 -->
                                     <Border
                                         Grid.Column="1"
-                                        MaxWidth="600"
+                                        MaxWidth="500"
+                                        MinWidth="80"
                                         Margin="{Binding IsUser, Converter={StaticResource MessageMarginConverter}}"
                                         Padding="16,12"
-                                        Background="{Binding IsUser, Converter={StaticResource UserMessageBackgroundConverter}}"
-                                        CornerRadius="12,12,12,2"
                                         HorizontalAlignment="{Binding IsUser, Converter={StaticResource BooleanToRightLeftConverter}}"
                                         Effect="{StaticResource MaterialDesignElevationShadow2}">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsUser}" Value="True">
-                                                        <Setter Property="CornerRadius" Value="12,12,2,12"/>
-                                                        <Setter Property="Background" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                                                        <Setter Property="CornerRadius" Value="12,12,0,12"/>
+                                                        <Setter Property="Background" Value="#2196F3"/>
+                                                        <Setter Property="Margin" Value="80,0,0,0"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding IsUser}" Value="False">
-                                                        <Setter Property="Background" Value="{DynamicResource MaterialDesignPaper}"/>
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
+                                                        <Setter Property="CornerRadius" Value="12,12,12,0"/>
+                                                        <Setter Property="Background" Value="#F5F5F5"/>
+                                                        <Setter Property="Margin" Value="0,0,80,0"/>
                                                         <Setter Property="BorderThickness" Value="1"/>
+                                                        <Setter Property="BorderBrush" Value="#E0E0E0"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
