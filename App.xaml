@@ -23,6 +23,9 @@
             <converters:FileSizeConverter x:Key="FileSizeConverter"/>
             <converters:BooleanTo1Or2Converter x:Key="BooleanTo1Or2Converter"/>
             <converters:UserMessageBackgroundConverter x:Key="UserMessageBackgroundConverter"/>
+            <converters:BooleanToRightLeftConverter x:Key="BooleanToRightLeftConverter"/>
+            <converters:MessageMarginConverter x:Key="MessageMarginConverter"/>
+            <converters:MessageForegroundConverter x:Key="MessageForegroundConverter"/>
         </ResourceDictionary>
     </Application.Resources>
-</prism:PrismApplication> 
+</prism:PrismApplication>

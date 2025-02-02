@@ -129,7 +129,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- 左侧头像（AI） -->
+                                    <!-- AI头像 -->
                                     <Border
                                         Grid.Column="0"
                                         Width="36"
@@ -137,7 +137,8 @@
                                         Margin="0,0,12,0"
                                         CornerRadius="18"
                                         Background="{DynamicResource MaterialDesignPaper}"
-                                        Visibility="{Binding IsUser, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                                        Visibility="{Binding IsUser, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
+                                        HorizontalAlignment="Left">
                                         <materialDesign:PackIcon
                                             Kind="Robot"
                                             Width="20"
@@ -148,17 +149,35 @@
 
                                     <!-- 消息气泡 -->
                                     <Border
-                                        Grid.Column="{Binding IsUser, Converter={StaticResource BooleanTo1Or2Converter}}"
-                                        MaxWidth="800"
-                                        Margin="4,0"
+                                        Grid.Column="1"
+                                        MaxWidth="600"
+                                        Margin="{Binding IsUser, Converter={StaticResource MessageMarginConverter}}"
                                         Padding="16,12"
                                         Background="{Binding IsUser, Converter={StaticResource UserMessageBackgroundConverter}}"
-                                        CornerRadius="8">
+                                        CornerRadius="12,12,12,2"
+                                        HorizontalAlignment="{Binding IsUser, Converter={StaticResource BooleanToRightLeftConverter}}"
+                                        Effect="{StaticResource MaterialDesignElevationShadow2}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsUser}" Value="True">
+                                                        <Setter Property="CornerRadius" Value="12,12,2,12"/>
+                                                        <Setter Property="Background" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsUser}" Value="False">
+                                                        <Setter Property="Background" Value="{DynamicResource MaterialDesignPaper}"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
                                         <RichTextBox
                                             IsReadOnly="True"
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Padding="0"
+                                            Foreground="{Binding IsUser, Converter={StaticResource MessageForegroundConverter}}"
                                             converters:DocumentBindingBehavior.Document="{Binding MessageDocument}">
                                             <RichTextBox.Resources>
                                                 <Style TargetType="{x:Type Paragraph}">
@@ -168,7 +187,7 @@
                                         </RichTextBox>
                                     </Border>
 
-                                    <!-- 右侧头像（用户） -->
+                                    <!-- 用户头像 -->
                                     <Border
                                         Grid.Column="2"
                                         Width="36"
@@ -176,7 +195,8 @@
                                         Margin="12,0,0,0"
                                         CornerRadius="18"
                                         Background="{DynamicResource MaterialDesignPaper}"
-                                        Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                        HorizontalAlignment="Right">
                                         <materialDesign:PackIcon
                                             Kind="Account"
                                             Width="20"
