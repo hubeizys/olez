@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using ollez.Services;
+using ollez.Models;
 
 namespace ollez.ViewModels
 {
@@ -30,6 +31,7 @@ namespace ollez.ViewModels
     public class SystemStatusViewModel : BindableBase, INavigationAware
     {
         private readonly ISystemCheckService _systemCheckService;
+        private readonly IHardwareMonitorService _hardwareMonitorService;
         private CudaInfo _cudaInfo = new();
         public CudaInfo CudaInfo
         {
@@ -67,6 +69,13 @@ namespace ollez.ViewModels
             set => SetProperty(ref _modelRecommendation, value);
         }
 
+        private HardwareInfo _hardwareInfo;
+        public HardwareInfo HardwareInfo
+        {
+            get => _hardwareInfo;
+            set => SetProperty(ref _hardwareInfo, value);
+        }
+
         private bool _isChecking;
         public bool IsChecking
         {
@@ -91,13 +100,17 @@ namespace ollez.ViewModels
         public DelegateCommand CheckSystemCommand { get; }
         public DelegateCommand ToggleGuideCommand { get; }
 
-        public SystemStatusViewModel(ISystemCheckService systemCheckService)
+        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService)
         {
             _systemCheckService = systemCheckService;
-            CheckSystemCommand = new DelegateCommand(async () => await CheckSystemAsync());
+            _hardwareMonitorService = hardwareMonitorService;
+            _hardwareMonitorService.StartMonitoring();
+
+            CheckSystemCommand = new DelegateCommand(async () => await CheckSystem());
             ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
 
             InitializeInstallationSteps();
+            CheckSystem().ConfigureAwait(false);
         }
 
         private void InitializeInstallationSteps()
@@ -134,27 +147,37 @@ namespace ollez.ViewModels
             };
         }
 
-        private async Task CheckSystemAsync()
+        private async Task CheckSystem()
         {
             IsChecking = true;
-            CudaInfo = await _systemCheckService.CheckCudaAsync();
-            OllamaInfo = await _systemCheckService.CheckOllamaAsync();
-            ModelRecommendation = await _systemCheckService.GetModelRecommendationAsync();
-            
-            // 更新安装步骤状态
-            InstallationSteps[0].IsCompleted = CudaInfo.IsAvailable;
-            InstallationSteps[1].IsCompleted = CudaInfo.IsAvailable;
-            InstallationSteps[2].IsCompleted = OllamaInfo.IsRunning;
-            InstallationSteps[3].IsCompleted = OllamaInfo.IsRunning && OllamaInfo.InstalledModels.Length > 0;
-            
-            IsChecking = false;
+
+            try
+            {
+                // 获取硬件信息
+                HardwareInfo = await _hardwareMonitorService.GetHardwareInfoAsync();
+
+                // 执行其他现有的检查...
+                CudaInfo = await _systemCheckService.CheckCudaAsync();
+                OllamaInfo = await _systemCheckService.CheckOllamaAsync();
+                ModelRecommendation = await _systemCheckService.GetModelRecommendationAsync();
+                
+                // 更新安装步骤状态
+                InstallationSteps[0].IsCompleted = CudaInfo.IsAvailable;
+                InstallationSteps[1].IsCompleted = CudaInfo.IsAvailable;
+                InstallationSteps[2].IsCompleted = OllamaInfo.IsRunning;
+                InstallationSteps[3].IsCompleted = OllamaInfo.IsRunning && OllamaInfo.InstalledModels.Length > 0;
+            }
+            finally
+            {
+                IsChecking = false;
+            }
         }
 
         public void OnNavigatedTo(NavigationContext navigationContext)
         {
             Debug.WriteLine("SystemStatusView - OnNavigatedTo");
             // 当导航到此视图时，确保数据已经加载
-            _ = CheckSystemAsync();
+            _ = CheckSystem();
         }
 
         public bool IsNavigationTarget(NavigationContext navigationContext)
@@ -167,6 +190,7 @@ namespace ollez.ViewModels
         {
             // 当离开此视图时的处理逻辑
             Debug.WriteLine("SystemStatusView - OnNavigatedFrom");
+            _hardwareMonitorService.StopMonitoring();
         }
     }
 }

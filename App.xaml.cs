@@ -68,12 +68,13 @@ namespace ollez
             containerRegistry.Register<Func<ChatDbContext>>(container => () => container.Resolve<ChatDbContext>());
             // // 注册数据库上下文工厂
             // containerRegistry.RegisterInstance<Func<ChatDbContext>>(() => new ChatDbContext());
-            containerRegistry.Register<IChatDbService, ChatDbService>();
+            containerRegistry.Register<IChatDbService, ChatDbService>();  // 将 register 改为 Register
 
             // 注册其他服务
             containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();
             containerRegistry.RegisterSingleton<IChatService, ChatService>();
             containerRegistry.RegisterSingleton<ILogService, LogService>();
+            containerRegistry.RegisterSingleton<IHardwareMonitorService, HardwareMonitorService>();
 
             containerRegistry.RegisterForNavigation<SystemStatusView, SystemStatusViewModel>();
             containerRegistry.RegisterForNavigation<ChatView, ChatViewModel>();
