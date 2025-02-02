@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ollez.Data;
 
@@ -10,9 +11,11 @@ using ollez.Data;
 namespace ollez.Migrations
 {
     [DbContext(typeof(ChatDbContext))]
-    partial class ChatDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250202161407_AddIsThinkingColumn")]
+    partial class AddIsThinkingColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.0");
@@ -35,10 +38,6 @@ namespace ollez.Migrations
 
                     b.Property<bool>("IsUser")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("MessageType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("SessionId")
                         .IsRequired()

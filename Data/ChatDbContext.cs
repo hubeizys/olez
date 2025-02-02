@@ -32,6 +32,7 @@ namespace ollez.Data
                 entity.Property(e => e.Content).IsRequired();
                 entity.Property(e => e.IsUser).IsRequired();
                 entity.Property(e => e.IsThinking).IsRequired();
+                entity.Property(e => e.MessageType).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
                 entity.Property(e => e.SessionId).IsRequired();
 

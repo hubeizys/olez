@@ -10,9 +10,16 @@ namespace ollez.Models
         private string _content = string.Empty;
         private bool _isUser;
         private bool _isThinking;
+        private string _messageType = "text";
         private FlowDocument _messageDocument;
 
         public int Id { get; set; }
+
+        public string MessageType
+        {
+            get => _messageType;
+            set => SetProperty(ref _messageType, value);
+        }
         
         public string Content
         {
