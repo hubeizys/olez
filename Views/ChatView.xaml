@@ -161,12 +161,12 @@
                                                     <DataTrigger Binding="{Binding IsUser}" Value="True">
                                                         <Setter Property="CornerRadius" Value="12,12,0,12"/>
                                                         <Setter Property="Background" Value="#2196F3"/>
-                                                        <Setter Property="Margin" Value="20%,0,0,0"/>
+                                                        <Setter Property="Margin" Value="100,0,0,0"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding IsUser}" Value="False">
                                                         <Setter Property="CornerRadius" Value="12,12,12,0"/>
                                                         <Setter Property="Background" Value="#F5F5F5"/>
-                                                        <Setter Property="Margin" Value="0,0,20%,0"/>
+                                                        <Setter Property="Margin" Value="0,0,100,0"/>
                                                         <Setter Property="BorderThickness" Value="1"/>
                                                         <Setter Property="BorderBrush" Value="#E0E0E0"/>
                                                     </DataTrigger>
