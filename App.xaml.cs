@@ -59,12 +59,15 @@ namespace ollez
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             // 注册数据库上下文工厂
+
             containerRegistry.Register<ChatDbContext>(() => {
                 var context = new ChatDbContext();
                 context.Database.EnsureCreated();
                 return context;
             });
             containerRegistry.Register<Func<ChatDbContext>>(container => () => container.Resolve<ChatDbContext>());
+            // // 注册数据库上下文工厂
+            // containerRegistry.RegisterInstance<Func<ChatDbContext>>(() => new ChatDbContext());
             containerRegistry.Register<IChatDbService, ChatDbService>();
 
             // 注册其他服务
