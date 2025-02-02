@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 
 namespace ollez.Views
 {
@@ -12,6 +13,9 @@ namespace ollez.Views
     {
         private bool _autoScroll = true;
         private double _previousScrollOffset;
+        private bool _isSidebarExpanded = true;
+        private const double EXPANDED_WIDTH = 280;
+        private const double COLLAPSED_WIDTH = 0;
 
         public ChatView()
         {
@@ -46,6 +50,30 @@ namespace ollez.Views
             }
 
             _previousScrollOffset = e.VerticalOffset;
+        }
+
+        private void ToggleSidebarButton_Click(object sender, RoutedEventArgs e)
+        {
+            _isSidebarExpanded = !_isSidebarExpanded;
+            var targetWidth = _isSidebarExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
+
+            // 创建动画
+            var animation = new DoubleAnimation
+            {
+                To = targetWidth,
+                Duration = TimeSpan.FromMilliseconds(250),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut }
+            };
+
+            // 更新按钮图标
+            var button = (Button)sender;
+            var icon = (MaterialDesignThemes.Wpf.PackIcon)button.Content;
+            icon.Kind = _isSidebarExpanded ? 
+                MaterialDesignThemes.Wpf.PackIconKind.ChevronLeft : 
+                MaterialDesignThemes.Wpf.PackIconKind.ChevronRight;
+
+            // 应用动画
+            LeftColumn.BeginAnimation(ColumnDefinition.WidthProperty, animation);
         }
     }
 }

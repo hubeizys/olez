@@ -9,48 +9,85 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" MinWidth="300"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="2*" MinWidth="400"/>
+            <ColumnDefinition x:Name="LeftColumn" Width="280"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- 左侧聊天记录列表 -->
-        <Grid Grid.Column="0">
+        <!-- 左侧面板 -->
+        <Grid Grid.Column="0" Background="{DynamicResource MaterialDesignPaper}">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock
-                Margin="16,16,16,8"
-                Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                Text="聊天记录" />
+            <!-- 历史记录区域 -->
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                <ListView
+                    ItemsSource="{Binding ChatSessions}"
+                    SelectedItem="{Binding CurrentSession}"
+                    BorderThickness="0"
+                    Margin="0,8">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="12,8" Background="Transparent">
+                                <StackPanel>
+                                    <TextBlock 
+                                        Text="{Binding Title}" 
+                                        Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                        TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock 
+                                        Text="{Binding LastMessageTime}" 
+                                        Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                        Opacity="0.6"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </ScrollViewer>
 
-            <ListView
-                Grid.Row="1"
-                ItemsSource="{Binding ChatSessions}"
-                SelectedItem="{Binding CurrentSession}">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Margin="8,4">
-                            <TextBlock Text="{Binding Title}" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
-                            <TextBlock Text="{Binding LastMessageTime}" Style="{StaticResource MaterialDesignCaptionTextBlock}"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <!-- 功能区 -->
+            <StackPanel Grid.Row="1" Margin="8,0,8,8">
+                <Button
+                    Margin="0,4"
+                    Style="{StaticResource MaterialDesignFlatButton}"
+                    HorizontalContentAlignment="Left"
+                    Command="{Binding NewChatCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Plus" Margin="0,0,8,0"/>
+                        <TextBlock Text="新对话"/>
+                    </StackPanel>
+                </Button>
+                <Button
+                    Margin="0,4"
+                    Style="{StaticResource MaterialDesignFlatButton}"
+                    HorizontalContentAlignment="Left"
+                    Command="{Binding OpenSettingsCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Settings" Margin="0,0,8,0"/>
+                        <TextBlock Text="设置"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
         </Grid>
 
-        <!-- 分隔线 -->
-        <GridSplitter
-            Grid.Column="1"
-            Width="4"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Stretch"
-            Background="{DynamicResource MaterialDesignDivider}"/>
+        <!-- 分隔线和收缩按钮 -->
+        <Border Grid.Column="0" HorizontalAlignment="Right" Width="4" Background="{DynamicResource MaterialDesignDivider}">
+            <Button
+                x:Name="ToggleSidebarButton"
+                Width="24"
+                Height="24"
+                Padding="0"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right"
+                Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                Click="ToggleSidebarButton_Click">
+                <materialDesign:PackIcon Kind="ChevronLeft"/>
+            </Button>
+        </Border>
 
         <!-- 右侧聊天区域 -->
-        <Grid Grid.Column="2">
+        <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -77,89 +114,77 @@
             <ScrollViewer
                 x:Name="ChatScrollViewer"
                 Grid.Row="1"
-                Margin="8"
+                Margin="16,8"
                 VerticalScrollBarVisibility="Auto"
                 ScrollChanged="ChatScrollViewer_ScrollChanged">
                 <ItemsControl ItemsSource="{Binding Messages}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Grid Margin="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
+                            <Border Margin="0,8" Padding="0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <!-- 左侧头像（AI） -->
-                                <Border
-                                    Grid.Column="0"
-                                    Width="40"
-                                    Height="40"
-                                    Margin="0,0,8,0"
-                                    CornerRadius="20"
-                                    Background="{DynamicResource MaterialDesignPaper}"
-                                    Visibility="{Binding IsUser, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                                    <materialDesign:PackIcon
-                                        Kind="Robot"
-                                        Width="24"
-                                        Height="24"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"/>
-                                </Border>
+                                    <!-- 左侧头像（AI） -->
+                                    <Border
+                                        Grid.Column="0"
+                                        Width="36"
+                                        Height="36"
+                                        Margin="0,0,12,0"
+                                        CornerRadius="18"
+                                        Background="{DynamicResource MaterialDesignPaper}"
+                                        Visibility="{Binding IsUser, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                                        <materialDesign:PackIcon
+                                            Kind="Robot"
+                                            Width="20"
+                                            Height="20"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                                    </Border>
 
-                                <!-- 消息气泡 -->
-                                <Border
-                                    Grid.Column="{Binding IsUser, Converter={StaticResource BooleanTo1Or2Converter}}"
-                                    MaxWidth="600"
-                                    Margin="4,0"
-                                    Padding="12,8"
-                                    Background="{Binding IsUser, Converter={StaticResource UserMessageBackgroundConverter}}"
-                                    CornerRadius="12"
-                                    Effect="{StaticResource MaterialDesignElevationShadow2}">
-                                    
-                                    <StackPanel>
-                                        <!-- 思考状态显示 -->
-                                        <TextBlock
-                                            Margin="0,0,0,4"
-                                            Foreground="{DynamicResource MaterialDesignBodyLight}"
-                                            Text="正在思考..."
-                                            Visibility="{Binding IsThinking, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                            
-                                        <!-- 消息内容 -->
+                                    <!-- 消息气泡 -->
+                                    <Border
+                                        Grid.Column="{Binding IsUser, Converter={StaticResource BooleanTo1Or2Converter}}"
+                                        MaxWidth="800"
+                                        Margin="4,0"
+                                        Padding="16,12"
+                                        Background="{Binding IsUser, Converter={StaticResource UserMessageBackgroundConverter}}"
+                                        CornerRadius="8">
                                         <RichTextBox
                                             IsReadOnly="True"
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Padding="0"
-                                            VerticalScrollBarVisibility="Auto"
-                                            HorizontalScrollBarVisibility="Auto"
-                                            converters:DocumentBindingBehavior.Document="{Binding MessageDocument, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            converters:DocumentBindingBehavior.Document="{Binding MessageDocument}">
                                             <RichTextBox.Resources>
                                                 <Style TargetType="{x:Type Paragraph}">
                                                     <Setter Property="Margin" Value="0"/>
                                                 </Style>
                                             </RichTextBox.Resources>
                                         </RichTextBox>
-                                    </StackPanel>
-                                </Border>
+                                    </Border>
 
-                                <!-- 右侧头像（用户） -->
-                                <Border
-                                    Grid.Column="2"
-                                    Width="40"
-                                    Height="40"
-                                    Margin="8,0,0,0"
-                                    CornerRadius="20"
-                                    Background="{DynamicResource MaterialDesignPaper}"
-                                    Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <materialDesign:PackIcon
-                                        Kind="Account"
-                                        Width="24"
-                                        Height="24"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"/>
-                                </Border>
-                            </Grid>
+                                    <!-- 右侧头像（用户） -->
+                                    <Border
+                                        Grid.Column="2"
+                                        Width="36"
+                                        Height="36"
+                                        Margin="12,0,0,0"
+                                        CornerRadius="18"
+                                        Background="{DynamicResource MaterialDesignPaper}"
+                                        Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <materialDesign:PackIcon
+                                            Kind="Account"
+                                            Width="20"
+                                            Height="20"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -171,8 +196,7 @@
                 Margin="16"
                 Padding="16,12"
                 Background="{DynamicResource MaterialDesignPaper}"
-                CornerRadius="12"
-                Effect="{StaticResource MaterialDesignElevationShadow4}">
+                CornerRadius="8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -181,9 +205,8 @@
 
                     <TextBox
                         x:Name="MessageInput"
-                        Margin="0,0,16,0"
+                        Margin="0,0,12,0"
                         materialDesign:HintAssist.Hint="输入消息..."
-                        materialDesign:TextFieldAssist.HasClearButton="True"
                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
                         Text="{Binding InputMessage, UpdateSourceTrigger=PropertyChanged}"
                         KeyDown="MessageInput_KeyDown"/>
