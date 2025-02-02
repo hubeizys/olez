@@ -3,27 +3,29 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-using System.IO; // 添加这个引用
+using IODriveInfo = System.IO.DriveInfo;  // 添加别名
+using System.Runtime.InteropServices;
 using ollez.Models;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic.Devices; // 添加这个引用
+using Serilog;
 
 namespace ollez.Services
 {
     public class HardwareMonitorService : IHardwareMonitorService
     {
-        private readonly ILogger<HardwareMonitorService> _logger;
+        private readonly ILogger _logger;
         private readonly Timer _updateTimer;
         private readonly PerformanceCounter _cpuCounter;
+        private readonly Process _currentProcess;
         private HardwareInfo _currentInfo;
 
-        public HardwareMonitorService(ILogger<HardwareMonitorService> logger)
+        public HardwareMonitorService()
         {
-            _logger = logger;
-            _updateTimer = new Timer(2000); // 每2秒更新一次
+            _logger = Log.Logger;
+            _updateTimer = new Timer(2000);
             _updateTimer.Elapsed += OnTimerElapsed;
             
             _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            _currentProcess = Process.GetCurrentProcess();
             _currentInfo = new HardwareInfo();
         }
 
@@ -70,7 +72,7 @@ namespace ollez.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating hardware info");
+                _logger.Error(ex, "Error updating hardware info");
             }
         }
 
@@ -86,31 +88,49 @@ namespace ollez.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting processor name");
+                _logger.Error(ex, "Error getting processor name");
             }
             return "Unknown Processor";
         }
 
         private double GetTotalPhysicalMemory()
         {
-            return new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / (1024.0 * 1024 * 1024);
+            return GetMemoryMetrics().Total;
         }
 
         private double GetAvailablePhysicalMemory()
         {
-            return new Microsoft.VisualBasic.Devices.ComputerInfo().AvailablePhysicalMemory / (1024.0 * 1024 * 1024);
+            return GetMemoryMetrics().Available;
+        }
+
+        private MemoryMetrics GetMemoryMetrics()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var metrics = new MemoryMetrics();
+                var memStatus = new MEMORYSTATUSEX();
+                if (GlobalMemoryStatusEx(memStatus))
+                {
+                    metrics.Total = memStatus.ullTotalPhys / (1024.0 * 1024 * 1024);
+                    metrics.Available = memStatus.ullAvailPhys / (1024.0 * 1024 * 1024);
+                }
+                return metrics;
+            }
+            
+            // 对于其他操作系统，可以通过读取 /proc/meminfo 等方式实现
+            throw new PlatformNotSupportedException("Currently only Windows is supported");
         }
 
         private void UpdateDriveInfo(HardwareInfo info)
         {
             info.Drives.Clear();
-            foreach (var drive in DriveInfo.GetDrives().Where(d => d.IsReady))  // 使用 System.IO.DriveInfo
+            foreach (var drive in IODriveInfo.GetDrives().Where(d => d.IsReady))
             {
                 var totalGB = drive.TotalSize / (1024.0 * 1024 * 1024);
-                var freeGB = drive.AvailableFreeSpace / (1024.0 * 1024 * 1024);  // 使用 AvailableFreeSpace 替代 AvailableSize
+                var freeGB = drive.AvailableFreeSpace / (1024.0 * 1024 * 1024);
                 var usagePercentage = ((totalGB - freeGB) / totalGB) * 100;
 
-                info.Drives.Add(new Models.DriveInfo  // 明确指定使用 Models.DriveInfo
+                info.Drives.Add(new Models.DriveInfo
                 {
                     Name = drive.Name,
                     TotalSpace = totalGB,
@@ -118,6 +138,41 @@ namespace ollez.Services
                     UsagePercentage = usagePercentage
                 });
             }
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        private class MEMORYSTATUSEX
+        {
+            public uint dwLength;
+            public uint dwMemoryLoad;
+            public ulong ullTotalPhys;
+            public ulong ullAvailPhys;
+            public ulong ullTotalPageFile;
+            public ulong ullAvailPageFile;
+            public ulong ullTotalVirtual;
+            public ulong ullAvailVirtual;
+            public ulong ullAvailExtendedVirtual;
+
+            public MEMORYSTATUSEX()
+            {
+                dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+            }
+        }
+
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
+
+        private class MemoryMetrics
+        {
+            public double Total { get; set; }
+            public double Available { get; set; }
+        }
+
+        public void Dispose()
+        {
+            _updateTimer?.Dispose();
+            _cpuCounter?.Dispose();
         }
     }
 }

@@ -2,7 +2,7 @@
  * 文件名：App.xaml.cs
  * 创建者：yunsong
  * 创建时间：2024/03/21
- * 描述：应用程序入口点，负责依赖注入和初始化
+ * 描述：应用程序入口点
  */
 
 using Prism.DryIoc;
@@ -59,16 +59,13 @@ namespace ollez
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             // 注册数据库上下文工厂
-
             containerRegistry.Register<ChatDbContext>(() => {
                 var context = new ChatDbContext();
                 context.Database.EnsureCreated();
                 return context;
             });
             containerRegistry.Register<Func<ChatDbContext>>(container => () => container.Resolve<ChatDbContext>());
-            // // 注册数据库上下文工厂
-            // containerRegistry.RegisterInstance<Func<ChatDbContext>>(() => new ChatDbContext());
-            containerRegistry.Register<IChatDbService, ChatDbService>();  // 将 register 改为 Register
+            containerRegistry.Register<IChatDbService, ChatDbService>();
 
             // 注册其他服务
             containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();
@@ -76,10 +73,13 @@ namespace ollez
             containerRegistry.RegisterSingleton<ILogService, LogService>();
             containerRegistry.RegisterSingleton<IHardwareMonitorService, HardwareMonitorService>();
 
+            // 注册视图和视图模型
             containerRegistry.RegisterForNavigation<SystemStatusView, SystemStatusViewModel>();
             containerRegistry.RegisterForNavigation<ChatView, ChatViewModel>();
             containerRegistry.RegisterForNavigation<LogView, LogViewModel>();
             containerRegistry.RegisterForNavigation<AboutView, AboutViewModel>();
+
+            containerRegistry.RegisterScoped<SystemStatusViewModel>();
         }
     }
 }

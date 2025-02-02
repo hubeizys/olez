@@ -132,7 +132,7 @@
                     <materialDesign:Card Grid.Column="0" Padding="16" Margin="0,0,8,0">
                         <StackPanel>
                             <DockPanel>
-                                <materialDesign:PackIcon Kind="Cpu" Width="24" Height="24" VerticalAlignment="Center"/>
+                                <materialDesign:PackIcon Kind="Chip" Width="24" Height="24" VerticalAlignment="Center"/>
                                 <TextBlock
                                     Margin="8,0,0,0"
                                     Style="{StaticResource MaterialDesignHeadline6TextBlock}"
@@ -257,15 +257,15 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- CUDA 状态 -->
+                    <!-- CUDA状态 -->
                     <materialDesign:Card Grid.Column="0" Padding="16" Margin="0,0,8,16">
                         <StackPanel>
                             <DockPanel>
-                                <materialDesign:PackIcon Kind="Chip" Width="24" Height="24" VerticalAlignment="Center"/>
+                                <materialDesign:PackIcon Kind="Cuda" Width="24" Height="24" VerticalAlignment="Center"/>
                                 <TextBlock
                                     Margin="8,0,0,0"
                                     Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                                    Text="CUDA 状态"/>
+                                    Text="CUDA状态"/>
                             </DockPanel>
                             
                             <Grid Margin="0,16,0,0">
@@ -282,23 +282,23 @@
                                 <TextBlock Grid.Column="0" Grid.Row="0" Text="状态：" Margin="0,0,8,0"/>
                                 <TextBlock Grid.Column="1" Grid.Row="0">
                                     <Run Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"
-                                         Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}"/>
+                                         Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailableConverter}}"/>
                                 </TextBlock>
 
-                                <TextBlock Grid.Column="0" Grid.Row="1" Text="CUDA 版本："
+                                <TextBlock Grid.Column="0" Grid.Row="1" Text="CUDA版本："
                                          Margin="0,8,8,0"
                                          Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <TextBlock Grid.Column="1" Grid.Row="1"
-                                         Margin="0,8,0,0"
                                          Text="{Binding CudaInfo.Version}"
+                                         Margin="0,8,0,0"
                                          Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
                                 <TextBlock Grid.Column="0" Grid.Row="2" Text="驱动版本："
                                          Margin="0,8,8,0"
                                          Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <TextBlock Grid.Column="1" Grid.Row="2"
-                                         Margin="0,8,0,0"
                                          Text="{Binding CudaInfo.DriverVersion}"
+                                         Margin="0,8,0,0"
                                          Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             </Grid>
 
@@ -340,19 +340,19 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            
+
                             <TextBlock Margin="0,8,0,0"
                                       TextWrapping="Wrap"
                                       Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                                 <Hyperlink NavigateUri="https://developer.nvidia.com/cuda-downloads"
                                          RequestNavigate="Hyperlink_RequestNavigate">
-                                    点击此处下载安装 CUDA Toolkit
+                                    点击此处下载安装CUDA Toolkit
                                 </Hyperlink>
                             </TextBlock>
                         </StackPanel>
                     </materialDesign:Card>
 
-                    <!-- Ollama 状态 -->
+                    <!-- Ollama状态 -->
                     <materialDesign:Card Grid.Column="1" Padding="16" Margin="8,0,0,16">
                         <StackPanel>
                             <DockPanel>
@@ -360,7 +360,7 @@
                                 <TextBlock
                                     Margin="8,0,0,0"
                                     Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                                    Text="Ollama 状态"/>
+                                    Text="Ollama状态"/>
                             </DockPanel>
                             
                             <Grid Margin="0,16,0,0">
@@ -385,8 +385,8 @@
                                          Margin="0,8,8,0"
                                          Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <TextBlock Grid.Column="1" Grid.Row="1"
-                                          Margin="0,8,0,0"
-                                          Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                         Margin="0,8,0,0"
+                                         Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <Run Text="{Binding OllamaInfo.Version}"/>
                                     <Run Text=" "/>
                                     <Run Text="{Binding OllamaInfo.BuildType}"/>
@@ -396,9 +396,9 @@
                                          Margin="0,8,8,0"
                                          Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <TextBlock Grid.Column="1" Grid.Row="2"
-                                          Margin="0,8,0,0"
-                                          Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                          Text="{Binding OllamaInfo.Endpoint}"/>
+                                         Margin="0,8,0,0"
+                                         Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                         Text="{Binding OllamaInfo.Endpoint}"/>
                             </Grid>
 
                             <!-- 已安装的模型列表 -->
