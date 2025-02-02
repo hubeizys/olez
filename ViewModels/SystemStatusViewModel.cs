@@ -9,12 +9,21 @@ using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Regions;
 using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using ollez.Services;
 
 namespace ollez.ViewModels
 {
+    public class InstallationStep
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string Link { get; set; }
+        public bool IsCompleted { get; set; }
+    }
+
     /// <summary>
     /// 系统状态视图的视图模型
     /// </summary>
@@ -65,12 +74,64 @@ namespace ollez.ViewModels
             set => SetProperty(ref _isChecking, value);
         }
 
+        private bool _showInstallationGuide = true;
+        public bool ShowInstallationGuide
+        {
+            get => _showInstallationGuide;
+            set => SetProperty(ref _showInstallationGuide, value);
+        }
+
+        private ObservableCollection<InstallationStep> _installationSteps;
+        public ObservableCollection<InstallationStep> InstallationSteps
+        {
+            get => _installationSteps;
+            set => SetProperty(ref _installationSteps, value);
+        }
+
         public DelegateCommand CheckSystemCommand { get; }
+        public DelegateCommand ToggleGuideCommand { get; }
 
         public SystemStatusViewModel(ISystemCheckService systemCheckService)
         {
             _systemCheckService = systemCheckService;
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystemAsync());
+            ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
+
+            InitializeInstallationSteps();
+        }
+
+        private void InitializeInstallationSteps()
+        {
+            InstallationSteps = new ObservableCollection<InstallationStep>
+            {
+                new InstallationStep
+                {
+                    Title = "安装 NVIDIA 显卡驱动",
+                    Description = "请确保您的系统已安装最新版本的NVIDIA显卡驱动。如果尚未安装，请访问NVIDIA官方网站下载并安装适合您显卡的最新驱动程序。",
+                    Link = "https://www.nvidia.com/download/index.aspx",
+                    IsCompleted = false
+                },
+                new InstallationStep
+                {
+                    Title = "安装 CUDA Toolkit",
+                    Description = "下载并安装CUDA Toolkit。请注意选择与您系统兼容的版本。安装完成后需要重启系统。",
+                    Link = "https://developer.nvidia.com/cuda-downloads",
+                    IsCompleted = false
+                },
+                new InstallationStep
+                {
+                    Title = "安装 Ollama",
+                    Description = "下载并安装Ollama。安装完成后，Ollama服务会自动启动并在后台运行。",
+                    Link = "https://ollama.com/download",
+                    IsCompleted = false
+                },
+                new InstallationStep
+                {
+                    Title = "下载推荐模型",
+                    Description = "打开终端或命令提示符，运行以下命令下载推荐的模型：\nollama pull [模型名称]\n\n下载完成后即可开始使用。",
+                    IsCompleted = false
+                }
+            };
         }
 
         private async Task CheckSystemAsync()
@@ -79,6 +140,13 @@ namespace ollez.ViewModels
             CudaInfo = await _systemCheckService.CheckCudaAsync();
             OllamaInfo = await _systemCheckService.CheckOllamaAsync();
             ModelRecommendation = await _systemCheckService.GetModelRecommendationAsync();
+            
+            // 更新安装步骤状态
+            InstallationSteps[0].IsCompleted = CudaInfo.IsAvailable;
+            InstallationSteps[1].IsCompleted = CudaInfo.IsAvailable;
+            InstallationSteps[2].IsCompleted = OllamaInfo.IsRunning;
+            InstallationSteps[3].IsCompleted = OllamaInfo.IsRunning && OllamaInfo.InstalledModels.Length > 0;
+            
             IsChecking = false;
         }
 

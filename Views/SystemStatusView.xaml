@@ -4,9 +4,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/"
+    xmlns:converters="clr-namespace:ollez.Converters"
     prism:ViewModelLocator.AutoWireViewModel="True">
     
     <UserControl.Resources>
+        <converters:StringToUriConverter x:Key="StringToUriConverter"/>
         <Style x:Key="CustomScrollBarStyle" TargetType="{x:Type ScrollBar}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -43,16 +45,75 @@
         <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock
+            <!-- 安装指引面板 -->
+            <Expander Grid.Row="0"
+                     IsExpanded="{Binding ShowInstallationGuide}"
+                     Margin="0,0,0,16">
+                <Expander.Header>
+                    <DockPanel>
+                        <materialDesign:PackIcon Kind="HelpCircleOutline"
+                                               Width="24"
+                                               Height="24"
+                                               VerticalAlignment="Center"/>
+                        <TextBlock Text="系统安装指引"
+                                 Margin="8,0,0,0"
+                                 Style="{StaticResource MaterialDesignHeadline5TextBlock}"/>
+                    </DockPanel>
+                </Expander.Header>
+                <materialDesign:Card Margin="0,8,0,0" UniformCornerRadius="4">
+                    <StackPanel Margin="16">
+                        <ItemsControl ItemsSource="{Binding InstallationSteps}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <!-- 步骤完成状态图标 -->
+                                        <materialDesign:PackIcon Grid.Column="0"
+                                                               Width="24"
+                                                               Height="24"
+                                                               Margin="0,0,16,0"
+                                                               VerticalAlignment="Top"
+                                                               Kind="{Binding IsCompleted, Converter={StaticResource BooleanTo1Or2Converter}, ConverterParameter='CheckCircleOutline,AlertCircleOutline'}"
+                                                               Foreground="{Binding IsCompleted, Converter={StaticResource BoolToColorConverter}}"/>
+                                        
+                                        <!-- 步骤内容 -->
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding Title}"
+                                                     Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                                     Margin="0,0,0,4"/>
+                                            <TextBlock Text="{Binding Description}"
+                                                     TextWrapping="Wrap"
+                                                     Margin="0,0,0,4"/>
+                                            <TextBlock Visibility="{Binding Link, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                <Hyperlink NavigateUri="{Binding Link, Converter={StaticResource StringToUriConverter}}"
+                                                          RequestNavigate="Hyperlink_RequestNavigate">
+                                                    点击此处访问下载页面
+                                                </Hyperlink>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </materialDesign:Card>
+            </Expander>
+
+            <TextBlock Grid.Row="1"
                 Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                 Text="系统环境检查"
                 Margin="0,0,0,16"/>
 
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -329,7 +390,7 @@
             </Grid>
 
             <Button
-                Grid.Row="2"
+                Grid.Row="3"
                 Margin="0,16,0,0"
                 Command="{Binding CheckSystemCommand}"
                 Content="重新检查"
@@ -341,7 +402,7 @@
 
             <materialDesign:Card
                 Grid.Row="0"
-                Grid.RowSpan="3"
+                Grid.RowSpan="4"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Padding="16"
