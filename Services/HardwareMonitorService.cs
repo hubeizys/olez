@@ -33,10 +33,10 @@ namespace ollez.Services
             _logger = Log.Logger;
             _updateTimer = new Timer(1000);
             _updateTimer.Elapsed += OnTimerElapsed;
-            
+
             _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             _currentProcess = Process.GetCurrentProcess();
-            
+
             // 初始化硬件信息
             _currentInfo = new HardwareInfo
             {
@@ -46,7 +46,7 @@ namespace ollez.Services
                 AvailableMemory = GetAvailablePhysicalMemory(),
                 Drives = new System.Collections.ObjectModel.ObservableCollection<Models.DriveInfo>()
             };
-            
+
             // 初始化时立即更新一次硬盘信息
             UpdateDriveInfo(_currentInfo);
         }
@@ -81,7 +81,7 @@ namespace ollez.Services
             {
                 // 获取 CPU 使用率
                 var cpuUsage = _cpuCounter.NextValue();
-                
+
                 // 获取内存信息
                 var memoryMetrics = GetMemoryMetrics();
 
@@ -143,27 +143,54 @@ namespace ollez.Services
                 }
                 return metrics;
             }
-            
+
             // 对于其他操作系统，可以通过读取 /proc/meminfo 等方式实现
             throw new PlatformNotSupportedException("Currently only Windows is supported");
         }
 
         private void UpdateDriveInfo(HardwareInfo info)
         {
-            info.Drives.Clear();
-            foreach (var drive in IODriveInfo.GetDrives().Where(d => d.IsReady))
+            // 获取当前系统中的硬盘信息
+            var currentDrives = IODriveInfo.GetDrives().Where(d => d.IsReady).ToList();
+
+            // 遍历当前集合中的硬盘信息
+            foreach (var existingDrive in info.Drives.ToList())
+            {
+                // 如果当前硬盘不在系统中，则从集合中移除
+                if (!currentDrives.Any(d => d.Name == existingDrive.Name))
+                {
+                    info.Drives.Remove(existingDrive);
+                }
+            }
+
+            // 遍历系统中的硬盘信息
+            foreach (var drive in currentDrives)
             {
                 var totalGB = drive.TotalSize / (1024.0 * 1024 * 1024);
                 var freeGB = drive.AvailableFreeSpace / (1024.0 * 1024 * 1024);
                 var usagePercentage = ((totalGB - freeGB) / totalGB) * 100;
 
-                info.Drives.Add(new Models.DriveInfo
+                // 查找集合中是否已存在该硬盘
+                var existingDrive = info.Drives.FirstOrDefault(d => d.Name == drive.Name);
+
+                if (existingDrive != null)
                 {
-                    Name = drive.Name,
-                    TotalSpace = totalGB,
-                    AvailableSpace = freeGB,
-                    UsagePercentage = usagePercentage
-                });
+                    // 如果存在，则更新属性
+                    existingDrive.TotalSpace = totalGB;
+                    existingDrive.AvailableSpace = freeGB;
+                    existingDrive.UsagePercentage = usagePercentage;
+                }
+                else
+                {
+                    // 如果不存在，则添加到集合中
+                    info.Drives.Add(new DriveInfo
+                    {
+                        Name = drive.Name,
+                        TotalSpace = totalGB,
+                        AvailableSpace = freeGB,
+                        UsagePercentage = usagePercentage
+                    });
+                }
             }
         }
 
