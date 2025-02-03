@@ -23,19 +23,25 @@ namespace ollez.ViewModels
         [Logger("ui_debug", MinimumLevel = LogEventLevel.Debug)]
         private readonly ILogger _debugLogger = null!;
 
-        private StringBuilder _contentBuilder = new StringBuilder();
+        private StringBuilder _contentBuilder = new();
         private readonly IChatService _chatService;
         private readonly ISystemCheckService _systemCheckService;
         private string _inputMessage = string.Empty;
         private bool _isProcessing;
         private string _selectedModel = string.Empty;
-        private ObservableCollection<string> _availableModels;
-        private ObservableCollection<ChatMessage> _messages;
-        private StringBuilder _pendingContent;
-        private DateTime _lastUpdateTime;
+        private ObservableCollection<string> _availableModels = new();
+        private ObservableCollection<ChatMessage> _messages = new();
+        private StringBuilder _pendingContent = new();
+        private DateTime _lastUpdateTime = DateTime.Now;
         private const int UI_UPDATE_INTERVAL_MS = 200;
-        private ObservableCollection<ChatSession> _chatSessions;
-        private ChatSession _currentSession;
+        private ObservableCollection<ChatSession> _chatSessions = new();
+        private ChatSession _currentSession = new()
+        {
+            Id = string.Empty,
+            Title = string.Empty,
+            CreatedAt = DateTime.Now,
+            Messages = new ObservableCollection<ChatMessage>()
+        };
 
         public ObservableCollection<ChatMessage> Messages
         {
@@ -105,23 +111,10 @@ namespace ollez.ViewModels
             NewSessionCommand = new DelegateCommand(async () => await CreateNewSessionAsync());
             NewChatCommand = new DelegateCommand(ExecuteNewChat);
             OpenSettingsCommand = new DelegateCommand(ExecuteOpenSettings);
-
-            Messages = new ObservableCollection<ChatMessage>();
-            AvailableModels = new ObservableCollection<string>();
-            ChatSessions = new ObservableCollection<ChatSession>();
-            _pendingContent = new StringBuilder();
-            _lastUpdateTime = DateTime.Now;
-            _currentSession = new ChatSession
-            {
-                Id = string.Empty,
-                Title = string.Empty,
-                CreatedAt = DateTime.Now,
-                Messages = new ObservableCollection<ChatMessage>()
-            };
             
             InitializeAsync().ContinueWith(task =>
             {
-                if (task.IsFaulted)
+                if (task.IsFaulted && task.Exception != null)
                 {
                     Log.Error($"初始化失败: {task.Exception}");
                 }
@@ -139,6 +132,11 @@ namespace ollez.ViewModels
             try
             {
                 var sessionId = await _chatService.CreateNewSession();
+                if (string.IsNullOrEmpty(sessionId))
+                {
+                    throw new InvalidOperationException("创建会话失败：会话ID为空");
+                }
+                
                 var newSession = new ChatSession
                 {
                     Id = sessionId,
@@ -152,8 +150,8 @@ namespace ollez.ViewModels
                     ChatSessions.Add(newSession);
                     CurrentSession = newSession;
                 });
+                
                 _debugLogger.Information($"[ChatViewModel] 创建新会话成功: {sessionId}");
-                //当前会话
                 _debugLogger.Information($"[ChatViewModel] 当前会话: {CurrentSession.Id}");
                 Log.Information($"[ChatViewModel] 创建新会话成功: {sessionId}");
             }

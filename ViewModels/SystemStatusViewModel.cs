@@ -21,10 +21,18 @@ namespace ollez.ViewModels
 {
     public class InstallationStep
     {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Link { get; set; }
+        public string Title { get; }
+        public string Description { get; }
+        public string Link { get; }
         public bool IsCompleted { get; set; }
+
+        public InstallationStep(string title, string description, string link, bool isCompleted = false)
+        {
+            Title = title;
+            Description = description;
+            Link = link;
+            IsCompleted = isCompleted;
+        }
     }
 
     /// <summary>
@@ -36,12 +44,8 @@ namespace ollez.ViewModels
         private readonly IHardwareMonitorService _hardwareMonitorService;
         private readonly IRegionManager _regionManager;
         private CudaInfo _cudaInfo = new();
-        public CudaInfo CudaInfo
-        {
-            get => _cudaInfo;
-            set => SetProperty(ref _cudaInfo, value);
-        }
-
+        private HardwareInfo _hardwareInfo = new();
+        private ObservableCollection<InstallationStep> _installationSteps = new();
         private OllamaInfo _ollamaInfo = new()
         {
             IsRunning = false,
@@ -49,12 +53,6 @@ namespace ollez.ViewModels
             Endpoint = "http://localhost:11434",
             InstalledModels = Array.Empty<OllamaModelInfo>()
         };
-        public OllamaInfo OllamaInfo
-        {
-            get => _ollamaInfo;
-            set => SetProperty(ref _ollamaInfo, value);
-        }
-
         private ModelRecommendation _modelRecommendation = new()
         {
             CanRunLargeModels = false,
@@ -66,38 +64,49 @@ namespace ollez.ViewModels
             },
             RecommendationReason = "正在检查系统状态..."
         };
-        public ModelRecommendation ModelRecommendation
+        private bool _isChecking;
+        private bool _showInstallationGuide = false;
+
+        public CudaInfo CudaInfo
         {
-            get => _modelRecommendation;
-            set => SetProperty(ref _modelRecommendation, value);
+            get => _cudaInfo;
+            set => SetProperty(ref _cudaInfo, value);
         }
 
-        private HardwareInfo _hardwareInfo;
         public HardwareInfo HardwareInfo
         {
             get => _hardwareInfo;
             set => SetProperty(ref _hardwareInfo, value);
         }
 
-        private bool _isChecking;
+        public ObservableCollection<InstallationStep> InstallationSteps
+        {
+            get => _installationSteps;
+            set => SetProperty(ref _installationSteps, value);
+        }
+
+        public OllamaInfo OllamaInfo
+        {
+            get => _ollamaInfo;
+            set => SetProperty(ref _ollamaInfo, value);
+        }
+
+        public ModelRecommendation ModelRecommendation
+        {
+            get => _modelRecommendation;
+            set => SetProperty(ref _modelRecommendation, value);
+        }
+
         public bool IsChecking
         {
             get => _isChecking;
             set => SetProperty(ref _isChecking, value);
         }
 
-        private bool _showInstallationGuide = false;
         public bool ShowInstallationGuide
         {
             get => _showInstallationGuide;
             set => SetProperty(ref _showInstallationGuide, value);
-        }
-
-        private ObservableCollection<InstallationStep> _installationSteps;
-        public ObservableCollection<InstallationStep> InstallationSteps
-        {
-            get => _installationSteps;
-            set => SetProperty(ref _installationSteps, value);
         }
 
         public DelegateCommand CheckSystemCommand { get; }
@@ -127,33 +136,26 @@ namespace ollez.ViewModels
         {
             InstallationSteps = new ObservableCollection<InstallationStep>
             {
-                new InstallationStep
-                {
-                    Title = "安装 NVIDIA 显卡驱动",
-                    Description = "请确保您的系统已安装最新版本的NVIDIA显卡驱动。如果尚未安装，请访问NVIDIA官方网站下载并安装适合您显卡的最新驱动程序。",
-                    Link = "https://www.nvidia.com/download/index.aspx",
-                    IsCompleted = false
-                },
-                new InstallationStep
-                {
-                    Title = "安装 CUDA Toolkit",
-                    Description = "下载并安装CUDA Toolkit。请注意选择与您系统兼容的版本。安装完成后需要重启系统。",
-                    Link = "https://developer.nvidia.com/cuda-downloads",
-                    IsCompleted = false
-                },
-                new InstallationStep
-                {
-                    Title = "安装 Ollama",
-                    Description = "下载并安装Ollama。安装完成后，Ollama服务会自动启动并在后台运行。",
-                    Link = "https://ollama.com/download",
-                    IsCompleted = false
-                },
-                new InstallationStep
-                {
-                    Title = "下载推荐模型",
-                    Description = "打开终端或命令提示符，运行以下命令下载推荐的模型：\nollama pull [模型名称]\n\n下载完成后即可开始使用。",
-                    IsCompleted = false
-                }
+                new InstallationStep(
+                    "安装 NVIDIA 显卡驱动",
+                    "请确保您的系统已安装最新版本的NVIDIA显卡驱动。如果尚未安装，请访问NVIDIA官方网站下载并安装适合您显卡的最新驱动程序。",
+                    "https://www.nvidia.com/download/index.aspx"
+                ),
+                new InstallationStep(
+                    "安装 CUDA Toolkit",
+                    "下载并安装CUDA Toolkit。请注意选择与您系统兼容的版本。安装完成后需要重启系统。",
+                    "https://developer.nvidia.com/cuda-downloads"
+                ),
+                new InstallationStep(
+                    "安装 Ollama",
+                    "下载并安装Ollama。安装完成后，Ollama服务会自动启动并在后台运行。",
+                    "https://ollama.com/download"
+                ),
+                new InstallationStep(
+                    "下载推荐模型",
+                    "打开终端或命令提示符，运行以下命令下载推荐的模型：\nollama pull [模型名称]\n\n下载完成后即可开始使用。",
+                    string.Empty
+                )
             };
         }
 

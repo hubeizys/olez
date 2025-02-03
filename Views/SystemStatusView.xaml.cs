@@ -10,7 +10,6 @@ namespace ollez.Views
         public SystemStatusView()
         {
             InitializeComponent();
-            this.Loaded += (s, e) => Log.Warning("UserControl loaded");
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

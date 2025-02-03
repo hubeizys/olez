@@ -14,16 +14,15 @@ namespace ollez.ViewModels
         private readonly IHardwareMonitorService _hardwareMonitorService;
         private int _currentStep;
         private bool _hasNvidia;
-        private string _selectedDrive;
+        private string _selectedDrive = string.Empty;
         private bool _isOllamaInstalled;
         private bool _isModelDownloaded;
-        private ObservableCollection<string> _availableDrives;
+        private ObservableCollection<string> _availableDrives = new();
 
         public SystemSetupViewModel(IHardwareMonitorService hardwareMonitorService)
         {
             _hardwareMonitorService = hardwareMonitorService;
             _currentStep = 0;
-            AvailableDrives = new ObservableCollection<string>();
             
             NextCommand = new DelegateCommand(ExecuteNext, CanExecuteNext);
             PreviousCommand = new DelegateCommand(ExecutePrevious, CanExecutePrevious);
@@ -41,7 +40,7 @@ namespace ollez.ViewModels
             }
             
             // 默认选择第一个非C盘且空间足够的驱动器
-            SelectedDrive = AvailableDrives.FirstOrDefault(d => !d.StartsWith("C:")) ?? AvailableDrives.FirstOrDefault();
+            SelectedDrive = AvailableDrives.FirstOrDefault(d => !d.StartsWith("C:")) ?? AvailableDrives.FirstOrDefault() ?? string.Empty;
         }
 
         public int CurrentStep

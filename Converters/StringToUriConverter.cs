@@ -13,14 +13,15 @@ namespace ollez.Converters
 {
     public class StringToUriConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value == null || string.IsNullOrEmpty(value.ToString()))
                 return null;
 
             try
             {
-                return new Uri(value.ToString());
+                var uriString = value.ToString();
+                return uriString != null ? new Uri(uriString) : null;
             }
             catch
             {
@@ -28,7 +29,7 @@ namespace ollez.Converters
             }
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is Uri uri)
                 return uri.ToString();

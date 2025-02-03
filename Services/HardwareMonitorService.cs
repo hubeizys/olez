@@ -15,7 +15,7 @@ namespace ollez.Services
 {
     public class HardwareMonitorService : IHardwareMonitorService, INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void RaisePropertyChanged(string propertyName)
         {
@@ -26,7 +26,7 @@ namespace ollez.Services
         private readonly Timer _updateTimer;
         private readonly PerformanceCounter _cpuCounter;
         private readonly Process _currentProcess;
-        private HardwareInfo _currentInfo;
+        private HardwareInfo _currentInfo = new();
 
         public HardwareMonitorService()
         {
@@ -70,7 +70,7 @@ namespace ollez.Services
             return _currentInfo;
         }
 
-        private async void OnTimerElapsed(object sender, ElapsedEventArgs e)
+        private async void OnTimerElapsed(object? sender, ElapsedEventArgs e)
         {
             await UpdateHardwareInfoAsync();
         }
@@ -110,7 +110,8 @@ namespace ollez.Services
                 var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0\");
                 if (key != null)
                 {
-                    return key.GetValue("ProcessorNameString").ToString();
+                    var value = key.GetValue("ProcessorNameString");
+                    return value?.ToString() ?? "Unknown Processor";
                 }
             }
             catch (Exception ex)

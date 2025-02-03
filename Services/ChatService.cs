@@ -29,6 +29,10 @@ namespace ollez.Services
         public async Task<string> CreateNewSession(string title = "新会话")
         {
             var session = await _chatDbService.CreateSessionAsync(title);
+            if (session == null)
+            {
+                throw new InvalidOperationException("创建会话失败");
+            }
             _currentSessionId = session.Id;
             return session.Id;
         }
@@ -95,12 +99,14 @@ namespace ollez.Services
             while (!reader.EndOfStream)
             {
                 var line = await reader.ReadLineAsync();
+                if (line == null) continue;
+                
                 lineCount++;
                 
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     Log.Information($"[ChatService] 读取第 {lineCount} 行原始数据: {line}");
-                    string content = null;
+                    string? content = null;
                     bool isDone = false;
                     
                     try
@@ -133,8 +139,12 @@ namespace ollez.Services
 
                     if (isDone && !string.IsNullOrEmpty(_currentSessionId))
                     {
-                        // 在流结束时保存完整的助手回复
-                        await _chatDbService.AddMessageAsync(_currentSessionId, fullResponse.ToString(), false);
+                        var assistantResponse = fullResponse.ToString();
+                        if (!string.IsNullOrEmpty(assistantResponse))
+                        {
+                            // 在流结束时保存完整的助手回复
+                            await _chatDbService.AddMessageAsync(_currentSessionId, assistantResponse, false);
+                        }
                     }
                 }
             }
@@ -179,6 +189,11 @@ namespace ollez.Services
                 .GetProperty("message")
                 .GetProperty("content")
                 .GetString();
+
+            if (string.IsNullOrEmpty(messageContent))
+            {
+                throw new InvalidOperationException("接收到的消息内容为空");
+            }
 
             // 保存助手回复到数据库
             if (!string.IsNullOrEmpty(_currentSessionId))
