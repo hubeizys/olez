@@ -152,7 +152,7 @@
                         Grid.Column="0"
                         Margin="0,0,8,0"
                         Padding="16"
-                        materialDesign:ElevationAssist.Elevation="Dp12">
+                        >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -222,7 +222,7 @@
                         Grid.Column="1"
                         Margin="8,0"
                         Padding="16"
-                        materialDesign:ElevationAssist.Elevation="Dp12">
+                        >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -292,7 +292,7 @@
                         Grid.Column="2"
                         Margin="8,0,0,0"
                         Padding="16"
-                        materialDesign:ElevationAssist.Elevation="Dp12">
+                        >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -349,7 +349,7 @@
                         Grid.Column="0"
                         Margin="0,0,8,16"
                         Padding="16"
-                        materialDesign:ElevationAssist.Elevation="Dp12">
+                        >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -495,7 +495,7 @@
                         Grid.Column="1"
                         Margin="8,0,0,16"
                         Padding="16"
-                        materialDesign:ElevationAssist.Elevation="Dp12">
+                        >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -572,7 +572,7 @@
                                     <DataTemplate>
                                         <materialDesign:Card
                                             Margin="0,4"
-                                            materialDesign:ElevationAssist.Elevation="Dp12"
+                                            
                                             UniformCornerRadius="4">
                                             <Grid Margin="8">
                                                 <Grid.ColumnDefinitions>
@@ -639,7 +639,7 @@
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
                     Padding="16"
-                    materialDesign:ElevationAssist.Elevation="Dp12">
+                    >
                     <StackPanel>
                         <DockPanel>
                             <materialDesign:PackIcon
@@ -732,7 +732,7 @@
                 Padding="16"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                materialDesign:ElevationAssist.Elevation="Dp12"
+                
                 Visibility="{Binding IsChecking, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel>
                     <ProgressBar

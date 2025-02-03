@@ -1,32 +1,40 @@
-<prism:PrismApplication x:Class="ollez.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:prism="http://prismlibrary.com/"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:converters="clr-namespace:ollez.Converters">
+<prism:PrismApplication
+    x:Class="ollez.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:ollez.Converters"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:prism="http://prismlibrary.com/">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
+                <!--  需要显式添加基础主题文件  -->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+
+                <materialDesign:BundledTheme
+                    BaseTheme="Light"
+                    PrimaryColor="DeepPurple"
+                    SecondaryColor="Lime" />
+
             </ResourceDictionary.MergedDictionaries>
-            
-            <!-- 添加转换器 -->
-            <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-            <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
-            <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
-            <converters:AvailabilityConverter x:Key="AvailabilityConverter"/>
-            <converters:RunningConverter x:Key="RunningConverter"/>
-            <converters:MessageIconConverter x:Key="MessageIconConverter"/>
-            <converters:FileSizeConverter x:Key="FileSizeConverter"/>
-            <converters:BooleanTo1Or2Converter x:Key="BooleanTo1Or2Converter"/>
-            <converters:UserMessageBackgroundConverter x:Key="UserMessageBackgroundConverter"/>
-            <converters:BooleanToRightLeftConverter x:Key="BooleanToRightLeftConverter"/>
-            <converters:MessageMarginConverter x:Key="MessageMarginConverter"/>
-            <converters:MessageForegroundConverter x:Key="MessageForegroundConverter"/>
-            <converters:PercentageConverter x:Key="PercentageConverter"/>
-            <converters:StringToUriConverter x:Key="StringToUriConverter"/>
+
+            <!--  添加转换器  -->
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+            <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+            <converters:AvailabilityConverter x:Key="AvailabilityConverter" />
+            <converters:RunningConverter x:Key="RunningConverter" />
+            <converters:MessageIconConverter x:Key="MessageIconConverter" />
+            <converters:FileSizeConverter x:Key="FileSizeConverter" />
+            <converters:BooleanTo1Or2Converter x:Key="BooleanTo1Or2Converter" />
+            <converters:UserMessageBackgroundConverter x:Key="UserMessageBackgroundConverter" />
+            <converters:BooleanToRightLeftConverter x:Key="BooleanToRightLeftConverter" />
+            <converters:MessageMarginConverter x:Key="MessageMarginConverter" />
+            <converters:MessageForegroundConverter x:Key="MessageForegroundConverter" />
+            <converters:PercentageConverter x:Key="PercentageConverter" />
+            <converters:StringToUriConverter x:Key="StringToUriConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </prism:PrismApplication>
