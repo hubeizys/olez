@@ -226,17 +226,14 @@ namespace ollez.Services
                         string? line;
                         while ((line = await reader.ReadLineAsync()) != null)
                         {
-                            if (line != null)  // 额外的空值检查
+                            var match = LogEntryPattern.Match(line);
+                            if (match.Success)
                             {
-                                var match = LogEntryPattern.Match(line);
-                                if (match.Success)
-                                {
-                                    newEntries.Add(new LogEntry(
-                                        DateTime.Parse(match.Groups[1].Value),
-                                        match.Groups[3].Value,
-                                        match.Groups[2].Value
-                                    ));
-                                }
+                                newEntries.Add(new LogEntry(
+                                    DateTime.Parse(match.Groups[1].Value),
+                                    match.Groups[3].Value,
+                                    match.Groups[2].Value
+                                ));
                             }
                         }
                         _lastPosition = stream.Position;

@@ -15,8 +15,6 @@ namespace ollez.ViewModels
         private int _currentStep;
         private bool _hasNvidia;
         private string _selectedDrive = string.Empty;
-        private bool _isOllamaInstalled;
-        private bool _isModelDownloaded;
         private ObservableCollection<string> _availableDrives = new();
 
         public SystemSetupViewModel(IHardwareMonitorService hardwareMonitorService)
