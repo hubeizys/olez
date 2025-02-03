@@ -13,12 +13,10 @@
     Background="Transparent"
     FontFamily="{DynamicResource MaterialDesignFont}"
     MouseLeftButtonDown="Window_MouseLeftButtonDown"
+    Style="{StaticResource MaterialDesignWindow}"
     TextElement.FontSize="13"
     TextElement.FontWeight="Regular"
     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-
-
-
     WindowStartupLocation="CenterScreen"
     WindowStyle="None">
 
