@@ -119,14 +119,8 @@
                     Style="{StaticResource MaterialDesignRaisedLightButton}"
                     Command="{Binding OpenSetupCommand}"
                     HorizontalAlignment="Left"
+                    Content="系统设置向导"
                     Margin="0,0,0,16">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="Cog" 
-                                           Width="24" 
-                                           Height="24"
-                                           Margin="0,0,8,0"/>
-                    <TextBlock Text="系统设置向导"/>
-                </StackPanel>
             </Button>
 
             <Grid Grid.Row="3">
