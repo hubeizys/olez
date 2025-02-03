@@ -124,8 +124,7 @@ namespace ollez.ViewModels
             
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystem());
             ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
-            OpenSetupCommand = new DelegateCommand(ExecuteOpenSetup);
-
+            OpenSetupCommand = new DelegateCommand(async () => await ExecuteOpenSetup());
             InitializeInstallationSteps();
             
             // 立即执行一次检查
@@ -186,23 +185,10 @@ namespace ollez.ViewModels
             }
         }
 
-        private async void ExecuteOpenSetup()
+        private async Task ExecuteOpenSetup()
         {
-            var view = new SystemSetupView();
-            var dialog = view;
-            await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialog", new DialogOpenedEventHandler((sender, args) =>
-            {
-                if (dialog.DataContext is ViewModelBase viewModel)
-                {
-                    viewModel.PropertyChanged += (s, e) =>
-                    {
-                        if (e.PropertyName == "DialogResult" && args.Session.IsEnded == false)
-                        {
-                            args.Session.Close();
-                        }
-                    };
-                }
-            }));
+            var view = new SystemSetupView { DataContext = new SystemSetupViewModel(_hardwareMonitorService) };
+            await DialogHost.Show(view, "RootDialog");
         }
 
         public void OnNavigatedTo(NavigationContext navigationContext)
