@@ -15,6 +15,7 @@ using Serilog;
 using System.IO;
 using System;
 using ollez.Data;
+using System.Diagnostics;
 
 namespace ollez
 {
@@ -28,7 +29,9 @@ namespace ollez
         /// </summary>
         /// <returns>应用程序的主窗口</returns>
         protected override Window CreateShell()
-        {
+        { // 启用 WPF 绑定调试
+            PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Warning | SourceLevels.Error;
+            PresentationTraceSources.DataBindingSource.Listeners.Add(new ConsoleTraceListener());
             // 初始化 Serilog
             var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "app_.log");
             Log.Logger = new LoggerConfiguration()
