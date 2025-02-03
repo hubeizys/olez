@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using ollez.Services;
 using ollez.Models;
+using MaterialDesignThemes.Wpf;
+using ollez.Views;
 
 namespace ollez.ViewModels
 {
@@ -32,6 +34,7 @@ namespace ollez.ViewModels
     {
         private readonly ISystemCheckService _systemCheckService;
         private readonly IHardwareMonitorService _hardwareMonitorService;
+        private readonly IRegionManager _regionManager;
         private CudaInfo _cudaInfo = new();
         public CudaInfo CudaInfo
         {
@@ -99,17 +102,20 @@ namespace ollez.ViewModels
 
         public DelegateCommand CheckSystemCommand { get; }
         public DelegateCommand ToggleGuideCommand { get; }
+        public DelegateCommand OpenSetupCommand { get; }
 
-        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService)
+        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService, IRegionManager regionManager)
         {
             _systemCheckService = systemCheckService;
             _hardwareMonitorService = hardwareMonitorService;
+            _regionManager = regionManager;
 
             // 初始化硬件信息
             _hardwareInfo = new HardwareInfo();
             
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystem());
             ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
+            OpenSetupCommand = new DelegateCommand(ExecuteOpenSetup);
 
             InitializeInstallationSteps();
             
@@ -176,6 +182,12 @@ namespace ollez.ViewModels
             {
                 IsChecking = false;
             }
+        }
+
+        private void ExecuteOpenSetup()
+        {
+            var view = new SystemSetupView();
+            MaterialDesignThemes.Wpf.DialogHost.Show(view, "RootDialog");
         }
 
         public void OnNavigatedTo(NavigationContext navigationContext)

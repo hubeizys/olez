@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <Window
     x:Class="ollez.Views.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -18,114 +19,116 @@
     WindowStyle="None"
     prism:ViewModelLocator.AutoWireViewModel="True">
 
-    <materialDesign:Card UniformCornerRadius="15">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <materialDesign:DialogHost Identifier="RootDialog">
+        <materialDesign:Card UniformCornerRadius="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <!-- 自定义标题栏 -->
-            <Grid Grid.Row="0" Background="{DynamicResource PrimaryHueDarkBrush}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                <!-- 自定义标题栏 -->
+                <Grid Grid.Row="0" Background="{DynamicResource PrimaryHueDarkBrush}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- 标题和导航区域 -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <materialDesign:PackIcon
-                        Kind="Robot"
-                        Width="24"
-                        Height="24"
-                        Margin="16,0,8,0"
-                        VerticalAlignment="Center"
-                        Foreground="White"/>
-                    
-                    <TextBlock
-                        Text="Ollez 助手"
-                        VerticalAlignment="Center"
-                        Foreground="White"
-                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Margin="0,16"/>
-                </StackPanel>
+                    <!-- 标题和导航区域 -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <materialDesign:PackIcon
+                            Kind="Robot"
+                            Width="24"
+                            Height="24"
+                            Margin="16,0,8,0"
+                            VerticalAlignment="Center"
+                            Foreground="White"/>
+                        
+                        <TextBlock
+                            Text="Ollez 助手"
+                            VerticalAlignment="Center"
+                            Foreground="White"
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Margin="0,16"/>
+                    </StackPanel>
 
-                <!-- 导航按钮 -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="32,0,0,0">
-                    <RadioButton
-                        Style="{StaticResource MaterialDesignTabRadioButton}"
-                        Content="系统状态"
-                        IsChecked="True"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="SystemStatusView"
-                        Foreground="White"
-                        Margin="4"/>
-                    
-                    <RadioButton
-                        Style="{StaticResource MaterialDesignTabRadioButton}"
-                        Content="聊天"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="ChatView"
-                        Foreground="White"
-                        Margin="4"/>
+                    <!-- 导航按钮 -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="32,0,0,0">
+                        <RadioButton
+                            Style="{StaticResource MaterialDesignTabRadioButton}"
+                            Content="系统状态"
+                            IsChecked="True"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="SystemStatusView"
+                            Foreground="White"
+                            Margin="4"/>
+                        
+                        <RadioButton
+                            Style="{StaticResource MaterialDesignTabRadioButton}"
+                            Content="聊天"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="ChatView"
+                            Foreground="White"
+                            Margin="4"/>
 
-                    <RadioButton
-                        Style="{StaticResource MaterialDesignTabRadioButton}"
-                        Content="系统日志"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="LogView"
-                        Foreground="White"
-                        Margin="4"/>
+                        <RadioButton
+                            Style="{StaticResource MaterialDesignTabRadioButton}"
+                            Content="系统日志"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="LogView"
+                            Foreground="White"
+                            Margin="4"/>
 
-                    <RadioButton
-                        Style="{StaticResource MaterialDesignTabRadioButton}"
-                        Content="关于"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="AboutView"
-                        Foreground="White"
-                        Margin="4"/>
-                </StackPanel>
+                        <RadioButton
+                            Style="{StaticResource MaterialDesignTabRadioButton}"
+                            Content="关于"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="AboutView"
+                            Foreground="White"
+                            Margin="4"/>
+                    </StackPanel>
 
-                <!-- 窗口控制按钮 -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,8,0">
-                    <Button
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Height="34"
-                        Width="34"
-                        Padding="0"
-                        Foreground="White"
-                        Click="MinimizeButton_Click">
-                        <materialDesign:PackIcon Kind="WindowMinimize" />
-                    </Button>
-                    
-                    <Button
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Height="34"
-                        Width="34"
-                        Padding="0"
-                        Foreground="White"
-                        Click="MaximizeButton_Click">
-                        <materialDesign:PackIcon Kind="WindowMaximize" />
-                    </Button>
-                    
-                    <Button
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Height="34"
-                        Width="34"
-                        Padding="0"
-                        Foreground="White"
-                        Click="CloseButton_Click">
-                        <materialDesign:PackIcon Kind="Close" />
-                    </Button>
-                </StackPanel>
+                    <!-- 窗口控制按钮 -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,8,0">
+                        <Button
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Height="34"
+                            Width="34"
+                            Padding="0"
+                            Foreground="White"
+                            Click="MinimizeButton_Click">
+                            <materialDesign:PackIcon Kind="WindowMinimize" />
+                        </Button>
+                        
+                        <Button
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Height="34"
+                            Width="34"
+                            Padding="0"
+                            Foreground="White"
+                            Click="MaximizeButton_Click">
+                            <materialDesign:PackIcon Kind="WindowMaximize" />
+                        </Button>
+                        
+                        <Button
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Height="34"
+                            Width="34"
+                            Padding="0"
+                            Foreground="White"
+                            Click="CloseButton_Click">
+                            <materialDesign:PackIcon Kind="Close" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 内容区域 -->
+                <ContentControl
+                    Grid.Row="1"
+                    prism:RegionManager.RegionName="ContentRegion"
+                    Margin="16"/>
             </Grid>
-
-            <!-- 内容区域 -->
-            <ContentControl
-                Grid.Row="1"
-                prism:RegionManager.RegionName="ContentRegion"
-                Margin="16"/>
-        </Grid>
-    </materialDesign:Card>
+        </materialDesign:Card>
+    </materialDesign:DialogHost>
 </Window> 

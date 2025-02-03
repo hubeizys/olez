@@ -108,12 +108,28 @@
                 </materialDesign:Card>
             </Expander>
 
-            <TextBlock Grid.Row="1"
-                Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                Text="系统环境检查"
-                Margin="0,0,0,16"/>
+            <Grid Grid.Row="1">
+                <TextBlock
+                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                    Text="系统环境检查"
+                    Margin="0,0,0,16"/>
+            </Grid>
 
-            <Grid Grid.Row="2">
+            <Button Grid.Row="2"
+                    Style="{StaticResource MaterialDesignRaisedLightButton}"
+                    Command="{Binding OpenSetupCommand}"
+                    HorizontalAlignment="Left"
+                    Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="Cog" 
+                                           Width="24" 
+                                           Height="24"
+                                           Margin="0,0,8,0"/>
+                    <TextBlock Text="系统设置向导"/>
+                </StackPanel>
+            </Button>
+
+            <Grid Grid.Row="3">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -547,7 +563,7 @@
             </Grid>
 
             <Button
-                Grid.Row="3"
+                Grid.Row="4"
                 Margin="0,16,0,0"
                 Command="{Binding CheckSystemCommand}"
                 Content="重新检查"
@@ -559,7 +575,7 @@
 
             <materialDesign:Card
                 Grid.Row="0"
-                Grid.RowSpan="4"
+                Grid.RowSpan="5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Padding="16"

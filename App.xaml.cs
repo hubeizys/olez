@@ -78,8 +78,10 @@ namespace ollez
             containerRegistry.RegisterForNavigation<ChatView, ChatViewModel>();
             containerRegistry.RegisterForNavigation<LogView, LogViewModel>();
             containerRegistry.RegisterForNavigation<AboutView, AboutViewModel>();
+            containerRegistry.RegisterForNavigation<SystemSetupView, SystemSetupViewModel>();
 
             containerRegistry.RegisterScoped<SystemStatusViewModel>();
+            containerRegistry.RegisterScoped<SystemSetupViewModel>();
         }
     }
 }

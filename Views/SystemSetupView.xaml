@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl x:Class="ollez.Views.SystemSetupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:prism="http://prismlibrary.com/"
+             prism:ViewModelLocator.AutoWireViewModel="True">
+
+    <materialDesign:Card Width="600" Margin="16">
+        <materialDesign:Transitioner SelectedIndex="{Binding CurrentStep}">
+            <!-- 步骤1：NVIDIA驱动和CUDA -->
+            <materialDesign:TransitionerSlide 
+                OpeningEffect="{materialDesign:TransitionEffect SlideInFromLeft, Duration=0:0:0.4}">
+                <materialDesign:TransitionerSlide.ForwardWipe>
+                    <materialDesign:CircleWipe />
+                </materialDesign:TransitionerSlide.ForwardWipe>
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" 
+                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                             Text="步骤 1: NVIDIA驱动和CUDA安装"/>
+
+                    <StackPanel Grid.Row="1" Margin="0,16">
+                        <TextBlock Text="检测到您的系统需要安装NVIDIA驱动和CUDA。这将帮助提高AI模型的性能。"
+                                 TextWrapping="Wrap"
+                                 Margin="0,0,0,16"/>
+                        
+                        <CheckBox Content="我已安装NVIDIA驱动"
+                                IsChecked="{Binding HasNvidia}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" 
+                              Orientation="Horizontal" 
+                              HorizontalAlignment="Right">
+                        <Button Content="跳过"
+                                Command="{Binding SkipCommand}"
+                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Margin="0,0,8,0"/>
+                        <Button Content="下一步"
+                                Command="{Binding NextCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </materialDesign:TransitionerSlide>
+
+            <!-- 步骤2：Ollama安装 -->
+            <materialDesign:TransitionerSlide
+                OpeningEffect="{materialDesign:TransitionEffect SlideInFromRight, Duration=0:0:0.4}">
+                <materialDesign:TransitionerSlide.BackwardWipe>
+                    <materialDesign:CircleWipe />
+                </materialDesign:TransitionerSlide.BackwardWipe>
+                <materialDesign:TransitionerSlide.ForwardWipe>
+                    <materialDesign:SlideWipe Direction="Up" Duration="0:0:0.4"/>
+                </materialDesign:TransitionerSlide.ForwardWipe>
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" 
+                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                             Text="步骤 2: Ollama安装"/>
+
+                    <StackPanel Grid.Row="1" Margin="0,16">
+                        <TextBlock Text="请选择Ollama的安装位置。建议选择空间较大的非系统盘。"
+                                 TextWrapping="Wrap"
+                                 Margin="0,0,0,16"/>
+                        
+                        <ComboBox ItemsSource="{Binding AvailableDrives}"
+                                SelectedItem="{Binding SelectedDrive}"
+                                materialDesign:HintAssist.Hint="选择安装驱动器"
+                                Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                Margin="0,8"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" 
+                              Orientation="Horizontal" 
+                              HorizontalAlignment="Right">
+                        <Button Content="上一步"
+                                Command="{Binding PreviousCommand}"
+                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Margin="0,0,8,0"/>
+                        <Button Content="下一步"
+                                Command="{Binding NextCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </materialDesign:TransitionerSlide>
+
+            <!-- 步骤3：下载模型 -->
+            <materialDesign:TransitionerSlide
+                OpeningEffect="{materialDesign:TransitionEffect SlideInFromTop, Duration=0:0:0.4}">
+                <materialDesign:TransitionerSlide.BackwardWipe>
+                    <materialDesign:SlideWipe Direction="Down" Duration="0:0:0.4"/>
+                </materialDesign:TransitionerSlide.BackwardWipe>
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" 
+                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                             Text="步骤 3: 下载模型"/>
+
+                    <StackPanel Grid.Row="1" Margin="0,16">
+                        <TextBlock Text="正在下载1.5B模型，这可能需要一些时间。请保持网络连接。"
+                                 TextWrapping="Wrap"
+                                 Margin="0,0,0,16"/>
+                        
+                        <ProgressBar Style="{StaticResource MaterialDesignLinearProgressBar}"
+                                   Height="4"
+                                   IsIndeterminate="True"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" 
+                              Orientation="Horizontal" 
+                              HorizontalAlignment="Right">
+                        <Button Content="上一步"
+                                Command="{Binding PreviousCommand}"
+                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Margin="0,0,8,0"/>
+                        <Button Content="完成"
+                                Command="{Binding NextCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </materialDesign:TransitionerSlide>
+        </materialDesign:Transitioner>
+    </materialDesign:Card>
+</UserControl> 
