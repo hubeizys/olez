@@ -12,6 +12,7 @@
 
 
     <!--  Style="{StaticResource CustomScrollViewerStyle}"  -->
+
     <ScrollViewer>
         <Grid Margin="16">
             <Grid.RowDefinitions>
@@ -599,7 +600,7 @@
                         </StackPanel>
                     </materialDesign:Card>
                 </Grid>
-                <TextBlock Text="{Binding NonExistentProperty}" />
+
                 <!--  模型推荐  -->
                 <materialDesign:Card
                     Grid.Row="2"

@@ -19,11 +19,19 @@
     WindowStartupLocation="CenterScreen"
     WindowStyle="None">
 
-    <materialDesign:DialogHost Identifier="RootDialog">
-        <materialDesign:Card UniformCornerRadius="15">
+
+    <!--<materialDesign:DialogHost.DialogContent>
+    -->
+    <!--  对话框内容将在运行时动态设置  -->
+    <!--
+        </materialDesign:DialogHost.DialogContent>-->
+
+    <materialDesign:Card UniformCornerRadius="15">
+        <materialDesign:DialogHost Identifier="RootDialog" DialogTheme="Inherit" CloseOnClickAway="False">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
@@ -134,7 +142,9 @@
                     Grid.Row="1"
                     Margin="16"
                     prism:RegionManager.RegionName="ContentRegion" />
+
             </Grid>
-        </materialDesign:Card>
-    </materialDesign:DialogHost>
+        </materialDesign:DialogHost>
+    </materialDesign:Card>
+
 </Window> 
