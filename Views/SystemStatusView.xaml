@@ -6,6 +6,7 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/"
     prism:ViewModelLocator.AutoWireViewModel="True">
+
     <UserControl.Resources>
         <converters:StringToUriConverter x:Key="StringToUriConverter" />
     </UserControl.Resources>
@@ -14,6 +15,7 @@
     <!--  Style="{StaticResource CustomScrollViewerStyle}"  -->
 
     <ScrollViewer>
+
         <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -22,7 +24,27 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-
+            <!--<materialDesign:DialogHost
+                VerticalAlignment="Center"
+                CloseOnClickAway="True"
+                DialogContent="{Binding Sample4Content}"
+                DialogTheme="Inherit"
+                IsOpen="{Binding IsSample4DialogOpen}"
+                OverlayBackground="{DynamicResource PrimaryHueDarkBrush}"
+                Placement="Mouse">
+                <Border
+                    MinWidth="256"
+                    MinHeight="256"
+                    BorderBrush="{DynamicResource PrimaryHueMidBrush}"
+                    BorderThickness="1"
+                    ClipToBounds="True">
+                    <Button
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Command="{Binding OpenSample4DialogCommand}"
+                        Content="RUN" />
+                </Border>
+            </materialDesign:DialogHost>-->
             <!--  安装指引面板  -->
             <Expander
                 Grid.Row="0"
@@ -713,5 +735,4 @@
             </materialDesign:Card>
         </Grid>
     </ScrollViewer>
-
 </UserControl>

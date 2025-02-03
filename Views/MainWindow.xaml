@@ -16,8 +16,12 @@
     TextElement.FontSize="13"
     TextElement.FontWeight="Regular"
     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+
+
+
     WindowStartupLocation="CenterScreen"
     WindowStyle="None">
+
 
 
     <!--<materialDesign:DialogHost.DialogContent>
@@ -25,9 +29,10 @@
     <!--  对话框内容将在运行时动态设置  -->
     <!--
         </materialDesign:DialogHost.DialogContent>-->
+    <materialDesign:DialogHost CloseOnClickAway="True" Identifier="RootDialog">
+        <materialDesign:Card UniformCornerRadius="15">
 
-    <materialDesign:Card UniformCornerRadius="15">
-        <materialDesign:DialogHost Identifier="RootDialog" DialogTheme="Inherit" CloseOnClickAway="False">
+
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -144,7 +149,7 @@
                     prism:RegionManager.RegionName="ContentRegion" />
 
             </Grid>
-        </materialDesign:DialogHost>
-    </materialDesign:Card>
 
+        </materialDesign:Card>
+    </materialDesign:DialogHost>
 </Window> 
