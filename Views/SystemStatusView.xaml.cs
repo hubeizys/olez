@@ -1,6 +1,7 @@
 using System.Windows.Controls;
 using System.Diagnostics;
 using System.Windows.Navigation;
+using Serilog;
 
 namespace ollez.Views
 {
@@ -9,6 +10,7 @@ namespace ollez.Views
         public SystemStatusView()
         {
             InitializeComponent();
+            this.Loaded += (s, e) => Log.Warning("UserControl loaded");
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

@@ -9,31 +9,7 @@
 
     <UserControl.Resources>
         <converters:StringToUriConverter x:Key="StringToUriConverter" />
-        <!--<Style x:Key="CustomScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
-            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ScrollContentPresenter Grid.Column="0" />
-                            <ScrollBar
-                                x:Name="PART_VerticalScrollBar"
-                                Grid.Column="1"
-                                Width="8"
-                                Maximum="{TemplateBinding ScrollableHeight}"
-                                Style="{StaticResource MaterialDesignScrollBar}"
-                                ViewportSize="{TemplateBinding ViewportHeight}"
-                                Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
-                                Value="{TemplateBinding VerticalOffset}" />
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>-->
+
     </UserControl.Resources>
     <!--  Style="{StaticResource CustomScrollViewerStyle}"  -->
     <ScrollViewer>
@@ -64,10 +40,7 @@
                             Text="系统安装指引" />
                     </DockPanel>
                 </Expander.Header>
-                <materialDesign:Card
-                    Margin="0,8,0,0"
-                 
-                    UniformCornerRadius="4">
+                <materialDesign:Card Margin="0,8,0,0" UniformCornerRadius="4">
                     <StackPanel Margin="16">
                         <ItemsControl ItemsSource="{Binding InstallationSteps}">
                             <ItemsControl.ItemTemplate>
@@ -120,9 +93,12 @@
                 Grid.Row="1"
                 Margin="0,0,0,16"
                 HorizontalAlignment="Left"
+                materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                materialDesign:ButtonProgressAssist.Value="-1"
                 Command="{Binding OpenSetupCommand}"
                 Content="系统设置向导"
-                Style="{StaticResource MaterialDesignRaisedLightButton}" />
+                Style="{StaticResource MaterialDesignRaisedButton}" />
             <Grid Grid.Row="2">
                 <TextBlock
                     Margin="0,0,0,16"
@@ -151,8 +127,7 @@
                     <materialDesign:Card
                         Grid.Column="0"
                         Margin="0,0,8,0"
-                        Padding="16"
-                        >
+                        Padding="16">
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -221,8 +196,7 @@
                     <materialDesign:Card
                         Grid.Column="1"
                         Margin="8,0"
-                        Padding="16"
-                        >
+                        Padding="16">
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -291,8 +265,7 @@
                     <materialDesign:Card
                         Grid.Column="2"
                         Margin="8,0,0,0"
-                        Padding="16"
-                        >
+                        Padding="16">
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -323,7 +296,6 @@
                                                 Height="4"
                                                 Margin="0,4,0,0"
                                                 Maximum="100"
-                                                Style="{StaticResource MaterialDesignLinearProgressBar}"
                                                 Value="{Binding UsagePercentage}" />
                                         </StackPanel>
                                     </DataTemplate>
@@ -348,8 +320,7 @@
                     <materialDesign:Card
                         Grid.Column="0"
                         Margin="0,0,8,16"
-                        Padding="16"
-                        >
+                        Padding="16">
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -494,8 +465,7 @@
                     <materialDesign:Card
                         Grid.Column="1"
                         Margin="8,0,0,16"
-                        Padding="16"
-                        >
+                        Padding="16">
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon
@@ -570,10 +540,7 @@
                             <ItemsControl ItemsSource="{Binding OllamaInfo.InstalledModels}" Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <materialDesign:Card
-                                            Margin="0,4"
-                                            
-                                            UniformCornerRadius="4">
+                                        <materialDesign:Card Margin="0,4" UniformCornerRadius="4">
                                             <Grid Margin="8">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
@@ -638,8 +605,7 @@
                     Grid.Row="2"
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
-                    Padding="16"
-                    >
+                    Padding="16">
                     <StackPanel>
                         <DockPanel>
                             <materialDesign:PackIcon
@@ -707,7 +673,7 @@
                         <TextBlock
                             Margin="0,16,0,0"
                             FontWeight="Bold"
-                            Visibility="{Binding ModelRecommendation, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Run Text="大型模型支持：" />
                             <Run Foreground="{Binding ModelRecommendation.CanRunLargeModels, Converter={StaticResource BoolToColorConverter}}" Text="{Binding ModelRecommendation.CanRunLargeModels, Converter={StaticResource AvailabilityConverter}}" />
                         </TextBlock>
@@ -732,7 +698,6 @@
                 Padding="16"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                
                 Visibility="{Binding IsChecking, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel>
                     <ProgressBar
