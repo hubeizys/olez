@@ -184,10 +184,23 @@ namespace ollez.ViewModels
             }
         }
 
-        private void ExecuteOpenSetup()
+        private async void ExecuteOpenSetup()
         {
             var view = new SystemSetupView();
-            MaterialDesignThemes.Wpf.DialogHost.Show(view, "RootDialog");
+            var dialog = view;
+            await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialog", new DialogOpenedEventHandler((sender, args) =>
+            {
+                if (dialog.DataContext is ViewModelBase viewModel)
+                {
+                    viewModel.PropertyChanged += (s, e) =>
+                    {
+                        if (e.PropertyName == "DialogResult" && args.Session.IsEnded == false)
+                        {
+                            args.Session.Close();
+                        }
+                    };
+                }
+            }));
         }
 
         public void OnNavigatedTo(NavigationContext navigationContext)

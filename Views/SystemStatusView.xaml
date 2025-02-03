@@ -9,13 +9,6 @@
     
     <UserControl.Resources>
         <converters:StringToUriConverter x:Key="StringToUriConverter"/>
-        <Style x:Key="CustomScrollBarStyle" TargetType="{x:Type ScrollBar}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
-            <Setter Property="Width" Value="8"/>
-        </Style>
-        
         <Style x:Key="CustomScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
             <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
             <Setter Property="Template">
@@ -32,7 +25,8 @@
                                      Value="{TemplateBinding VerticalOffset}"
                                      Maximum="{TemplateBinding ScrollableHeight}"
                                      ViewportSize="{TemplateBinding ViewportHeight}"
-                                     Style="{StaticResource CustomScrollBarStyle}"
+                                     Style="{StaticResource MaterialDesignScrollBar}"
+                                     Width="8"
                                      Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
                         </Grid>
                     </ControlTemplate>
@@ -66,7 +60,7 @@
                                  Style="{StaticResource MaterialDesignHeadline5TextBlock}"/>
                     </DockPanel>
                 </Expander.Header>
-                <materialDesign:Card Margin="0,8,0,0" UniformCornerRadius="4">
+                <materialDesign:Card Margin="0,8,0,0" UniformCornerRadius="4" materialDesign:ShadowAssist.ShadowDepth="Depth1" >
                     <StackPanel Margin="16">
                         <ItemsControl ItemsSource="{Binding InstallationSteps}">
                             <ItemsControl.ItemTemplate>
@@ -140,7 +134,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- CPU状态 -->
-                    <materialDesign:Card Grid.Column="0" Padding="16" Margin="0,0,8,0">
+                    <materialDesign:Card Grid.Column="0" Padding="16" Margin="0,0,8,0" materialDesign:ShadowAssist.ShadowDepth="Depth1" >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon Kind="Chip" Width="24" Height="24" VerticalAlignment="Center"/>
@@ -188,7 +182,7 @@
                     </materialDesign:Card>
 
                     <!-- 内存状态 -->
-                    <materialDesign:Card Grid.Column="1" Padding="16" Margin="8,0">
+                    <materialDesign:Card Grid.Column="1" Padding="16" Margin="8,0" materialDesign:ShadowAssist.ShadowDepth="Depth1" >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon Kind="Memory" Width="24" Height="24" VerticalAlignment="Center"/>
@@ -242,7 +236,7 @@
                     </materialDesign:Card>
 
                     <!-- 硬盘状态 -->
-                    <materialDesign:Card Grid.Column="2" Padding="16" Margin="8,0,0,0">
+                    <materialDesign:Card Grid.Column="2" Padding="16" Margin="8,0,0,0" materialDesign:ShadowAssist.ShadowDepth="Depth1" >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon Kind="HarddiskPlus" Width="24" Height="24" VerticalAlignment="Center"/>
@@ -291,7 +285,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- CUDA状态 -->
-                    <materialDesign:Card Grid.Column="0" Padding="16" Margin="0,0,8,16">
+                    <materialDesign:Card Grid.Column="0" Padding="16" Margin="0,0,8,16" materialDesign:ShadowAssist.ShadowDepth="Depth1"  >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon Kind="Chip" Width="24" Height="24" VerticalAlignment="Center"/>
@@ -386,7 +380,7 @@
                     </materialDesign:Card>
 
                     <!-- Ollama状态 -->
-                    <materialDesign:Card Grid.Column="1" Padding="16" Margin="8,0,0,16">
+                    <materialDesign:Card Grid.Column="1" Padding="16" Margin="8,0,0,16" materialDesign:ShadowAssist.ShadowDepth="Depth1"  >
                         <StackPanel>
                             <DockPanel>
                                 <materialDesign:PackIcon Kind="Robot" Width="24" Height="24" VerticalAlignment="Center"/>
@@ -446,7 +440,7 @@
                                 Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <materialDesign:Card Margin="0,4" UniformCornerRadius="4">
+                                        <materialDesign:Card Margin="0,4" UniformCornerRadius="4" materialDesign:ShadowAssist.ShadowDepth="Depth1"  >
                                             <Grid Margin="8">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -500,7 +494,7 @@
                 </Grid>
 
                 <!-- 模型推荐 -->
-                <materialDesign:Card Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Padding="16">
+                <materialDesign:Card Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1"  >
                     <StackPanel>
                         <DockPanel>
                             <materialDesign:PackIcon Kind="Brain" Width="24" Height="24" VerticalAlignment="Center"/>
@@ -574,6 +568,7 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Padding="16"
+                materialDesign:ShadowAssist.ShadowDepth="Depth1"   
                 Visibility="{Binding IsChecking, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel>
                     <ProgressBar
