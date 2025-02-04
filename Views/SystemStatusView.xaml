@@ -155,15 +155,20 @@
                     </StackPanel>
 
                     <!-- 设置向导按钮 -->
-                    <Button
-                        Grid.Column="1"
-                        Margin="16,0,0,0"
-                        materialDesign:ButtonProgressAssist.IsIndeterminate="True"
-                        materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
-                        materialDesign:ButtonProgressAssist.Value="-1"
-                        Command="{Binding OpenSetupCommand}"
-                        Content="系统设置向导"
-                        Style="{StaticResource MaterialDesignRaisedButton}"/>
+                    <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                        <Button
+                            materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                            materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                            materialDesign:ButtonProgressAssist.Value="-1"
+                            Command="{Binding OpenSetupCommand}"
+                            Content="系统设置向导"
+                            Style="{StaticResource MaterialDesignRaisedButton}"/>
+                        <TextBlock 
+                            Margin="0,8,0,0"
+                            TextWrapping="Wrap"
+                            Foreground="{DynamicResource MaterialDesignBodyLight}"
+                            Text="如果您完全不知道应该如何配置，请点击系统设置向导，它将帮助您一步步完成模型配置。"/>
+                    </StackPanel>
                 </Grid>
             </materialDesign:Card>
 
@@ -616,6 +621,8 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
                                 <TextBlock
@@ -655,66 +662,33 @@
                                     Margin="0,8,0,0"
                                     Text="{Binding OllamaInfo.Endpoint}"
                                     Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                <TextBlock
+                                    Grid.Row="3"
+                                    Grid.Column="0"
+                                    Margin="0,8,8,0"
+                                    Text="安装路径："
+                                    Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <TextBlock
+                                    Grid.Row="3"
+                                    Grid.Column="1"
+                                    Margin="0,8,0,0"
+                                    Text="{Binding OllamaInfo.InstallPath}"
+                                    Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                <TextBlock
+                                    Grid.Row="4"
+                                    Grid.Column="0"
+                                    Margin="0,8,8,0"
+                                    Text="模型路径："
+                                    Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <TextBlock
+                                    Grid.Row="4"
+                                    Grid.Column="1"
+                                    Margin="0,8,0,0"
+                                    Text="{Binding OllamaInfo.ModelsPath}"
+                                    Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             </Grid>
-
-                            <!--  已安装的模型列表  -->
-                            <TextBlock
-                                Margin="0,24,0,8"
-                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                Text="已安装的模型"
-                                Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
-
-                            <ItemsControl ItemsSource="{Binding OllamaInfo.InstalledModels}" Visibility="{Binding OllamaInfo.IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <materialDesign:Card Margin="0,4" UniformCornerRadius="4">
-                                            <Grid Margin="8">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-
-                                                <TextBlock
-                                                    Grid.Row="0"
-                                                    Grid.Column="0"
-                                                    FontWeight="Medium"
-                                                    Text="{Binding Name}" />
-
-                                                <StackPanel
-                                                    Grid.Row="0"
-                                                    Grid.Column="1"
-                                                    Orientation="Horizontal">
-                                                    <Border
-                                                        Margin="0,0,4,0"
-                                                        Padding="4,2"
-                                                        Background="#E8F5E9"
-                                                        CornerRadius="2"
-                                                        Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                                        <TextBlock
-                                                            FontSize="12"
-                                                            Foreground="#2E7D32"
-                                                            Text="运行中" />
-                                                    </Border>
-                                                    <TextBlock Foreground="{DynamicResource MaterialDesignBodyLight}" Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
-                                                </StackPanel>
-
-                                                <TextBlock
-                                                    Grid.Row="1"
-                                                    Grid.Column="0"
-                                                    Grid.ColumnSpan="2"
-                                                    Margin="0,4,0,0"
-                                                    Foreground="{DynamicResource MaterialDesignBodyLight}"
-                                                    Text="{Binding Status}"
-                                                    TextWrapping="Wrap" />
-                                            </Grid>
-                                        </materialDesign:Card>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
 
                             <!--  错误信息显示  -->
                             <TextBlock
