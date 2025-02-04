@@ -6,6 +6,7 @@ using Prism.Mvvm;
 using Prism.Regions;
 using ollez.Services;
 using Serilog;
+using ollez.Models;
 
 namespace ollez.ViewModels
 {

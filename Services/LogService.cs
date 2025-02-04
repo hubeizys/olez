@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Serilog;
 using System.Windows.Data;
+using ollez.Models;
 
 namespace ollez.Services
 {

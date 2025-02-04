@@ -67,4 +67,7 @@ logs/
 *.swp
 *.*~
 project.lock.json
-.DS_Store 
+.DS_Store
+
+ollama.md
+chat.db-*
