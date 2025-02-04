@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using ollez.Services;
 using Prism.Regions;
 using System.Diagnostics;
+using ollez.Models;
+using System.Collections.ObjectModel;
 
 namespace ollez.ViewModels
 {
@@ -25,7 +27,7 @@ namespace ollez.ViewModels
             IsRunning = false,
             HasError = false,
             Endpoint = "http://localhost:11434",
-            InstalledModels = Array.Empty<OllamaModelInfo>()
+            InstalledModels = new ObservableCollection<OllamaModel>()
         };
         public OllamaInfo OllamaInfo
         {

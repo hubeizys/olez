@@ -15,6 +15,8 @@ namespace ollez.Models
         private string _error = string.Empty;
         private bool _hasError;
         private ObservableCollection<OllamaModel> _installedModels = new();
+        private string _status = string.Empty;
+        private string _commitHash = string.Empty;
 
         public bool IsRunning
         {
@@ -73,19 +75,42 @@ namespace ollez.Models
             get => _installedModels;
             set => SetProperty(ref _installedModels, value);
         }
+
+        public string Status
+        {
+            get => _status;
+            set => SetProperty(ref _status, value);
+        }
+
+        public string CommitHash
+        {
+            get => _commitHash;
+            set => SetProperty(ref _commitHash, value);
+        }
     }
 
     public class OllamaModel : BindableBase
     {
         private string _name = string.Empty;
+        private string _digest = string.Empty;
         private long _size;
         private bool _isRunning;
         private string _status = string.Empty;
+        private string _modelPath = string.Empty;
+        private string _modifiedAt = string.Empty;
+        private bool _hasError;
+        private string _error = string.Empty;
 
         public string Name
         {
             get => _name;
             set => SetProperty(ref _name, value);
+        }
+
+        public string Digest
+        {
+            get => _digest;
+            set => SetProperty(ref _digest, value);
         }
 
         public long Size
@@ -104,6 +129,34 @@ namespace ollez.Models
         {
             get => _status;
             set => SetProperty(ref _status, value);
+        }
+
+        public string ModelPath
+        {
+            get => _modelPath;
+            set => SetProperty(ref _modelPath, value);
+        }
+
+        public string ModifiedAt
+        {
+            get => _modifiedAt;
+            set => SetProperty(ref _modifiedAt, value);
+        }
+
+        public bool HasError
+        {
+            get => _hasError;
+            set => SetProperty(ref _hasError, value);
+        }
+
+        public string Error
+        {
+            get => _error;
+            set
+            {
+                SetProperty(ref _error, value);
+                HasError = !string.IsNullOrEmpty(value);
+            }
         }
     }
 } 

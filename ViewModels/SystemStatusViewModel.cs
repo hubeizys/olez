@@ -55,8 +55,9 @@ namespace ollez.ViewModels
             IsRunning = false,
             HasError = false,
             Endpoint = "http://localhost:11434",
-            InstalledModels = Array.Empty<OllamaModelInfo>()
+            InstalledModels = new ObservableCollection<OllamaModel>()
         };
+
         private ModelRecommendation _modelRecommendation = new()
         {
             CanRunLargeModels = false,
@@ -187,9 +188,11 @@ namespace ollez.ViewModels
                 InstallationSteps[0].IsCompleted = CudaInfo.IsAvailable;
                 InstallationSteps[1].IsCompleted = CudaInfo.IsAvailable;
                 InstallationSteps[2].IsCompleted = OllamaInfo.IsRunning;
-                InstallationSteps[3].IsCompleted = OllamaInfo.IsRunning && OllamaInfo.InstalledModels.Length > 0;
+                InstallationSteps[3].IsCompleted = OllamaInfo.IsRunning && OllamaInfo.InstalledModels.Count > 0;
             }
             finally
+
+
             {
                 IsChecking = false;
             }
