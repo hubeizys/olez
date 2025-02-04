@@ -16,6 +16,9 @@ using ollez.Services;
 using ollez.Models;
 using MaterialDesignThemes.Wpf;
 using ollez.Views;
+using System.Windows.Input;
+using ollez.Data;
+using System.Linq;
 
 namespace ollez.ViewModels
 {
@@ -43,6 +46,7 @@ namespace ollez.ViewModels
         private readonly ISystemCheckService _systemCheckService;
         private readonly IHardwareMonitorService _hardwareMonitorService;
         private readonly IRegionManager _regionManager;
+        private readonly ChatDbContext _dbContext;
         private CudaInfo _cudaInfo = new();
         private HardwareInfo _hardwareInfo = new();
         private ObservableCollection<InstallationStep> _installationSteps = new();
@@ -112,12 +116,14 @@ namespace ollez.ViewModels
         public DelegateCommand CheckSystemCommand { get; }
         public DelegateCommand ToggleGuideCommand { get; }
         public DelegateCommand OpenSetupCommand { get; }
+        public ICommand NavigateToChatCommand { get; }
 
-        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService, IRegionManager regionManager)
+        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService, IRegionManager regionManager, ChatDbContext dbContext)
         {
             _systemCheckService = systemCheckService;
             _hardwareMonitorService = hardwareMonitorService;
             _regionManager = regionManager;
+            _dbContext = dbContext;
 
             // 初始化硬件信息
             _hardwareInfo = new HardwareInfo();
@@ -125,10 +131,14 @@ namespace ollez.ViewModels
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystem());
             ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
             OpenSetupCommand = new DelegateCommand(async () => await ExecuteOpenSetup());
+            NavigateToChatCommand = new DelegateCommand<string>(NavigateToChat);
             InitializeInstallationSteps();
             
             // 立即执行一次检查
             _ = CheckSystem();
+
+            // 初始化时加载Ollama配置
+            LoadOllamaConfig();
         }
 
         private void InitializeInstallationSteps()
@@ -189,6 +199,40 @@ namespace ollez.ViewModels
         {
             var view = new SystemSetupView { DataContext = new SystemSetupViewModel(_hardwareMonitorService) };
             await DialogHost.Show(view, "RootDialog");
+        }
+
+        private void NavigateToChat(string modelName)
+        {
+            var parameters = new NavigationParameters
+            {
+                { "SelectedModel", modelName }
+            };
+            _regionManager.RequestNavigate("MainRegion", "ChatView", parameters);
+        }
+
+        private void LoadOllamaConfig()
+        {
+            var config = _dbContext.OllamaConfigs.FirstOrDefault();
+            if (config != null)
+            {
+                OllamaInfo.InstallPath = config.InstallPath;
+                OllamaInfo.ModelsPath = config.ModelsPath;
+            }
+        }
+
+        public void SaveOllamaConfig()
+        {
+            var config = _dbContext.OllamaConfigs.FirstOrDefault() ?? new OllamaConfig();
+            config.InstallPath = OllamaInfo.InstallPath;
+            config.ModelsPath = OllamaInfo.ModelsPath;
+            config.LastUpdated = DateTime.Now;
+
+            if (config.Id == 0)
+            {
+                _dbContext.OllamaConfigs.Add(config);
+            }
+            
+            _dbContext.SaveChanges();
         }
 
         public void OnNavigatedTo(NavigationContext navigationContext)

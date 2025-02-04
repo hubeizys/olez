@@ -8,6 +8,7 @@ namespace ollez.Data
     {
         public DbSet<ChatSession> ChatSessions { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+        public DbSet<OllamaConfig> OllamaConfigs { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -41,6 +42,15 @@ namespace ollez.Data
                       .WithMany(s => s.Messages)
                       .HasForeignKey(e => e.SessionId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // 配置Ollama配置表
+            modelBuilder.Entity<OllamaConfig>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.InstallPath).IsRequired();
+                entity.Property(e => e.ModelsPath).IsRequired();
+                entity.Property(e => e.LastUpdated).IsRequired();
             });
         }
     }

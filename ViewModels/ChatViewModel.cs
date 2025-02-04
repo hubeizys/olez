@@ -15,10 +15,11 @@ using System.Threading;
 using Serilog.Core;
 using Serilog.Events;
 using ollez.Attributes;
+using Prism.Regions;
 
 namespace ollez.ViewModels
 {
-    public class ChatViewModel : ViewModelBase
+    public class ChatViewModel : ViewModelBase, INavigationAware
     {
         [Logger("ui_debug", MinimumLevel = LogEventLevel.Debug)]
         private readonly ILogger _debugLogger = null!;
@@ -316,6 +317,25 @@ namespace ollez.ViewModels
         {
             // TODO: 实现打开设置的逻辑
             MessageBox.Show("设置功能正在开发中...", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        public void OnNavigatedTo(NavigationContext navigationContext)
+        {
+            if (navigationContext.Parameters.ContainsKey("SelectedModel"))
+            {
+                var modelName = navigationContext.Parameters.GetValue<string>("SelectedModel");
+                // 设置选中的模型
+                SelectedModel = modelName;
+            }
+        }
+
+        public bool IsNavigationTarget(NavigationContext navigationContext)
+        {
+            return true;
+        }
+
+        public void OnNavigatedFrom(NavigationContext navigationContext)
+        {
         }
     }
 }

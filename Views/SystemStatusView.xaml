@@ -200,7 +200,9 @@
                                     <Button
                                         Margin="4"
                                         Style="{StaticResource MaterialDesignOutlinedButton}"
-                                        Height="Auto">
+                                        Height="Auto"
+                                        Command="{Binding NavigateToChatCommand}"
+                                        CommandParameter="{Binding Name}">
                                         <StackPanel>
                                             <TextBlock
                                                 Text="{Binding Name}"
