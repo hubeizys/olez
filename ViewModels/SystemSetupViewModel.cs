@@ -12,12 +12,14 @@ using System.Windows;
 using Humanizer;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace ollez.ViewModels
 {
     public class SystemSetupViewModel : BindableBase
     {
         private readonly IHardwareMonitorService _hardwareMonitorService;
+        private readonly ISystemCheckService _systemCheckService;
         private int _currentStep;
         private bool _hasNvidia;
         private string _selectedDrive = string.Empty;
@@ -30,10 +32,15 @@ namespace ollez.ViewModels
         private double _downloadProgress;
         private string _downloadStatus = "准备下载...";
         private bool _showDownloadButton = true;
+        private string _userGuide = string.Empty;
+        private bool _isOllamaInstalled;
+        private bool _showGuideIndicator = true;
+        private CancellationTokenSource? _installCheckCts;
 
-        public SystemSetupViewModel(IHardwareMonitorService hardwareMonitorService)
+        public SystemSetupViewModel(IHardwareMonitorService hardwareMonitorService, ISystemCheckService systemCheckService)
         {
             _hardwareMonitorService = hardwareMonitorService;
+            _systemCheckService = systemCheckService;
             _currentStep = 0;
             
             NextCommand = new DelegateCommand(ExecuteNext, CanExecuteNext);
@@ -45,9 +52,70 @@ namespace ollez.ViewModels
             DownloadOllamaCommand = new DelegateCommand(async () => await ExecuteDownloadOllama());
             
             InitializeDrives();
-
-            // 检查本地是否存在Ollama安装包
             CheckLocalSetup();
+            UpdateUserGuide();
+            StartOllamaInstallationCheck();
+        }
+
+        private void StartOllamaInstallationCheck()
+        {
+            _installCheckCts?.Cancel();
+            _installCheckCts = new CancellationTokenSource();
+            
+            Task.Run(async () =>
+            {
+                while (!_installCheckCts.Token.IsCancellationRequested)
+                {
+                    var ollamaInfo = await _systemCheckService.CheckOllamaAsync();
+                    IsOllamaInstalled = ollamaInfo.IsRunning;
+                    await Task.Delay(2000, _installCheckCts.Token);
+                }
+            }, _installCheckCts.Token);
+        }
+
+        private void UpdateUserGuide()
+        {
+            if (!HasLocalSetup)
+            {
+                UserGuide = "请先下载Ollama安装包";
+                ShowGuideIndicator = true;
+                return;
+            }
+
+            if (!IsOllamaInstalled)
+            {
+                UserGuide = "请点击“安装”按钮安装Ollama";
+                ShowGuideIndicator = true;
+                return;
+            }
+
+            UserGuide = "安装完成，请点击“下一步”继续";
+            ShowGuideIndicator = false;
+        }
+
+        public string UserGuide
+        {
+            get => _userGuide;
+            set => SetProperty(ref _userGuide, value);
+        }
+
+        public bool IsOllamaInstalled
+        {
+            get => _isOllamaInstalled;
+            set
+            {
+                if (SetProperty(ref _isOllamaInstalled, value))
+                {
+                    UpdateUserGuide();
+                    ((DelegateCommand)NextCommand).RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public bool ShowGuideIndicator
+        {
+            get => _showGuideIndicator;
+            set => SetProperty(ref _showGuideIndicator, value);
         }
 
         private void CheckLocalSetup()
@@ -169,6 +237,10 @@ namespace ollez.ViewModels
 
         private bool CanExecuteNext()
         {
+            if (CurrentStep == 1 && !IsOllamaInstalled)
+            {
+                return false;
+            }
             return CurrentStep < 2;
         }
 
@@ -232,11 +304,13 @@ namespace ollez.ViewModels
             try
             {
                 Process.Start(startInfo);
+                UserGuide = "正在安装Ollama，请等待安装完成...";
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"安装Ollama时出错: {ex.Message}");
                 MessageBox.Show($"安装Ollama时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                UserGuide = "安装失败，请重试";
             }
         }
 
@@ -255,6 +329,7 @@ namespace ollez.ViewModels
                 IsDownloading = true;
                 ShowDownloadButton = false;
                 DownloadStatus = "正在下载Ollama安装包...";
+                UserGuide = "正在下载安装包，请稍候...";
 
                 var appDir = AppDomain.CurrentDomain.BaseDirectory;
                 var ollamaDir = Path.Combine(appDir, "ollama");
@@ -295,11 +370,13 @@ namespace ollez.ViewModels
                 DownloadStatus = "下载完成！";
                 HasLocalSetup = true;
                 LocalSetupPath = ollamaSetupPath;
+                UpdateUserGuide();
             }
             catch (Exception ex)
             {
                 DownloadStatus = $"下载失败: {ex.Message}";
                 ShowDownloadButton = true;
+                UserGuide = "下载失败，请重试";
             }
             finally
             {

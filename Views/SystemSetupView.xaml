@@ -66,6 +66,7 @@
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
@@ -74,84 +75,124 @@
                              Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                              Text="步骤 2: Ollama安装"/>
 
-                    <StackPanel Grid.Row="1" Margin="0,16">
-                        <materialDesign:Card Margin="0,0,0,16" Padding="8">
-                            <TextBlock Text="请选择Ollama的安装位置。建议选择空间较大的非系统盘。"
-                                     TextWrapping="Wrap"
-                                     Style="{StaticResource MaterialDesignBody1TextBlock}"/>
-                        </materialDesign:Card>
-                        
-                        <!-- 本地安装包状态显示 -->
-                        <materialDesign:Card Margin="0,8" Padding="16" 
-                                           Background="{DynamicResource MaterialDesignBackground}">
-                            <StackPanel>
-                                <TextBlock Text="已检测到本地安装包" 
-                                         Visibility="{Binding HasLocalSetup, Converter={StaticResource BoolToVis}}"
-                                         Style="{StaticResource MaterialDesignBody1TextBlock}"/>
-                                <Button Content="看看文件"
-                                        Command="{Binding OpenLocalSetupFolderCommand}"
-                                        Style="{StaticResource MaterialDesignFlatButton}"
-                                        Margin="0,8,0,0"
-                                        Visibility="{Binding HasLocalSetup, Converter={StaticResource BoolToVis}}"/>
-                            </StackPanel>
-                        </materialDesign:Card>
-
-                        <!-- 下载状态和进度显示 -->
-                        <materialDesign:Card Margin="0,8" Padding="16" 
-                                           Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding DownloadStatus}"
-                                         Style="{StaticResource MaterialDesignBody1TextBlock}"/>
-                                <ProgressBar Value="{Binding DownloadProgress}"
-                                           Maximum="1"
-                                           Height="4"
-                                           Margin="0,8,0,0"/>
-                                <!-- <Button
-                                    Style="{StaticResource MaterialDesignFloatingActionButton}"
-                                    materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
-                                    materialDesign:ButtonProgressAssist.Value="{Binding DownloadProgress}"
-                                    materialDesign:ButtonProgressAssist.IsIndeterminate="True"
-                                    Margin="0,8,0,0"
-                                    HorizontalAlignment="Right">
-                                    <materialDesign:PackIcon Kind="Download"/> -->
-                                </Button>
-                            </StackPanel>
-                        </materialDesign:Card>
-
-                        <!-- 下载按钮 -->
-                        <Button Content="下载Ollama"
-                                Command="{Binding DownloadOllamaCommand}"
-                                Style="{StaticResource MaterialDesignRaisedButton}"
-                                Margin="0,16,0,0"
-                                Visibility="{Binding ShowDownloadButton, Converter={StaticResource BoolToVis}}"/>
-
-                        <StackPanel Margin="0,16,0,0">
-                            <DockPanel>
-                                <TextBlock Text="安装路径：" VerticalAlignment="Center"/>
-                                <Button
-                                    Margin="8,0,0,0"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Command="{Binding SelectInstallPathCommand}"
-                                    Content="选择路径"
-                                    DockPanel.Dock="Right"/>
-                                <TextBlock Text="{Binding SelectedInstallPath}" 
-                                         VerticalAlignment="Center"
-                                         Margin="8,0"/>
-                            </DockPanel>
+                    <!-- 用户引导提示 -->
+                    <materialDesign:Card Grid.Row="1" 
+                                       Margin="0,16,0,0" 
+                                       Background="{DynamicResource MaterialDesignDivider}"
+                                       UniformCornerRadius="4">
+                        <Grid Margin="16,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             
-                            <Button
-                                Margin="0,16,0,0"
-                                Style="{StaticResource MaterialDesignRaisedButton}"
-                                Command="{Binding InstallOllamaCommand}"
-                                Content="安装"
-                                HorizontalAlignment="Left"
-                                Visibility="{Binding HasLocalSetup, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                        </StackPanel>
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                                    materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                    materialDesign:ButtonProgressAssist.IsIndeterminate="{Binding ShowGuideIndicator}"
+                                    materialDesign:ButtonProgressAssist.Value="-1"
+                                    Margin="0,0,16,0"
+                                    IsEnabled="False">
+                                <materialDesign:PackIcon Kind="ArrowRightBold"/>
+                            </Button>
+                            
+                            <TextBlock Grid.Column="1"
+                                     Text="{Binding UserGuide}"
+                                     Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                     VerticalAlignment="Center"
+                                     TextWrapping="Wrap"/>
+                        </Grid>
+                    </materialDesign:Card>
+
+                    <StackPanel Grid.Row="2" Margin="0,16">
+                        <!-- 本地安装包状态和操作区域 -->
+                        <materialDesign:Card Margin="0,0,0,16" 
+                                           Background="{DynamicResource MaterialDesignBackground}">
+                            <Grid Margin="16">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- 状态显示区域 -->
+                                <StackPanel Grid.Row="0" 
+                                          Orientation="Horizontal" 
+                                          Visibility="{Binding HasLocalSetup, Converter={StaticResource BoolToVis}}">
+                                    <materialDesign:PackIcon Kind="FileCheck" 
+                                                           VerticalAlignment="Center"
+                                                           Width="24"
+                                                           Height="24"
+                                                           Margin="0,0,8,0"/>
+                                    <TextBlock Text="已检测到本地安装包" 
+                                             Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                             VerticalAlignment="Center"/>
+                                    <Button Content="看看文件"
+                                            Command="{Binding OpenLocalSetupFolderCommand}"
+                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            Margin="16,0,0,0"/>
+                                </StackPanel>
+
+                                <!-- 下载状态和进度显示 -->
+                                <StackPanel Grid.Row="1" 
+                                          Margin="0,8,0,0"
+                                          Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="{Binding DownloadStatus}"
+                                             Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                    <Grid Margin="0,8,0,0">
+                                        <ProgressBar Value="{Binding DownloadProgress}"
+                                                   Maximum="1"
+                                                   Height="4"/>
+                                        <Button Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                                                materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                                materialDesign:ButtonProgressAssist.Value="{Binding DownloadProgress}"
+                                                materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                                                HorizontalAlignment="Right"
+                                                Width="36"
+                                                Height="36">
+                                            <materialDesign:PackIcon Kind="Download" Width="18" Height="18"/>
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+                        </materialDesign:Card>
+
+                        <!-- 操作区域 -->
+                        <materialDesign:Card Background="{DynamicResource MaterialDesignBackground}">
+                            <StackPanel Margin="16">
+                                <!-- 下载按钮 -->
+                                <Button Content="下载Ollama"
+                                       Command="{Binding DownloadOllamaCommand}"
+                                       Style="{StaticResource MaterialDesignRaisedButton}"
+                                       HorizontalAlignment="Left"
+                                       Visibility="{Binding ShowDownloadButton, Converter={StaticResource BoolToVis}}"/>
+
+                                <!-- 安装路径选择 -->
+                                <DockPanel Margin="0,16,0,0">
+                                    <TextBlock Text="安装路径：" VerticalAlignment="Center"/>
+                                    <Button Command="{Binding SelectInstallPathCommand}"
+                                            Content="选择路径"
+                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            DockPanel.Dock="Right"/>
+                                    <TextBlock Text="{Binding SelectedInstallPath}" 
+                                             VerticalAlignment="Center"
+                                             Margin="8,0"/>
+                                </DockPanel>
+
+                                <!-- 安装按钮 -->
+                                <Button Content="安装Ollama"
+                                        Command="{Binding InstallOllamaCommand}"
+                                        Style="{StaticResource MaterialDesignRaisedButton}"
+                                        Margin="0,16,0,0"
+                                        HorizontalAlignment="Left"
+                                        Visibility="{Binding HasLocalSetup, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            </StackPanel>
+                        </materialDesign:Card>
                     </StackPanel>
 
-                    <StackPanel Grid.Row="2" 
+                    <StackPanel Grid.Row="3" 
                               Orientation="Horizontal" 
-                              HorizontalAlignment="Right">
+                              HorizontalAlignment="Right"
+                              Margin="0,16,0,0">
                         <Button Content="上一步"
                                 Command="{Binding PreviousCommand}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"

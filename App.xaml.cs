@@ -84,7 +84,6 @@ namespace ollez
             containerRegistry.RegisterForNavigation<SystemSetupView, SystemSetupViewModel>();
 
             containerRegistry.RegisterScoped<SystemStatusViewModel>();
-            containerRegistry.RegisterScoped<SystemSetupViewModel>();
         }
     }
 }
