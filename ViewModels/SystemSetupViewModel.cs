@@ -10,6 +10,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using Humanizer;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace ollez.ViewModels
 {
@@ -24,6 +26,10 @@ namespace ollez.ViewModels
         private bool _hasLocalSetup;
         private string _localSetupPath;
         private string _link = "https://ollama.com/download";
+        private bool _isDownloading;
+        private double _downloadProgress;
+        private string _downloadStatus = "准备下载...";
+        private bool _showDownloadButton = true;
 
         public SystemSetupViewModel(IHardwareMonitorService hardwareMonitorService)
         {
@@ -36,17 +42,28 @@ namespace ollez.ViewModels
             SelectInstallPathCommand = new DelegateCommand(ExecuteSelectInstallPath);
             InstallOllamaCommand = new DelegateCommand(ExecuteInstallOllama);
             OpenLocalSetupFolderCommand = new DelegateCommand(ExecuteOpenLocalSetupFolder);
+            DownloadOllamaCommand = new DelegateCommand(async () => await ExecuteDownloadOllama());
             
             InitializeDrives();
 
+            // 检查本地是否存在Ollama安装包
+            CheckLocalSetup();
+        }
 
-        // 检查本地是否存在Ollama安装包
-        var appDir = AppDomain.CurrentDomain.BaseDirectory;
+        private void CheckLocalSetup()
+        {
+            var appDir = AppDomain.CurrentDomain.BaseDirectory;
             var ollamaSetupPath = Path.Combine(appDir, "ollama", "OllamaSetup.exe");
             if (File.Exists(ollamaSetupPath))
             {
                 HasLocalSetup = true;
                 LocalSetupPath = ollamaSetupPath;
+                ShowDownloadButton = false;
+            }
+            else
+            {
+                HasLocalSetup = false;
+                ShowDownloadButton = true;
             }
         }
 
@@ -110,12 +127,37 @@ namespace ollez.ViewModels
             set => SetProperty(ref _link, value);
         }
 
+        public bool IsDownloading
+        {
+            get => _isDownloading;
+            set => SetProperty(ref _isDownloading, value);
+        }
+
+        public double DownloadProgress
+        {
+            get => _downloadProgress;
+            set => SetProperty(ref _downloadProgress, value);
+        }
+
+        public string DownloadStatus
+        {
+            get => _downloadStatus;
+            set => SetProperty(ref _downloadStatus, value);
+        }
+
+        public bool ShowDownloadButton
+        {
+            get => _showDownloadButton;
+            set => SetProperty(ref _showDownloadButton, value);
+        }
+
         public ICommand NextCommand { get; }
         public ICommand PreviousCommand { get; }
         public ICommand SkipCommand { get; }
         public DelegateCommand SelectInstallPathCommand { get; }
         public DelegateCommand InstallOllamaCommand { get; }
         public DelegateCommand OpenLocalSetupFolderCommand { get; }
+        public DelegateCommand DownloadOllamaCommand { get; }
 
         private void ExecuteNext()
         {
@@ -203,6 +245,65 @@ namespace ollez.ViewModels
             if (!string.IsNullOrEmpty(LocalSetupPath) && File.Exists(LocalSetupPath))
             {
                 Process.Start("explorer.exe", $"/select,\"{LocalSetupPath}\"");
+            }
+        }
+
+        private async Task ExecuteDownloadOllama()
+        {
+            try
+            {
+                IsDownloading = true;
+                ShowDownloadButton = false;
+                DownloadStatus = "正在下载Ollama安装包...";
+
+                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                var ollamaDir = Path.Combine(appDir, "ollama");
+                var ollamaSetupPath = Path.Combine(ollamaDir, "OllamaSetup.exe");
+
+                if (!Directory.Exists(ollamaDir))
+                {
+                    Directory.CreateDirectory(ollamaDir);
+                }
+
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetAsync("https://ollama.com/download/OllamaSetup.exe", HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
+                    var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var fileStream = new FileStream(ollamaSetupPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        var buffer = new byte[8192];
+                        var totalBytesRead = 0L;
+                        var bytesRead = 0;
+
+                        while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            await fileStream.WriteAsync(buffer, 0, bytesRead);
+                            totalBytesRead += bytesRead;
+
+                            if (totalBytes != -1)
+                            {
+                                DownloadProgress = (double)totalBytesRead / totalBytes;
+                                DownloadStatus = $"下载进度: {(DownloadProgress * 100):F1}%";
+                            }
+                        }
+                    }
+                }
+
+                DownloadStatus = "下载完成！";
+                HasLocalSetup = true;
+                LocalSetupPath = ollamaSetupPath;
+            }
+            catch (Exception ex)
+            {
+                DownloadStatus = $"下载失败: {ex.Message}";
+                ShowDownloadButton = true;
+            }
+            finally
+            {
+                IsDownloading = false;
             }
         }
     }
