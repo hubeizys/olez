@@ -4,8 +4,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:prism="http://prismlibrary.com/"
-             prism:ViewModelLocator.AutoWireViewModel="True"
-            >
+             xmlns:converters="clr-namespace:ollez.Converters"
+             prism:ViewModelLocator.AutoWireViewModel="True">
+
+    <UserControl.Resources>
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+    </UserControl.Resources>
 
     <materialDesign:Card Width="600" Margin="16">
         <materialDesign:Transitioner SelectedIndex="{Binding CurrentStep}">
@@ -73,11 +77,44 @@
                                  TextWrapping="Wrap"
                                  Margin="0,0,0,16"/>
                         
-                        <ComboBox ItemsSource="{Binding AvailableDrives}"
-                                SelectedItem="{Binding SelectedDrive}"
-                                materialDesign:HintAssist.Hint="选择安装驱动器"
-                                Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                Margin="0,8"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Visibility="{Binding HasLocalSetup, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Hyperlink Command="{Binding OpenLocalSetupFolderCommand}">
+                                    已检测到本地安装包，点击打开文件夹
+                                </Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,16,0,0">
+                            <DockPanel>
+                                <TextBlock Text="安装路径：" VerticalAlignment="Center"/>
+                                <Button
+                                    Margin="8,0,0,0"
+                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                    Command="{Binding SelectInstallPathCommand}"
+                                    Content="选择路径"
+                                    DockPanel.Dock="Right"/>
+                                <TextBlock Text="{Binding SelectedInstallPath}" 
+                                         VerticalAlignment="Center"
+                                         Margin="8,0"/>
+                            </DockPanel>
+                            
+                            <Button
+                                Margin="0,16,0,0"
+                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                Command="{Binding InstallOllamaCommand}"
+                                Content="安装"
+                                HorizontalAlignment="Left"
+                                Visibility="{Binding HasLocalSetup, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                            <TextBlock Margin="0,16,0,0" 
+                                     Visibility="{Binding Link, Converter={StaticResource StringToVisibilityConverter}}">
+                                <Hyperlink NavigateUri="{Binding Link}" 
+                                         RequestNavigate="Hyperlink_RequestNavigate">
+                                    点击此处访问下载页面
+                                </Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
                     </StackPanel>
 
                     <StackPanel Grid.Row="2" 

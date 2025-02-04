@@ -6,6 +6,9 @@ using Prism.Commands;
 using Prism.Mvvm;
 using ollez.Models;
 using ollez.Services;
+using System.Diagnostics;
+using System.IO;
+using System.Windows;
 
 namespace ollez.ViewModels
 {
@@ -16,6 +19,10 @@ namespace ollez.ViewModels
         private bool _hasNvidia;
         private string _selectedDrive = string.Empty;
         private ObservableCollection<string> _availableDrives = new();
+        private string _selectedInstallPath = @"D:\Ollama";
+        private bool _hasLocalSetup;
+        private string _localSetupPath;
+        private string _link = "https://ollama.com/download";
 
         public SystemSetupViewModel(IHardwareMonitorService hardwareMonitorService)
         {
@@ -25,8 +32,20 @@ namespace ollez.ViewModels
             NextCommand = new DelegateCommand(ExecuteNext, CanExecuteNext);
             PreviousCommand = new DelegateCommand(ExecutePrevious, CanExecutePrevious);
             SkipCommand = new DelegateCommand(ExecuteSkip, CanExecuteSkip);
+            SelectInstallPathCommand = new DelegateCommand(ExecuteSelectInstallPath);
+            InstallOllamaCommand = new DelegateCommand(ExecuteInstallOllama);
+            OpenLocalSetupFolderCommand = new DelegateCommand(ExecuteOpenLocalSetupFolder);
             
             InitializeDrives();
+
+            // 检查本地是否存在Ollama安装包
+            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+            var ollamaSetupPath = Path.Combine(appDir, "ollama", "OllamaSetup.exe");
+            if (File.Exists(ollamaSetupPath))
+            {
+                HasLocalSetup = true;
+                LocalSetupPath = ollamaSetupPath;
+            }
         }
 
         private async void InitializeDrives()
@@ -65,9 +84,36 @@ namespace ollez.ViewModels
             set => SetProperty(ref _availableDrives, value);
         }
 
+        public string SelectedInstallPath
+        {
+            get => _selectedInstallPath;
+            set => SetProperty(ref _selectedInstallPath, value);
+        }
+
+        public bool HasLocalSetup
+        {
+            get => _hasLocalSetup;
+            set => SetProperty(ref _hasLocalSetup, value);
+        }
+
+        public string LocalSetupPath
+        {
+            get => _localSetupPath;
+            set => SetProperty(ref _localSetupPath, value);
+        }
+
+        public string Link
+        {
+            get => _link;
+            set => SetProperty(ref _link, value);
+        }
+
         public ICommand NextCommand { get; }
         public ICommand PreviousCommand { get; }
         public ICommand SkipCommand { get; }
+        public DelegateCommand SelectInstallPathCommand { get; }
+        public DelegateCommand InstallOllamaCommand { get; }
+        public DelegateCommand OpenLocalSetupFolderCommand { get; }
 
         private void ExecuteNext()
         {
@@ -106,6 +152,56 @@ namespace ollez.ViewModels
         private bool CanExecuteSkip()
         {
             return CurrentStep == 0;
+        }
+
+        private void ExecuteSelectInstallPath()
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "选择Ollama安装路径",
+                FileName = "Ollama",
+                InitialDirectory = Path.GetDirectoryName(SelectedInstallPath),
+                Filter = "文件夹|*.this.directory",
+                CheckFileExists = false,
+                CheckPathExists = true,
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                SelectedInstallPath = Path.GetDirectoryName(dialog.FileName);
+            }
+        }
+
+        private void ExecuteInstallOllama()
+        {
+            if (string.IsNullOrEmpty(SelectedInstallPath)) return;
+            if (string.IsNullOrEmpty(LocalSetupPath) || !File.Exists(LocalSetupPath)) return;
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = LocalSetupPath,
+                Arguments = $"/DIR=\"{SelectedInstallPath}\"",
+                UseShellExecute = true,
+                Verb = "runas"
+            };
+
+            try
+            {
+                Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"安装Ollama时出错: {ex.Message}");
+                MessageBox.Show($"安装Ollama时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ExecuteOpenLocalSetupFolder()
+        {
+            if (!string.IsNullOrEmpty(LocalSetupPath) && File.Exists(LocalSetupPath))
+            {
+                Process.Start("explorer.exe", $"/select,\"{LocalSetupPath}\"");
+            }
         }
     }
 } 
