@@ -23,9 +23,11 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <!--<materialDesign:DialogHost
                 VerticalAlignment="Center"
+
                 CloseOnClickAway="True"
                 DialogContent="{Binding Sample4Content}"
                 DialogTheme="Inherit"
@@ -115,26 +117,125 @@
                 </materialDesign:Card>
             </Expander>
 
-            <Button
-                Grid.Row="1"
-                Margin="0,0,0,16"
-                HorizontalAlignment="Left"
-                materialDesign:ButtonProgressAssist.IsIndeterminate="True"
-                materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
-                materialDesign:ButtonProgressAssist.Value="-1"
-                Command="{Binding OpenSetupCommand}"
-                Content="系统设置向导"
-                Style="{StaticResource MaterialDesignRaisedButton}" />
-            <Grid Grid.Row="2">
+            <!-- 添加系统状态概览和设置向导按钮 -->
+            <materialDesign:Card Grid.Row="1" Margin="0,0,0,16">
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 状态概览 -->
+                    <StackPanel Grid.Column="0">
+                        <DockPanel Margin="0,0,0,8">
+                            <materialDesign:PackIcon
+                                Kind="Robot"
+                                Width="20"
+                                Height="20"
+                                VerticalAlignment="Center"/>
+                            <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
+                                <Run Text="Ollama: "/>
+                                <Run Text="{Binding OllamaInfo.IsRunning, Converter={StaticResource RunningConverter}}"
+                                     Foreground="{Binding OllamaInfo.IsRunning, Converter={StaticResource BoolToColorConverter}}"/>
+                            </TextBlock>
+                        </DockPanel>
+
+                        <DockPanel>
+                            <materialDesign:PackIcon
+                                Kind="Chip"
+                                Width="20"
+                                Height="20"
+                                VerticalAlignment="Center"/>
+                            <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
+                                <Run Text="CUDA: "/>
+                                <Run Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}"
+                                     Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"/>
+                            </TextBlock>
+                        </DockPanel>
+                    </StackPanel>
+
+                    <!-- 设置向导按钮 -->
+                    <Button
+                        Grid.Column="1"
+                        Margin="16,0,0,0"
+                        materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                        materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                        materialDesign:ButtonProgressAssist.Value="-1"
+                        Command="{Binding OpenSetupCommand}"
+                        Content="系统设置向导"
+                        Style="{StaticResource MaterialDesignRaisedButton}"/>
+                </Grid>
+            </materialDesign:Card>
+
+            <!-- 已安装模型展示 -->
+            <materialDesign:Card Grid.Row="2" Margin="0,0,0,16">
+                <StackPanel Margin="16">
+                    <DockPanel Margin="0,0,0,16">
+                        <materialDesign:PackIcon
+                            Kind="Brain"
+                            Width="24"
+                            Height="24"
+                            VerticalAlignment="Center"/>
+                        <TextBlock
+                            Margin="8,0,0,0"
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Text="已安装模型"/>
+                    </DockPanel>
+
+                    <!-- 使用WrapPanel实现Flow布局 -->
+                    <WrapPanel Orientation="Horizontal">
+                        <ItemsControl ItemsSource="{Binding OllamaInfo.InstalledModels}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button
+                                        Margin="4"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Height="Auto">
+                                        <StackPanel>
+                                            <TextBlock
+                                                Text="{Binding Name}"
+                                                TextWrapping="Wrap"
+                                                HorizontalAlignment="Center"/>
+                                            <TextBlock
+                                                Text="{Binding Size, Converter={StaticResource FileSizeConverter}}"
+                                                FontSize="12"
+                                                Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                HorizontalAlignment="Center"/>
+                                            <Border
+                                                Margin="0,4,0,0"
+                                                Background="#E8F5E9"
+                                                CornerRadius="2"
+                                                Padding="4,2"
+                                                Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Foreground="#2E7D32"
+                                                    Text="运行中"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </WrapPanel>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <Grid Grid.Row="3">
                 <TextBlock
                     Margin="0,0,0,16"
                     Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                    Text="系统环境检查" />
+                    Text="系统环境检查"/>
             </Grid>
 
 
 
-            <Grid Grid.Row="3">
+            <Grid Grid.Row="4">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -708,7 +809,7 @@
             </Grid>
 
             <Button
-                Grid.Row="4"
+                Grid.Row="5"
                 Margin="0,16,0,0"
                 Command="{Binding CheckSystemCommand}"
                 Content="重新检查"
