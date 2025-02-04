@@ -10,6 +10,7 @@ using Serilog;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
+using DriveInfo = ollez.Models.DriveInfo;
 
 namespace ollez.Services
 {

@@ -47,12 +47,15 @@
             </materialDesign:DialogHost>-->
             <!--  安装指引面板  -->
             <Expander
+                 ExpandDirection="Up"
                 Grid.Row="0"
                 Margin="0,0,0,16"
                 IsExpanded="{Binding ShowInstallationGuide}">
                 <Expander.Header>
-                    <DockPanel>
-                        <materialDesign:PackIcon
+
+          <DockPanel>
+          
+            <materialDesign:PackIcon
                             Width="24"
                             Height="24"
                             VerticalAlignment="Center"
@@ -75,7 +78,7 @@
                                         </Grid.ColumnDefinitions>
 
 
-                                        <!--  步骤完成状态图标  -->
+                              
 
                                         <materialDesign:PackIcon
                                             Grid.Column="0"
@@ -87,7 +90,7 @@
                                             Kind="{Binding IsCompleted, Converter={StaticResource BooleanTo1Or2Converter}, ConverterParameter='CheckCircleOutline,AlertCircleOutline'}" />
 
 
-                                        <!--  步骤内容  -->
+                  
 
                                         <StackPanel Grid.Column="1">
                                             <TextBlock
