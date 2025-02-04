@@ -16,17 +16,42 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />-->
 
                 <materialDesign:BundledTheme
-                    BaseTheme="Inherit"
+                    BaseTheme="Light"
                     PrimaryColor="DeepPurple"
                     SecondaryColor="Lime" />
 
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ObsoleteBrushes.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/CustomResources/MaterialDesignCustom.xaml" />
 
 
 
 
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- 添加全局字体设置 --> <!-- MaterialDesign控件字体设置 -->
+            <FontFamily x:Key="MaterialDesignFont">Microsoft YaHei UI</FontFamily>
+            <!-- <Style TargetType="{x:Type FrameworkElement}">
+                <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+            </Style>
+            <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MaterialDesignTextBlock}">
+                <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
+                <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+            </Style>
+            <Style TargetType="{x:Type Label}" BasedOn="{StaticResource MaterialDesignLabel}">
+                <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
+                <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+            </Style>
+           
+            <Style TargetType="materialDesign:Card">
+                <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
+            </Style>
+            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
+            </Style>
+            <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignTextBox}">
+                <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
+            </Style> -->
 
             <!--  添加转换器  -->
             <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
