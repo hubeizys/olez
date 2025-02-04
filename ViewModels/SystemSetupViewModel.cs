@@ -9,6 +9,7 @@ using ollez.Services;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using Humanizer;
 
 namespace ollez.ViewModels
 {
@@ -38,8 +39,9 @@ namespace ollez.ViewModels
             
             InitializeDrives();
 
-            // 检查本地是否存在Ollama安装包
-            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+
+        // 检查本地是否存在Ollama安装包
+        var appDir = AppDomain.CurrentDomain.BaseDirectory;
             var ollamaSetupPath = Path.Combine(appDir, "ollama", "OllamaSetup.exe");
             if (File.Exists(ollamaSetupPath))
             {
