@@ -200,7 +200,7 @@ namespace ollez.ViewModels
 
         private async Task ExecuteOpenSetup()
         {
-            var view = new SystemSetupView { DataContext = new SystemSetupViewModel(_hardwareMonitorService) };
+            var view = new SystemSetupView { DataContext = new SystemSetupViewModel(_hardwareMonitorService, _systemCheckService) };
             await DialogHost.Show(view, "RootDialog");
         }
 

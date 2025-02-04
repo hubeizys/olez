@@ -60,7 +60,13 @@ namespace ollez
         /// <param name="containerRegistry">容器注册器</param>
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            // 注册数据库上下文工厂
+            // 首先注册所有基础服务
+            containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();
+            containerRegistry.RegisterSingleton<IHardwareMonitorService, HardwareMonitorService>();
+            containerRegistry.RegisterSingleton<IChatService, ChatService>();
+            containerRegistry.RegisterSingleton<ILogService, LogService>();
+
+            // 注册数据库相关服务
             containerRegistry.Register<ChatDbContext>(() =>
             {
                 var context = new ChatDbContext();
@@ -70,20 +76,16 @@ namespace ollez
             containerRegistry.Register<Func<ChatDbContext>>(container => () => container.Resolve<ChatDbContext>());
             containerRegistry.Register<IChatDbService, ChatDbService>();
 
-            // 注册其他服务
-            containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();
-            containerRegistry.RegisterSingleton<IChatService, ChatService>();
-            containerRegistry.RegisterSingleton<ILogService, LogService>();
-            containerRegistry.RegisterSingleton<IHardwareMonitorService, HardwareMonitorService>();
+            // 注册视图模型
+            containerRegistry.RegisterScoped<SystemStatusViewModel>();
+            containerRegistry.RegisterScoped<SystemSetupViewModel>();
 
-            // 注册视图和视图模型
+            // 最后注册导航
             containerRegistry.RegisterForNavigation<SystemStatusView, SystemStatusViewModel>();
             containerRegistry.RegisterForNavigation<ChatView, ChatViewModel>();
             containerRegistry.RegisterForNavigation<LogView, LogViewModel>();
             containerRegistry.RegisterForNavigation<AboutView, AboutViewModel>();
             containerRegistry.RegisterForNavigation<SystemSetupView, SystemSetupViewModel>();
-
-            containerRegistry.RegisterScoped<SystemStatusViewModel>();
         }
     }
 }
