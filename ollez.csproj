@@ -8,7 +8,12 @@
     <UseWPF>true</UseWPF>
     <SignAssembly>false</SignAssembly>
     <ApplicationManifest>App.manifest</ApplicationManifest>
+    <ApplicationIcon>ollez.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="ollez.ico" />
+  </ItemGroup>
 
 
   <ItemGroup>
