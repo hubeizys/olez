@@ -50,6 +50,7 @@ namespace ollez.ViewModels
         private bool _isDownloadingCuda;
         private double _nvidiaDownloadProgress;
         private double _cudaDownloadProgress;
+        private bool _isEnvControlsEnabled;
 
         public SystemSetupViewModel(
             IHardwareMonitorService hardwareMonitorService,
@@ -383,6 +384,12 @@ namespace ollez.ViewModels
             set => SetProperty(ref _hasLocalCudaSetup, value);
         }
 
+        public bool IsEnvControlsEnabled
+        {
+            get => _isEnvControlsEnabled;
+            set => SetProperty(ref _isEnvControlsEnabled, value);
+        }
+
         public DelegateCommand NextCommand { get; }
         public DelegateCommand PreviousCommand { get; }
         public DelegateCommand SkipCommand { get; }
@@ -509,9 +516,16 @@ namespace ollez.ViewModels
 
         private void ExecuteOpenLocalSetupFolder()
         {
-            if (!string.IsNullOrEmpty(LocalSetupPath) && File.Exists(LocalSetupPath))
+            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+            var cudaDir = Path.Combine(appDir, "cuda");
+            
+            if (Directory.Exists(cudaDir))
             {
-                Process.Start("explorer.exe", $"/select,\"{LocalSetupPath}\"");
+                Process.Start("explorer.exe", cudaDir);
+            }
+            else
+            {
+                MessageBox.Show("CUDA安装包目录不存在", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -596,18 +610,21 @@ namespace ollez.ViewModels
             {
                 NvidiaGuide = "请先安装NVIDIA驱动和CUDA Toolkit，这将帮助提高AI模型的性能。";
                 ShowGuideIndicator = true;
+                IsEnvControlsEnabled = false;
                 return;
             }
 
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CUDA_PATH", EnvironmentVariableTarget.Machine)))
             {
-                NvidiaGuide = "NVIDIA驱动和CUDA已安装，请点击"设置环境变量"按钮完成配置。";
+                NvidiaGuide = "NVIDIA驱动和CUDA已安装，请点击“设置环境变量”按钮完成配置。";
                 ShowGuideIndicator = true;
+                IsEnvControlsEnabled = true;
                 return;
             }
 
             NvidiaGuide = "NVIDIA驱动和CUDA环境配置已完成！";
             ShowGuideIndicator = false;
+            IsEnvControlsEnabled = true;
         }
 
         private async Task ExecuteDownloadNvidia()
@@ -622,43 +639,46 @@ namespace ollez.ViewModels
                 NvidiaGuide = "正在下载NVIDIA驱动，请稍候...";
 
                 var appDir = AppDomain.CurrentDomain.BaseDirectory;
-                var setupDir = Path.Combine(appDir, "setup");
-                var nvidiaSetupPath = Path.Combine(setupDir, "NVIDIASetup.exe");
+                var cudaDir = Path.Combine(appDir, "cuda");
+                var nvidiaSetupPath = Path.Combine(cudaDir, "NVIDIASetup.exe");
 
-                if (!Directory.Exists(setupDir))
+                if (!Directory.Exists(cudaDir))
                 {
-                    Directory.CreateDirectory(setupDir);
+                    Directory.CreateDirectory(cudaDir);
                 }
 
-                // 使用PowerShell命令下载
-                var downloadUrl = await GetNvidiaDownloadUrl();
-                var startInfo = new ProcessStartInfo
+                using (var client = new HttpClient())
                 {
-                    FileName = "powershell",
-                    Arguments = $"-Command \"Invoke-WebRequest -Uri '{downloadUrl}' -OutFile '{nvidiaSetupPath}'\"",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
+                    var downloadUrl = await GetNvidiaDownloadUrl();
+                    var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
+                    var totalBytes = response.Content.Headers.ContentLength ?? -1L;
 
-                using (var process = new Process { StartInfo = startInfo })
-                {
-                    process.Start();
-                    await process.WaitForExitAsync();
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var fileStream = new FileStream(nvidiaSetupPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        var buffer = new byte[8192];
+                        var totalBytesRead = 0L;
+                        var bytesRead = 0;
 
-                    if (process.ExitCode == 0 && File.Exists(nvidiaSetupPath))
-                    {
-                        DownloadStatus = "NVIDIA驱动下载完成！";
-                        _localNvidiaSetupPath = nvidiaSetupPath;
-                        HasLocalNvidiaSetup = true;
-                        UpdateNvidiaGuide();
-                    }
-                    else
-                    {
-                        throw new Exception("下载过程中出现错误");
+                        while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            await fileStream.WriteAsync(buffer, 0, bytesRead);
+                            totalBytesRead += bytesRead;
+
+                            if (totalBytes != -1)
+                            {
+                                _nvidiaDownloadProgress = (double)totalBytesRead / totalBytes;
+                                DownloadStatus = $"下载进度: {(_nvidiaDownloadProgress * 100):F1}%";
+                            }
+                        }
                     }
                 }
+
+                DownloadStatus = "NVIDIA驱动下载完成！";
+                _localNvidiaSetupPath = nvidiaSetupPath;
+                HasLocalNvidiaSetup = true;
+                UpdateNvidiaGuide();
             }
             catch (Exception ex)
             {
@@ -684,43 +704,46 @@ namespace ollez.ViewModels
                 NvidiaGuide = "正在下载CUDA Toolkit，请稍候...";
 
                 var appDir = AppDomain.CurrentDomain.BaseDirectory;
-                var setupDir = Path.Combine(appDir, "setup");
-                var cudaSetupPath = Path.Combine(setupDir, "CUDASetup.exe");
+                var cudaDir = Path.Combine(appDir, "cuda");
+                var cudaSetupPath = Path.Combine(cudaDir, "CUDASetup.exe");
 
-                if (!Directory.Exists(setupDir))
+                if (!Directory.Exists(cudaDir))
                 {
-                    Directory.CreateDirectory(setupDir);
+                    Directory.CreateDirectory(cudaDir);
                 }
 
-                // 使用PowerShell命令下载
-                var downloadUrl = await GetCudaDownloadUrl();
-                var startInfo = new ProcessStartInfo
+                using (var client = new HttpClient())
                 {
-                    FileName = "powershell",
-                    Arguments = $"-Command \"Invoke-WebRequest -Uri '{downloadUrl}' -OutFile '{cudaSetupPath}'\"",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
+                    var downloadUrl = await GetCudaDownloadUrl();
+                    var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
+                    var totalBytes = response.Content.Headers.ContentLength ?? -1L;
 
-                using (var process = new Process { StartInfo = startInfo })
-                {
-                    process.Start();
-                    await process.WaitForExitAsync();
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var fileStream = new FileStream(cudaSetupPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        var buffer = new byte[8192];
+                        var totalBytesRead = 0L;
+                        var bytesRead = 0;
 
-                    if (process.ExitCode == 0 && File.Exists(cudaSetupPath))
-                    {
-                        DownloadStatus = "CUDA Toolkit下载完成！";
-                        _localCudaSetupPath = cudaSetupPath;
-                        HasLocalCudaSetup = true;
-                        UpdateNvidiaGuide();
-                    }
-                    else
-                    {
-                        throw new Exception("下载过程中出现错误");
+                        while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            await fileStream.WriteAsync(buffer, 0, bytesRead);
+                            totalBytesRead += bytesRead;
+
+                            if (totalBytes != -1)
+                            {
+                                _cudaDownloadProgress = (double)totalBytesRead / totalBytes;
+                                DownloadStatus = $"下载进度: {(_cudaDownloadProgress * 100):F1}%";
+                            }
+                        }
                     }
                 }
+
+                DownloadStatus = "CUDA Toolkit下载完成！";
+                _localCudaSetupPath = cudaSetupPath;
+                HasLocalCudaSetup = true;
+                UpdateNvidiaGuide();
             }
             catch (Exception ex)
             {
@@ -732,6 +755,132 @@ namespace ollez.ViewModels
             {
                 _isDownloadingCuda = false;
             }
+        }
+
+        private async Task<string> GetNvidiaDownloadUrl()
+        {
+            try
+            {
+                // 获取GPU信息
+                var cudaInfo = await _systemCheckService.CheckCudaAsync();
+                if (!cudaInfo.IsAvailable || cudaInfo.Gpus.Length == 0)
+                {
+                    throw new Exception("无法检测到NVIDIA GPU信息");
+                }
+
+                // 获取第一个GPU的信息
+                var gpuName = cudaInfo.Gpus[0].Name.ToUpper();
+
+                // 检测GPU系列
+                string psid = "101"; // 默认值
+                string pfid = "815"; // 默认值
+
+                if (gpuName.Contains("RTX 40"))
+                {
+                    psid = "129"; // RTX 40 Series
+                    pfid = "978"; // RTX 4090/4080/4070/4060
+                }
+                else if (gpuName.Contains("RTX 30"))
+                {
+                    psid = "127"; // RTX 30 Series
+                    pfid = "912"; // RTX 3090/3080/3070/3060
+                }
+                else if (gpuName.Contains("RTX 20"))
+                {
+                    psid = "119"; // RTX 20 Series
+                    pfid = "921"; // RTX 2080/2070/2060
+                }
+                else if (gpuName.Contains("GTX 16"))
+                {
+                    psid = "127"; // GTX 16 Series
+                    pfid = "920"; // GTX 1660/1650
+                }
+
+                using (var client = new HttpClient())
+                {
+                    // 构建查询驱动的URL，包含检测到的GPU信息
+                    var searchUrl = $"https://www.nvidia.com/Download/processFind.aspx?psid={psid}&pfid={pfid}&osid=57&lid=1&whql=1&lang=en-us&ctk=0&dtcid=1";
+                    var response = await client.GetStringAsync(searchUrl);
+
+                    // 解析HTML内容以获取下载链接
+                    var startIndex = response.IndexOf("https://us.download.nvidia.com");
+                    if (startIndex != -1)
+                    {
+                        var endIndex = response.IndexOf("\"", startIndex);
+                        if (endIndex != -1)
+                        {
+                            var downloadLink = response.Substring(startIndex, endIndex - startIndex);
+                            if (!string.IsNullOrEmpty(downloadLink))
+                            {
+                                return downloadLink;
+                            }
+                        }
+                    }
+
+                    // 如果无法获取动态链接，使用最新的稳定版驱动链接
+                    return "https://us.download.nvidia.com/windows/546.33/546.33-desktop-win10-win11-64bit-international-dch-whql.exe";
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"获取NVIDIA驱动下载链接时出错: {ex.Message}");
+                // 使用最新的稳定版驱动作为备用链接
+                return "https://us.download.nvidia.com/windows/546.33/546.33-desktop-win10-win11-64bit-international-dch-whql.exe";
+            }
+        }
+
+        private async Task<string> GetCudaDownloadUrl()
+        {
+            // CUDA使用固定的下载链接，因为我们需要特定版本
+            return "https://developer.download.nvidia.com/compute/cuda/12.3.1/local_installers/cuda_12.3.1_545.23.06_windows.exe";
+        }
+
+        private void CheckLocalSetups()
+        {
+            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+            var cudaDir = Path.Combine(appDir, "cuda");
+            
+            var nvidiaSetupPath = Path.Combine(cudaDir, "NVIDIASetup.exe");
+            if (File.Exists(nvidiaSetupPath))
+            {
+                HasLocalNvidiaSetup = true;
+                _localNvidiaSetupPath = nvidiaSetupPath;
+            }
+
+            var cudaSetupPath = Path.Combine(cudaDir, "CUDASetup.exe");
+            if (File.Exists(cudaSetupPath))
+            {
+                HasLocalCudaSetup = true;
+                _localCudaSetupPath = cudaSetupPath;
+            }
+        }
+
+        private async void InitializeAsync()
+        {
+            InitializeDrives();
+            CheckLocalSetup();
+            CheckLocalSetups();
+            UpdateUserGuide();
+            StartOllamaInstallationCheck();
+            await CheckNvidiaAndCuda();
+
+            // 从数据库加载OllamaConfig
+            var config = await _chatDbService.GetOllamaConfigAsync();
+            if (config != null)
+            {
+                _selectedModelPath = config.ModelsPath;
+                _selectedInstallPath = config.InstallPath;
+                RaisePropertyChanged(nameof(SelectedModelPath));
+                RaisePropertyChanged(nameof(SelectedInstallPath));
+            }
+        }
+
+        private async Task SaveOllamaConfigAsync()
+        {
+            var config = await _chatDbService.GetOllamaConfigAsync() ?? new OllamaConfig();
+            config.InstallPath = SelectedInstallPath;
+            config.ModelsPath = SelectedModelPath;
+            await _chatDbService.SaveOllamaConfigAsync(config);
         }
 
         private void ExecuteInstallNvidia()
@@ -780,68 +929,6 @@ namespace ollez.ViewModels
                 MessageBox.Show($"安装CUDA Toolkit时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 NvidiaGuide = "安装失败，请重试";
             }
-        }
-
-        private async Task<string> GetNvidiaDownloadUrl()
-        {
-            // 使用固定的NVIDIA驱动下载链接
-            // 这里使用NVIDIA Studio驱动作为示例，因为它更稳定且适合AI开发
-            return "https://us.download.nvidia.com/windows/546.33/546.33-desktop-win10-win11-64bit-international-dch-whql.exe";
-        }
-
-        private async Task<string> GetCudaDownloadUrl()
-        {
-            // 使用固定的CUDA下载链接
-            // 这里使用CUDA 12.3.1版本，适用于Windows 10/11
-            return "https://developer.download.nvidia.com/compute/cuda/12.3.1/local_installers/cuda_12.3.1_545.23.06_windows.exe";
-        }
-
-        private void CheckLocalSetups()
-        {
-            var appDir = AppDomain.CurrentDomain.BaseDirectory;
-            var setupDir = Path.Combine(appDir, "setup");
-            
-            var nvidiaSetupPath = Path.Combine(setupDir, "NVIDIASetup.exe");
-            if (File.Exists(nvidiaSetupPath))
-            {
-                HasLocalNvidiaSetup = true;
-                _localNvidiaSetupPath = nvidiaSetupPath;
-            }
-
-            var cudaSetupPath = Path.Combine(setupDir, "CUDASetup.exe");
-            if (File.Exists(cudaSetupPath))
-            {
-                HasLocalCudaSetup = true;
-                _localCudaSetupPath = cudaSetupPath;
-            }
-        }
-
-        private async void InitializeAsync()
-        {
-            InitializeDrives();
-            CheckLocalSetup();
-            CheckLocalSetups();
-            UpdateUserGuide();
-            StartOllamaInstallationCheck();
-            await CheckNvidiaAndCuda();
-
-            // 从数据库加载OllamaConfig
-            var config = await _chatDbService.GetOllamaConfigAsync();
-            if (config != null)
-            {
-                _selectedModelPath = config.ModelsPath;
-                _selectedInstallPath = config.InstallPath;
-                RaisePropertyChanged(nameof(SelectedModelPath));
-                RaisePropertyChanged(nameof(SelectedInstallPath));
-            }
-        }
-
-        private async Task SaveOllamaConfigAsync()
-        {
-            var config = await _chatDbService.GetOllamaConfigAsync() ?? new OllamaConfig();
-            config.InstallPath = SelectedInstallPath;
-            config.ModelsPath = SelectedModelPath;
-            await _chatDbService.SaveOllamaConfigAsync(config);
         }
     }
 } 

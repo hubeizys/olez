@@ -152,6 +152,7 @@
                                 <!-- 环境变量设置进度 -->
                                 <StackPanel Grid.Row="3" 
                                           Margin="0,16,0,0"
+                                          IsEnabled="{Binding IsEnvControlsEnabled}"
                                           Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToVis}}">
                                     <DockPanel>
                                         <TextBlock Text="环境变量设置进度" 
@@ -164,6 +165,11 @@
                                                Maximum="100"
                                                Height="4"
                                                Margin="0,4,0,0"/>
+                                    <Button Content="设置环境变量"
+                                           Command="{Binding SetupEnvCommand}"
+                                           Style="{StaticResource MaterialDesignRaisedButton}"
+                                           HorizontalAlignment="Left"
+                                           Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </materialDesign:Card>
@@ -195,11 +201,6 @@
                                        HorizontalAlignment="Left"
                                        Margin="0,0,0,8"
                                        Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}"/>
-                                <Button Content="设置环境变量"
-                                       Command="{Binding SetupEnvCommand}"
-                                       Style="{StaticResource MaterialDesignRaisedButton}"
-                                       HorizontalAlignment="Left"
-                                       IsEnabled="{Binding CudaInfo.IsAvailable}"/>
                             </StackPanel>
                         </materialDesign:Card>
                     </StackPanel>
