@@ -33,7 +33,7 @@ namespace ollez.Services
         public HardwareMonitorService(ISystemCheckService systemCheckService)
         {
             _logger = Log.Logger;
-            _updateTimer = new Timer(1000);
+            _updateTimer = new Timer(2000);
             _updateTimer.Elapsed += OnTimerElapsed;
 
             _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
