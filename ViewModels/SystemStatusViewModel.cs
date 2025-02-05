@@ -138,8 +138,6 @@ namespace ollez.ViewModels
             // 立即执行一次检查
             _ = CheckSystem();
 
-            // 初始化时加载Ollama配置
-            LoadOllamaConfig();
         }
 
         private void InitializeInstallationSteps()
@@ -182,8 +180,12 @@ namespace ollez.ViewModels
                 // 执行其他现有的检查...
                 CudaInfo = await _systemCheckService.CheckCudaAsync();
                 OllamaInfo = await _systemCheckService.CheckOllamaAsync();
+
+                // 初始化时加载Ollama配置
+                LoadOllamaConfig();
                 ModelRecommendation = await _systemCheckService.GetModelRecommendationAsync();
                 
+
                 // 更新安装步骤状态
                 InstallationSteps[0].IsCompleted = CudaInfo.IsAvailable;
                 InstallationSteps[1].IsCompleted = CudaInfo.IsAvailable;
