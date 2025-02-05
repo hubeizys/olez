@@ -301,7 +301,7 @@ namespace ollez.Services
                     
                     ollamaInfo.IsRunning = true;
                     ollamaInfo.Version = versionInfo.GetProperty("version").GetString() ?? string.Empty;
-                    ollamaInfo.BuildType = versionInfo.GetProperty("build").GetString() ?? string.Empty;
+                    //ollamaInfo.BuildType = versionInfo.GetProperty("build").GetString() ?? string.Empty;
 
                     // 获取已安装的模型
                     var modelsResponse = await _httpClient.GetAsync($"{_ollamaEndpoint}/api/tags");
@@ -309,7 +309,8 @@ namespace ollez.Services
                     {
                         var modelsContent = await modelsResponse.Content.ReadAsStringAsync();
                         var modelsInfo = JsonSerializer.Deserialize<JsonElement>(modelsContent);
-                        var models = modelsInfo.EnumerateArray()
+                        var modelsArray = modelsInfo.GetProperty("models");
+                        var models = modelsArray.EnumerateArray()
                             .Select(m => new OllamaModel
                             {
                                 Name = m.GetProperty("name").GetString() ?? string.Empty,
