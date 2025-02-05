@@ -9,7 +9,11 @@ namespace ollez.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (bool)value ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+            if (value is bool isAvailable)
+            {
+                return isAvailable ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+            }
+            return new SolidColorBrush(Colors.Gray);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

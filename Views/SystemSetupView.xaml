@@ -11,6 +11,7 @@
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
     </UserControl.Resources>
 
     <materialDesign:Card Width="600" Margin="16">
@@ -24,6 +25,7 @@
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
@@ -32,18 +34,180 @@
                              Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                              Text="步骤 1: NVIDIA驱动和CUDA安装"/>
 
-                    <StackPanel Grid.Row="1" Margin="0,16">
-                        <TextBlock Text="检测到您的系统需要安装NVIDIA驱动和CUDA。这将帮助提高AI模型的性能。"
-                                 TextWrapping="Wrap"
-                                 Margin="0,0,0,16"/>
-                        
-                        <CheckBox Content="我已安装NVIDIA驱动"
-                                IsChecked="{Binding HasNvidia}"/>
+                    <!-- 用户引导提示卡片 -->
+                    <materialDesign:Card Grid.Row="1" 
+                                       Margin="0,16,0,0" 
+                                       Background="{DynamicResource PrimaryHueMidBrush}"
+                                       Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                       UniformCornerRadius="4">
+                        <Grid Margin="16,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}"
+                                    materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                    materialDesign:ButtonProgressAssist.IsIndeterminate="{Binding ShowGuideIndicator}"
+                                    materialDesign:ButtonProgressAssist.Value="-1"
+                                    Margin="0,0,16,0"
+                                    IsEnabled="False">
+                                <materialDesign:PackIcon Kind="ArrowRightBold"/>
+                            </Button>
+                            
+                            <TextBlock Grid.Column="1"
+                                     Text="{Binding NvidiaGuide}"
+                                     Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                     VerticalAlignment="Center"
+                                     TextWrapping="Wrap"/>
+                        </Grid>
+                    </materialDesign:Card>
+
+                    <StackPanel Grid.Row="2" Margin="0,16">
+                        <!-- 状态卡片 -->
+                        <materialDesign:Card Margin="0,0,0,16" 
+                                           Background="{DynamicResource MaterialDesignBackground}">
+                            <Grid Margin="16">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- NVIDIA驱动状态 -->
+                                <DockPanel Grid.Row="0">
+                                    <materialDesign:PackIcon Kind="ExpansionCard" 
+                                                           VerticalAlignment="Center"
+                                                           Width="24"
+                                                           Height="24"
+                                                           Margin="0,0,8,0"/>
+                                    <TextBlock Text="NVIDIA驱动: " 
+                                             VerticalAlignment="Center"/>
+                                    <TextBlock Margin="8,0,0,0"
+                                             VerticalAlignment="Center">
+                                        <Run Text="{Binding CudaInfo.DriverVersion, TargetNullValue='未安装'}"
+                                             Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"/>
+                                    </TextBlock>
+                                </DockPanel>
+
+                                <!-- CUDA状态 -->
+                                <DockPanel Grid.Row="1" Margin="0,8,0,0">
+                                    <materialDesign:PackIcon Kind="Chip" 
+                                                           VerticalAlignment="Center"
+                                                           Width="24"
+                                                           Height="24"
+                                                           Margin="0,0,8,0"/>
+                                    <TextBlock Text="CUDA版本: " 
+                                             VerticalAlignment="Center"/>
+                                    <TextBlock Margin="8,0,0,0"
+                                             VerticalAlignment="Center">
+                                        <Run Text="{Binding CudaInfo.Version, TargetNullValue='未安装'}"
+                                             Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"/>
+                                    </TextBlock>
+                                </DockPanel>
+
+                                <!-- 本地安装包状态 -->
+                                <StackPanel Grid.Row="2" 
+                                          Margin="0,16,0,0"
+                                          Visibility="{Binding HasLocalSetup, Converter={StaticResource BoolToVis}}">
+                                    <DockPanel>
+                                        <materialDesign:PackIcon Kind="FileCheck" 
+                                                               VerticalAlignment="Center"
+                                                               Width="24"
+                                                               Height="24"
+                                                               Margin="0,0,8,0"/>
+                                        <TextBlock Text="已检测到本地安装包" 
+                                                 VerticalAlignment="Center"/>
+                                        <Button Content="查看文件"
+                                                Command="{Binding OpenLocalSetupFolderCommand}"
+                                                Style="{StaticResource MaterialDesignFlatButton}"
+                                                Margin="16,0,0,0"/>
+                                    </DockPanel>
+                                </StackPanel>
+
+                                <!-- 下载状态和进度 -->
+                                <StackPanel Grid.Row="2" 
+                                          Margin="0,16,0,0"
+                                          Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="{Binding DownloadStatus}"
+                                             Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                    <Grid Margin="0,8,0,0">
+                                        <ProgressBar Value="{Binding DownloadProgress}"
+                                                   Maximum="1"
+                                                   Height="4"/>
+                                        <Button Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                                                materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                                materialDesign:ButtonProgressAssist.Value="{Binding DownloadProgress}"
+                                                materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                                                HorizontalAlignment="Right"
+                                                Width="36"
+                                                Height="36">
+                                            <materialDesign:PackIcon Kind="Download" Width="18" Height="18"/>
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- 环境变量设置进度 -->
+                                <StackPanel Grid.Row="3" 
+                                          Margin="0,16,0,0"
+                                          Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToVis}}">
+                                    <DockPanel>
+                                        <TextBlock Text="环境变量设置进度" 
+                                                 Style="{StaticResource MaterialDesignBody2TextBlock}"/>
+                                        <TextBlock Text="{Binding EnvSetupProgress, StringFormat={}{0}%}"
+                                                 HorizontalAlignment="Right"
+                                                 Style="{StaticResource MaterialDesignBody2TextBlock}"/>
+                                    </DockPanel>
+                                    <ProgressBar Value="{Binding EnvSetupProgress}"
+                                               Maximum="100"
+                                               Height="4"
+                                               Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </materialDesign:Card>
+
+                        <!-- 操作按钮 -->
+                        <materialDesign:Card Background="{DynamicResource MaterialDesignBackground}">
+                            <StackPanel Margin="16">
+                                <Button Content="下载NVIDIA驱动"
+                                       Command="{Binding DownloadNvidiaCommand}"
+                                       Style="{StaticResource MaterialDesignRaisedButton}"
+                                       HorizontalAlignment="Left"
+                                       Margin="0,0,0,8"
+                                       Visibility="{Binding ShowDownloadButton, Converter={StaticResource BoolToVis}}"/>
+                                <Button Content="安装NVIDIA驱动"
+                                       Command="{Binding InstallNvidiaCommand}"
+                                       Style="{StaticResource MaterialDesignRaisedButton}"
+                                       HorizontalAlignment="Left"
+                                       Margin="0,0,0,8"
+                                       Visibility="{Binding HasLocalNvidiaSetup, Converter={StaticResource BoolToVis}}"/>
+                                <Button Content="下载CUDA Toolkit"
+                                       Command="{Binding DownloadCudaCommand}"
+                                       Style="{StaticResource MaterialDesignRaisedButton}"
+                                       HorizontalAlignment="Left"
+                                       Margin="0,0,0,8"
+                                       Visibility="{Binding ShowDownloadButton, Converter={StaticResource BoolToVis}}"/>
+                                <Button Content="安装CUDA Toolkit"
+                                       Command="{Binding InstallCudaCommand}"
+                                       Style="{StaticResource MaterialDesignRaisedButton}"
+                                       HorizontalAlignment="Left"
+                                       Margin="0,0,0,8"
+                                       Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}"/>
+                                <Button Content="设置环境变量"
+                                       Command="{Binding SetupEnvCommand}"
+                                       Style="{StaticResource MaterialDesignRaisedButton}"
+                                       HorizontalAlignment="Left"
+                                       IsEnabled="{Binding CudaInfo.IsAvailable}"/>
+                            </StackPanel>
+                        </materialDesign:Card>
                     </StackPanel>
 
-                    <StackPanel Grid.Row="2" 
+                    <StackPanel Grid.Row="3" 
                               Orientation="Horizontal" 
-                              HorizontalAlignment="Right">
+                              HorizontalAlignment="Right"
+                              Margin="0,16,0,0">
                         <Button Content="跳过"
                                 Command="{Binding SkipCommand}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
