@@ -197,35 +197,45 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button
+                                    <materialDesign:Card 
                                         Margin="4"
-                                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                                        Height="Auto"
-                                        Command="{Binding NavigateToChatCommand}"
-                                        CommandParameter="{Binding Name}">
-                                        <StackPanel>
-                                            <TextBlock
-                                                Text="{Binding Name}"
-                                                TextWrapping="Wrap"
-                                                HorizontalAlignment="Center"/>
-                                            <TextBlock
-                                                Text="{Binding Size, Converter={StaticResource FileSizeConverter}}"
-                                                FontSize="12"
-                                                Foreground="{DynamicResource MaterialDesignBodyLight}"
-                                                HorizontalAlignment="Center"/>
-                                            <Border
-                                                Margin="0,4,0,0"
-                                                Background="#E8F5E9"
-                                                CornerRadius="2"
-                                                Padding="4,2"
-                                                Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        MinWidth="150"
+                                        Background="{DynamicResource MaterialDesignBackground}">
+                                        <Button
+                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            Height="Auto"
+                                            Margin="8"
+                                            Command="{Binding DataContext.NavigateToChatCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding Name}">
+                                            <StackPanel>
+                                                <TextBlock
+                                                    Text="{Binding Name}"
+                                                    TextWrapping="Wrap"
+                                                    HorizontalAlignment="Center"
+                                                    Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
                                                 <TextBlock
                                                     FontSize="12"
-                                                    Foreground="#2E7D32"
-                                                    Text="运行中"/>
-                                            </Border>
-                                        </StackPanel>
-                                    </Button>
+                                                    Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                    HorizontalAlignment="Center"
+                                                    Margin="0,4,0,0">
+                                                    <Run Text="{Binding Size, StringFormat={}{0:N2}}" />
+                                                    <Run Text="GB" />
+                                                </TextBlock>
+                                                <Border
+                                                    Margin="0,4,0,0"
+                                                    Background="#E8F5E9"
+                                                    CornerRadius="2"
+                                                    Padding="4,2"
+                                                    Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        Foreground="#2E7D32"
+                                                        Text="运行中"
+                                                        HorizontalAlignment="Center"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </Button>
+                                    </materialDesign:Card>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>

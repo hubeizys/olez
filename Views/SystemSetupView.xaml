@@ -78,7 +78,8 @@
                     <!-- 用户引导提示 -->
                     <materialDesign:Card Grid.Row="1" 
                                        Margin="0,16,0,0" 
-                                       Background="{DynamicResource MaterialDesignDivider}"
+                                       Background="{DynamicResource PrimaryHueMidBrush}"
+                                       Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
                                        UniformCornerRadius="4">
                         <Grid Margin="16,8">
                             <Grid.ColumnDefinitions>
@@ -87,7 +88,7 @@
                             </Grid.ColumnDefinitions>
                             
                             <Button Grid.Column="0"
-                                    Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                                    Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}"
                                     materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
                                     materialDesign:ButtonProgressAssist.IsIndeterminate="{Binding ShowGuideIndicator}"
                                     materialDesign:ButtonProgressAssist.Value="-1"
@@ -174,6 +175,18 @@
                                             Style="{StaticResource MaterialDesignFlatButton}"
                                             DockPanel.Dock="Right"/>
                                     <TextBlock Text="{Binding SelectedInstallPath}" 
+                                             VerticalAlignment="Center"
+                                             Margin="8,0"/>
+                                </DockPanel>
+
+                                <!-- 模型路径选择 -->
+                                <DockPanel Margin="0,16,0,0">
+                                    <TextBlock Text="模型路径：" VerticalAlignment="Center"/>
+                                    <Button Command="{Binding SelectModelPathCommand}"
+                                            Content="选择路径"
+                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            DockPanel.Dock="Right"/>
+                                    <TextBlock Text="{Binding SelectedModelPath}" 
                                              VerticalAlignment="Center"
                                              Margin="8,0"/>
                                 </DockPanel>

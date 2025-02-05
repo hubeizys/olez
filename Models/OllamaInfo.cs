@@ -93,7 +93,7 @@ namespace ollez.Models
     {
         private string _name = string.Empty;
         private string _digest = string.Empty;
-        private long _size;
+        private double _size;
         private bool _isRunning;
         private string _status = string.Empty;
         private string _modelPath = string.Empty;
@@ -113,7 +113,7 @@ namespace ollez.Models
             set => SetProperty(ref _digest, value);
         }
 
-        public long Size
+        public double Size
         {
             get => _size;
             set => SetProperty(ref _size, value);

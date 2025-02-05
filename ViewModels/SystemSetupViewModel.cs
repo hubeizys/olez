@@ -36,6 +36,7 @@ namespace ollez.ViewModels
         private bool _isOllamaInstalled;
         private bool _showGuideIndicator = true;
         private CancellationTokenSource? _installCheckCts;
+        private string _selectedModelPath = string.Empty;
 
         public SystemSetupViewModel(IHardwareMonitorService hardwareMonitorService, ISystemCheckService systemCheckService)
         {
@@ -47,6 +48,7 @@ namespace ollez.ViewModels
             PreviousCommand = new DelegateCommand(ExecutePrevious, CanExecutePrevious);
             SkipCommand = new DelegateCommand(ExecuteSkip, CanExecuteSkip);
             SelectInstallPathCommand = new DelegateCommand(ExecuteSelectInstallPath);
+            SelectModelPathCommand = new DelegateCommand(ExecuteSelectModelPath);
             InstallOllamaCommand = new DelegateCommand(ExecuteInstallOllama);
             OpenLocalSetupFolderCommand = new DelegateCommand(ExecuteOpenLocalSetupFolder);
             DownloadOllamaCommand = new DelegateCommand(async () => await ExecuteDownloadOllama());
@@ -84,12 +86,12 @@ namespace ollez.ViewModels
 
             if (!IsOllamaInstalled)
             {
-                UserGuide = "请点击“安装”按钮安装Ollama";
+                UserGuide = "请点击\"安装\"按钮安装Ollama";
                 ShowGuideIndicator = true;
                 return;
             }
 
-            UserGuide = "安装完成，请点击“下一步”继续";
+            UserGuide = "安装完成，请点击\"下一步\"继续";
             ShowGuideIndicator = false;
         }
 
@@ -219,10 +221,17 @@ namespace ollez.ViewModels
             set => SetProperty(ref _showDownloadButton, value);
         }
 
+        public string SelectedModelPath
+        {
+            get => _selectedModelPath;
+            set => SetProperty(ref _selectedModelPath, value);
+        }
+
         public ICommand NextCommand { get; }
         public ICommand PreviousCommand { get; }
         public ICommand SkipCommand { get; }
         public DelegateCommand SelectInstallPathCommand { get; }
+        public DelegateCommand SelectModelPathCommand { get; }
         public DelegateCommand InstallOllamaCommand { get; }
         public DelegateCommand OpenLocalSetupFolderCommand { get; }
         public DelegateCommand DownloadOllamaCommand { get; }
@@ -285,6 +294,29 @@ namespace ollez.ViewModels
             if (dialog.ShowDialog() == true)
             {
                 SelectedInstallPath = Path.GetDirectoryName(dialog.FileName);
+            }
+        }
+
+        private void ExecuteSelectModelPath()
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "选择模型存储路径",
+                FileName = "models", // 默认文件夹名
+                Filter = "文件夹|*.this.directory",
+                CheckFileExists = false,
+                CheckPathExists = true,
+                ValidateNames = false
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                string folderPath = System.IO.Path.GetDirectoryName(dialog.FileName);
+                if (!string.IsNullOrEmpty(folderPath))
+                {
+                    SelectedModelPath = folderPath;
+                    UpdateUserGuide();
+                }
             }
         }
 

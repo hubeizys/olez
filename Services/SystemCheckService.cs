@@ -313,7 +313,7 @@ namespace ollez.Services
                             .Select(m => new OllamaModel
                             {
                                 Name = m.GetProperty("name").GetString() ?? string.Empty,
-                                Size = m.GetProperty("size").GetInt64(),
+                                Size = m.GetProperty("size").GetInt64() / (1024.0 * 1024.0 * 1024.0), // Convert bytes to GB
                                 Status = "已安装",
                                 IsRunning = false
                             });
