@@ -12,5 +12,9 @@ namespace ollez.Services
         Task<ChatMessage> AddMessageAsync(string sessionId, string content, bool isUser);
         Task DeleteSessionAsync(string id);
         Task<int> SaveChangesAsync();
+
+        // Ollama配置相关方法
+        Task<OllamaConfig?> GetOllamaConfigAsync();
+        Task<OllamaConfig> SaveOllamaConfigAsync(OllamaConfig config);
     }
 }

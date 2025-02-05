@@ -46,7 +46,7 @@ namespace ollez.ViewModels
         private readonly ISystemCheckService _systemCheckService;
         private readonly IHardwareMonitorService _hardwareMonitorService;
         private readonly IRegionManager _regionManager;
-        private readonly ChatDbContext _dbContext;
+        private readonly IChatDbService _chatDbService;
         private CudaInfo _cudaInfo = new();
         private HardwareInfo _hardwareInfo = new();
         private ObservableCollection<InstallationStep> _installationSteps = new();
@@ -119,12 +119,12 @@ namespace ollez.ViewModels
         public DelegateCommand OpenSetupCommand { get; }
         public ICommand NavigateToChatCommand { get; }
 
-        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService, IRegionManager regionManager, ChatDbContext dbContext)
+        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService, IRegionManager regionManager, IChatDbService chatDbService)
         {
             _systemCheckService = systemCheckService;
             _hardwareMonitorService = hardwareMonitorService;
             _regionManager = regionManager;
-            _dbContext = dbContext;
+            _chatDbService = chatDbService;
 
             // 初始化硬件信息
             _hardwareInfo = new HardwareInfo();
@@ -200,7 +200,7 @@ namespace ollez.ViewModels
 
         private async Task ExecuteOpenSetup()
         {
-            var view = new SystemSetupView { DataContext = new SystemSetupViewModel(_hardwareMonitorService, _systemCheckService) };
+            var view = new SystemSetupView { DataContext = new SystemSetupViewModel(_hardwareMonitorService, _systemCheckService, _chatDbService) };
             await DialogHost.Show(view, "RootDialog");
         }
 
@@ -213,9 +213,9 @@ namespace ollez.ViewModels
             _regionManager.RequestNavigate("MainRegion", "ChatView", parameters);
         }
 
-        private void LoadOllamaConfig()
+        private async void LoadOllamaConfig()
         {
-            var config = _dbContext.OllamaConfigs.FirstOrDefault();
+            var config = await _chatDbService.GetOllamaConfigAsync();
             if (config != null)
             {
                 OllamaInfo.InstallPath = config.InstallPath;
@@ -223,19 +223,12 @@ namespace ollez.ViewModels
             }
         }
 
-        public void SaveOllamaConfig()
+        public async void SaveOllamaConfig()
         {
-            var config = _dbContext.OllamaConfigs.FirstOrDefault() ?? new OllamaConfig();
+            var config = await _chatDbService.GetOllamaConfigAsync() ?? new OllamaConfig();
             config.InstallPath = OllamaInfo.InstallPath;
             config.ModelsPath = OllamaInfo.ModelsPath;
-            config.LastUpdated = DateTime.Now;
-
-            if (config.Id == 0)
-            {
-                _dbContext.OllamaConfigs.Add(config);
-            }
-            
-            _dbContext.SaveChanges();
+            await _chatDbService.SaveOllamaConfigAsync(config);
         }
 
         public void OnNavigatedTo(NavigationContext navigationContext)

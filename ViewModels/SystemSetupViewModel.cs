@@ -20,6 +20,7 @@ namespace ollez.ViewModels
     {
         private readonly IHardwareMonitorService _hardwareMonitorService;
         private readonly ISystemCheckService _systemCheckService;
+        private readonly IChatDbService _chatDbService;
         private int _currentStep;
         private bool _hasNvidia;
         private string _selectedDrive = string.Empty;
@@ -38,10 +39,14 @@ namespace ollez.ViewModels
         private CancellationTokenSource? _installCheckCts;
         private string _selectedModelPath = string.Empty;
 
-        public SystemSetupViewModel(IHardwareMonitorService hardwareMonitorService, ISystemCheckService systemCheckService)
+        public SystemSetupViewModel(
+            IHardwareMonitorService hardwareMonitorService,
+            ISystemCheckService systemCheckService,
+            IChatDbService chatDbService)
         {
             _hardwareMonitorService = hardwareMonitorService;
             _systemCheckService = systemCheckService;
+            _chatDbService = chatDbService;
             _currentStep = 0;
             
             NextCommand = new DelegateCommand(ExecuteNext, CanExecuteNext);
@@ -53,10 +58,7 @@ namespace ollez.ViewModels
             OpenLocalSetupFolderCommand = new DelegateCommand(ExecuteOpenLocalSetupFolder);
             DownloadOllamaCommand = new DelegateCommand(async () => await ExecuteDownloadOllama());
             
-            InitializeDrives();
-            CheckLocalSetup();
-            UpdateUserGuide();
-            StartOllamaInstallationCheck();
+            InitializeAsync();
         }
 
         private void StartOllamaInstallationCheck()
@@ -176,7 +178,13 @@ namespace ollez.ViewModels
         public string SelectedInstallPath
         {
             get => _selectedInstallPath;
-            set => SetProperty(ref _selectedInstallPath, value);
+            set
+            {
+                if (SetProperty(ref _selectedInstallPath, value))
+                {
+                    SaveOllamaConfigAsync().ConfigureAwait(false);
+                }
+            }
         }
 
         public bool HasLocalSetup
@@ -224,10 +232,42 @@ namespace ollez.ViewModels
         public string SelectedModelPath
         {
             get => _selectedModelPath;
-            set => SetProperty(ref _selectedModelPath, value);
+            set
+            {
+                if (SetProperty(ref _selectedModelPath, value))
+                {
+                    SaveOllamaConfigAsync().ConfigureAwait(false);
+                }
+            }
         }
 
         public ICommand NextCommand { get; }
+
+        private async void InitializeAsync()
+        {
+            InitializeDrives();
+            CheckLocalSetup();
+            UpdateUserGuide();
+            StartOllamaInstallationCheck();
+
+            // 从数据库加载OllamaConfig
+            var config = await _chatDbService.GetOllamaConfigAsync();
+            if (config != null)
+            {
+                _selectedModelPath = config.ModelsPath;
+                _selectedInstallPath = config.InstallPath;
+                RaisePropertyChanged(nameof(SelectedModelPath));
+                RaisePropertyChanged(nameof(SelectedInstallPath));
+            }
+        }
+
+        private async Task SaveOllamaConfigAsync()
+        {
+            var config = await _chatDbService.GetOllamaConfigAsync() ?? new OllamaConfig();
+            config.InstallPath = SelectedInstallPath;
+            config.ModelsPath = SelectedModelPath;
+            await _chatDbService.SaveOllamaConfigAsync(config);
+        }
         public ICommand PreviousCommand { get; }
         public ICommand SkipCommand { get; }
         public DelegateCommand SelectInstallPathCommand { get; }

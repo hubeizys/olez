@@ -16,6 +16,33 @@ namespace ollez.Services
             _contextFactory = contextFactory;
         }
 
+        public async Task<OllamaConfig?> GetOllamaConfigAsync()
+        {
+            using var context = _contextFactory();
+            return await context.OllamaConfigs.FirstOrDefaultAsync();
+        }
+
+        public async Task<OllamaConfig> SaveOllamaConfigAsync(OllamaConfig config)
+        {
+            using var context = _contextFactory();
+            var existing = await context.OllamaConfigs.FirstOrDefaultAsync();
+
+            if (existing == null)
+            {
+                context.OllamaConfigs.Add(config);
+            }
+            else
+            {
+                existing.InstallPath = config.InstallPath;
+                existing.ModelsPath = config.ModelsPath;
+                existing.LastUpdated = DateTime.Now;
+                config = existing;
+            }
+
+            await context.SaveChangesAsync();
+            return config;
+        }
+
         public async Task<ChatSession> CreateSessionAsync(string title)
         {
             using var context = _contextFactory();
