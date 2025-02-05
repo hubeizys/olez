@@ -97,6 +97,76 @@ namespace ollez.Models
             }
         }
 
+        private bool _gpuAvailable;
+        public bool GpuAvailable
+        {
+            get => _gpuAvailable;
+            set
+            {
+                if (_gpuAvailable != value)
+                {
+                    _gpuAvailable = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private string _gpuName = string.Empty;
+        public string GpuName
+        {
+            get => _gpuName;
+            set
+            {
+                if (_gpuName != value)
+                {
+                    _gpuName = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private int _gpuMemoryTotal;
+        public int GpuMemoryTotal
+        {
+            get => _gpuMemoryTotal;
+            set
+            {
+                if (_gpuMemoryTotal != value)
+                {
+                    _gpuMemoryTotal = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private int _gpuMemoryUsed;
+        public int GpuMemoryUsed
+        {
+            get => _gpuMemoryUsed;
+            set
+            {
+                if (_gpuMemoryUsed != value)
+                {
+                    _gpuMemoryUsed = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private double _gpuMemoryUsage;
+        public double GpuMemoryUsage
+        {
+            get => _gpuMemoryUsage;
+            set
+            {
+                if (_gpuMemoryUsage != value)
+                {
+                    _gpuMemoryUsage = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public ObservableCollection<DriveInfo> Drives { get; set; } = new ObservableCollection<DriveInfo>();
     }
 

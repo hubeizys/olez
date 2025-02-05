@@ -336,6 +336,8 @@
                         </StackPanel>
                     </materialDesign:Card>
 
+              
+
                     <!--  内存状态  -->
                     <materialDesign:Card
                         Grid.Column="1"
@@ -452,17 +454,97 @@
                 <!--  原有的 CUDA 和 Ollama 状态卡片移到 Grid.Row="1"  -->
                 <Grid Grid.Row="1">
                     <Grid.RowDefinitions>
+                        
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!--  CUDA状态  -->
+      <!--  GPU状态  -->
                     <materialDesign:Card
                         Grid.Column="0"
+                        Margin="8,0"
+                        Padding="16">
+                        <StackPanel>
+                            <DockPanel>
+                                <materialDesign:PackIcon
+                                    Width="24"
+                                    Height="24"
+                                    VerticalAlignment="Center"
+                                    Kind="ExpansionCard" />
+                                <TextBlock
+                                    Margin="8,0,0,0"
+                                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                    Text="GPU状态" />
+                            </DockPanel>
+
+                            <Grid Margin="0,16,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Margin="0,0,8,4"
+                                    Text="显卡：" />
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Text="{Binding HardwareInfo.GpuName}" />
+
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Margin="0,4,8,4"
+                                    Text="总显存：" />
+                                <TextBlock Grid.Row="1" Grid.Column="1">
+                                    <Run Text="{Binding HardwareInfo.GpuMemoryTotal}" />
+                                    <Run Text="MB" />
+                                </TextBlock>
+
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Margin="0,4,8,4"
+                                    Text="已用显存：" />
+                                <TextBlock Grid.Row="2" Grid.Column="1">
+                                    <Run Text="{Binding HardwareInfo.GpuMemoryUsed}" />
+                                    <Run Text="MB" />
+                                </TextBlock>
+
+                                <TextBlock
+                                    Grid.Row="3"
+                                    Margin="0,4,8,0"
+                                    Text="显存使用率：" />
+                                <Grid Grid.Row="3" Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ProgressBar
+                                        Grid.Column="0"
+                                        Maximum="100"
+                                        Value="{Binding HardwareInfo.GpuMemoryUsage}" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Margin="8,0,0,0"
+                                        Text="{Binding HardwareInfo.GpuMemoryUsage, StringFormat={}{0:N1}%}" />
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
+                    </materialDesign:Card>
+                    <!--  CUDA状态  -->
+                    <materialDesign:Card
+                        Grid.Column="1"
                         Margin="0,0,8,16"
                         Padding="16">
                         <StackPanel>
@@ -607,7 +689,7 @@
 
                     <!--  Ollama状态  -->
                     <materialDesign:Card
-                        Grid.Column="1"
+                        Grid.Column="2"
                         Margin="8,0,0,16"
                         Padding="16">
                         <StackPanel>

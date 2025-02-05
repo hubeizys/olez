@@ -60,11 +60,11 @@ namespace ollez
         /// <param name="containerRegistry">容器注册器</param>
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            // 首先注册所有基础服务
+            // 首先注册所有基础服务（注意顺序：被依赖的服务需要先注册）
+            containerRegistry.RegisterSingleton<ILogService, LogService>();
             containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();
             containerRegistry.RegisterSingleton<IHardwareMonitorService, HardwareMonitorService>();
             containerRegistry.RegisterSingleton<IChatService, ChatService>();
-            containerRegistry.RegisterSingleton<ILogService, LogService>();
 
             // 注册数据库相关服务
             containerRegistry.Register<ChatDbContext>(() =>

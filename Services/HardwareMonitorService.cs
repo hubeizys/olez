@@ -27,9 +27,10 @@ namespace ollez.Services
         private readonly Timer _updateTimer;
         private readonly PerformanceCounter _cpuCounter;
         private readonly Process _currentProcess;
+        private readonly ISystemCheckService _systemCheckService;
         private HardwareInfo _currentInfo = new();
 
-        public HardwareMonitorService()
+        public HardwareMonitorService(ISystemCheckService systemCheckService)
         {
             _logger = Log.Logger;
             _updateTimer = new Timer(1000);
@@ -37,6 +38,7 @@ namespace ollez.Services
 
             _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             _currentProcess = Process.GetCurrentProcess();
+            _systemCheckService = systemCheckService;
 
             // 初始化硬件信息
             _currentInfo = new HardwareInfo
@@ -48,8 +50,9 @@ namespace ollez.Services
                 Drives = new System.Collections.ObjectModel.ObservableCollection<Models.DriveInfo>()
             };
 
-            // 初始化时立即更新一次硬盘信息
+            // 初始化时立即更新一次硬盘信息和GPU信息
             UpdateDriveInfo(_currentInfo);
+            _ = UpdateGpuInfoAsync();
         }
 
         public void StartMonitoring()
@@ -86,6 +89,9 @@ namespace ollez.Services
                 // 获取内存信息
                 var memoryMetrics = GetMemoryMetrics();
 
+                // 获取GPU信息
+                await UpdateGpuInfoAsync();
+
                 // 在UI线程上更新数据
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
@@ -101,6 +107,36 @@ namespace ollez.Services
             catch (Exception ex)
             {
                 _logger.Error(ex, "Error updating hardware info");
+            }
+        }
+
+        private async Task UpdateGpuInfoAsync()
+        {
+            try
+            {
+                var cudaInfo = await _systemCheckService.CheckCudaAsync();
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    _currentInfo.GpuAvailable = cudaInfo.IsAvailable;
+                    if (cudaInfo.IsAvailable && cudaInfo.Gpus.Length > 0)
+                    {
+                        var gpu = cudaInfo.Gpus[0]; // 使用第一个GPU的信息
+                        _currentInfo.GpuName = gpu.Name;
+                        _currentInfo.GpuMemoryTotal = gpu.MemoryTotal;
+                        _currentInfo.GpuMemoryUsed = gpu.MemoryUsed;
+                        _currentInfo.GpuMemoryUsage = gpu.MemoryTotal > 0
+                            ? (gpu.MemoryUsed / (double)gpu.MemoryTotal) * 100
+                            : 0;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error updating GPU info");
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    _currentInfo.GpuAvailable = false;
+                });
             }
         }
 
