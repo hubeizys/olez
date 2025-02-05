@@ -20,7 +20,12 @@ namespace ollez.Models
             get => string.IsNullOrEmpty(_version) ? null : _version;
             set => _version = value;
         }
-        public string DriverVersion { get; set; } = string.Empty;
+        private string _driverVersion = string.Empty;
+        public string DriverVersion
+        {
+            get => string.IsNullOrEmpty(_driverVersion) ? null : _driverVersion;
+            set => _driverVersion = value;
+        }
         public string SmiVersion { get; set; } = string.Empty;
         public GpuInfo[] Gpus { get; set; } = Array.Empty<GpuInfo>();
     }
