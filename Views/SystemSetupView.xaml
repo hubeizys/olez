@@ -111,7 +111,7 @@
                                 <!-- 本地安装包状态 -->
                                 <StackPanel Grid.Row="2" 
                                           Margin="0,16,0,0"
-                                          Visibility="{Binding HasLocalSetup, Converter={StaticResource BoolToVis}}">
+                                          Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}">
                                     <DockPanel>
                                         <materialDesign:PackIcon Kind="FileCheck" 
                                                                VerticalAlignment="Center"

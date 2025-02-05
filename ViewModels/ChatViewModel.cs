@@ -34,7 +34,7 @@ namespace ollez.ViewModels
         private ObservableCollection<ChatMessage> _messages = new();
         private StringBuilder _pendingContent = new();
         private DateTime _lastUpdateTime = DateTime.Now;
-        private const int UI_UPDATE_INTERVAL_MS = 200;
+        private const int UI_UPDATE_INTERVAL_MS = 300;
         private ObservableCollection<ChatSession> _chatSessions = new();
         private ChatSession _currentSession = new()
         {
@@ -213,8 +213,8 @@ namespace ollez.ViewModels
                             var lastMessage = Messages.Last();
                             if (!lastMessage.IsUser)
                             {
-                                lastMessage.Content += _pendingContent.ToString();
-                                RaisePropertyChanged(nameof(Messages));
+                                var newContent = lastMessage.Content + _pendingContent.ToString();
+                                lastMessage.Content = newContent; // 使用属性setter来触发MessageDocument更新
                             }
                         }
                     });
