@@ -100,6 +100,13 @@ namespace ollez.Models
         private string _modifiedAt = string.Empty;
         private bool _hasError;
         private string _error = string.Empty;
+        private string _description = string.Empty;
+
+        public string Description
+        {
+            get => _description;
+            set => SetProperty(ref _description, value);
+        }
 
         public string Name
         {

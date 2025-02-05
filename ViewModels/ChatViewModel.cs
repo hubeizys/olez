@@ -34,7 +34,7 @@ namespace ollez.ViewModels
         private ObservableCollection<ChatMessage> _messages = new();
         private StringBuilder _pendingContent = new();
         private DateTime _lastUpdateTime = DateTime.Now;
-        private const int UI_UPDATE_INTERVAL_MS = 300;
+        private const int UI_UPDATE_INTERVAL_MS = 50;
         private ObservableCollection<ChatSession> _chatSessions = new();
         private ChatSession _currentSession = new()
         {
@@ -190,7 +190,7 @@ namespace ollez.ViewModels
                    !string.IsNullOrEmpty(SelectedModel) && CurrentSession != null;
         }
 
-        private async Task UpdateUIAsync(string chunk)
+        private async Task UpdateUIAsync(string chunk, bool isLastChunk = false)
         {
             _debugLogger.Information($"[UI Debug] 收到新的chunk: '{chunk}'");
             _pendingContent.Append(chunk);
@@ -198,34 +198,36 @@ namespace ollez.ViewModels
             
             var now = DateTime.Now;
             var timeSinceLastUpdate = (now - _lastUpdateTime).TotalMilliseconds;
-            _debugLogger.Information($"[UI Debug] 距离上次更新过去了: {timeSinceLastUpdate}ms");
+            // 时间间隔 now 和 last 时间一起打印
+            _debugLogger.Information($"[UI Debug] 距离上次更新过去了: {timeSinceLastUpdate}ms, now: {now}, last: {_lastUpdateTime}");
 
-            if (timeSinceLastUpdate >= UI_UPDATE_INTERVAL_MS)
+          
+            if (timeSinceLastUpdate >= UI_UPDATE_INTERVAL_MS || isLastChunk)
             {
+                _lastUpdateTime = now;
                 _debugLogger.Information($"[UI Debug] 准备更新UI，当前缓冲区内容长度: {_pendingContent.Length}");
-                
-                try 
+                  try
+            {
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    await Application.Current.Dispatcher.InvokeAsync(() =>
+                    if (Messages.Count > 0)
                     {
-                        if (Messages.Count > 0)
+                        var lastMessage = Messages.Last();
+                        if (!lastMessage.IsUser)
                         {
-                            var lastMessage = Messages.Last();
-                            if (!lastMessage.IsUser)
-                            {
-                                var newContent = lastMessage.Content + _pendingContent.ToString();
-                                lastMessage.Content = newContent; // 使用属性setter来触发MessageDocument更新
-                            }
+                            var newContent = lastMessage.Content + _pendingContent.ToString();
+                            lastMessage.Content = newContent; // 使用属性setter来触发MessageDocument更新
                         }
-                    });
+                    }
+                });
 
-                    _pendingContent.Clear();
-                    _lastUpdateTime = now;
-                }
-                catch (Exception ex)
-                {
-                    _debugLogger.Error($"[UI Debug] 更新UI时发生错误: {ex}");
-                }
+                _pendingContent.Clear();
+
+            }
+            catch (Exception ex)
+            {
+                _debugLogger.Error($"[UI Debug] 更新UI时发生错误: {ex}");
+            }
             }
         }
 
@@ -282,6 +284,7 @@ namespace ollez.ViewModels
                         Log.Information($"[ChatViewModel] 收到chunk内容: '{chunk}'");
                         await UpdateUIAsync(chunk);
                     }
+                    await UpdateUIAsync("\n\n", true);
                 });
                 Log.Information("[ChatViewModel] 流式响应处理完成");
             }

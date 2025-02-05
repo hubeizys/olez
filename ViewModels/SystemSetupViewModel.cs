@@ -13,6 +13,7 @@ using Humanizer;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace ollez.ViewModels
 {
@@ -51,6 +52,10 @@ namespace ollez.ViewModels
         private double _nvidiaDownloadProgress;
         private double _cudaDownloadProgress;
         private bool _isEnvControlsEnabled;
+        private string _searchQuery;
+        private ObservableCollection<OllamaModel> _searchResults;
+        private ObservableCollection<DeepseekModel> _deepseekModels;
+        private string _commandOutput;
 
         public SystemSetupViewModel(
             IHardwareMonitorService hardwareMonitorService,
@@ -75,6 +80,12 @@ namespace ollez.ViewModels
             InstallNvidiaCommand = new DelegateCommand(ExecuteInstallNvidia);
             InstallCudaCommand = new DelegateCommand(ExecuteInstallCuda);
             SetupEnvCommand = new DelegateCommand(async () => await ExecuteSetupEnv(), CanExecuteSetupEnv);
+            SearchModelsCommand = new DelegateCommand(ExecuteSearchModels);
+            InstallModelCommand = new DelegateCommand<string>(ExecuteInstallModel);
+            InstallDeepseekModelCommand = new DelegateCommand<string>(ExecuteInstallDeepseekModel);
+            
+            SearchResults = new ObservableCollection<OllamaModel>();
+            DeepseekModels = new ObservableCollection<DeepseekModel>(DeepseekModel.GetDefaultModels());
             
             InitializeAsync();
         }
@@ -390,6 +401,32 @@ namespace ollez.ViewModels
             set => SetProperty(ref _isEnvControlsEnabled, value);
         }
 
+        public string SearchQuery
+        {
+            get => _searchQuery;
+            set => SetProperty(ref _searchQuery, value);
+        }
+
+        public ObservableCollection<OllamaModel> SearchResults
+        {
+            get => _searchResults;
+            set => SetProperty(ref _searchResults, value);
+        }
+
+        public ObservableCollection<DeepseekModel> DeepseekModels
+        {
+            get => _deepseekModels;
+            set => SetProperty(ref _deepseekModels, value);
+        }
+
+        public string CommandOutput
+        {
+            get => _commandOutput;
+            set => SetProperty(ref _commandOutput, value);
+        }
+
+        public bool HasSearchResults => SearchResults?.Count > 0;
+
         public DelegateCommand NextCommand { get; }
         public DelegateCommand PreviousCommand { get; }
         public DelegateCommand SkipCommand { get; }
@@ -403,6 +440,9 @@ namespace ollez.ViewModels
         public DelegateCommand InstallNvidiaCommand { get; }
         public DelegateCommand InstallCudaCommand { get; }
         public DelegateCommand SetupEnvCommand { get; }
+        public DelegateCommand SearchModelsCommand { get; private set; }
+        public DelegateCommand<string> InstallModelCommand { get; private set; }
+        public DelegateCommand<string> InstallDeepseekModelCommand { get; private set; }
 
         private void ExecuteNext()
         {
@@ -608,23 +648,22 @@ namespace ollez.ViewModels
         {
             if (!CudaInfo.IsAvailable)
             {
-                NvidiaGuide = "请先安装NVIDIA驱动和CUDA Toolkit，这将帮助提高AI模型的性能。";
+                NvidiaGuide = "请先安装NVIDIA驱动和CUDA";
                 ShowGuideIndicator = true;
-                IsEnvControlsEnabled = false;
                 return;
             }
 
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CUDA_PATH", EnvironmentVariableTarget.Machine)))
             {
-                NvidiaGuide = "NVIDIA驱动和CUDA已安装，请点击“设置环境变量”按钮完成配置。";
+                NvidiaGuide = "NVIDIA驱动和CUDA已安装，请点击\"设置环境变量\"按钮完成配置";
                 ShowGuideIndicator = true;
                 IsEnvControlsEnabled = true;
                 return;
             }
 
-            NvidiaGuide = "NVIDIA驱动和CUDA环境配置已完成！";
+            NvidiaGuide = "NVIDIA驱动和CUDA环境已配置完成";
             ShowGuideIndicator = false;
-            IsEnvControlsEnabled = true;
+            IsEnvControlsEnabled = false;
         }
 
         private async Task ExecuteDownloadNvidia()
@@ -873,6 +912,9 @@ namespace ollez.ViewModels
                 RaisePropertyChanged(nameof(SelectedModelPath));
                 RaisePropertyChanged(nameof(SelectedInstallPath));
             }
+
+            // 初始化时检查已安装的模型
+            CheckInstalledModels();
         }
 
         private async Task SaveOllamaConfigAsync()
@@ -928,6 +970,135 @@ namespace ollez.ViewModels
                 Debug.WriteLine($"安装CUDA Toolkit时出错: {ex.Message}");
                 MessageBox.Show($"安装CUDA Toolkit时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 NvidiaGuide = "安装失败，请重试";
+            }
+        }
+
+        private async void CheckInstalledModels()
+        {
+            try
+            {
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "ollama",
+                        Arguments = "list",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.Start();
+                string output = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                foreach (var model in DeepseekModels)
+                {
+                    model.IsInstalled = output.Contains($"deepseek-r1:{model.Size}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"检查已安装模型时出错: {ex.Message}");
+            }
+        }
+
+        private void ExecuteSearchModels()
+        {
+            if (string.IsNullOrWhiteSpace(SearchQuery)) return;
+
+            try
+            {
+                // 这里应该调用 Ollama API 搜索模型
+                // 目前只是一个示例实现
+                SearchResults.Clear();
+                SearchResults.Add(new OllamaModel
+                {
+                    Name = SearchQuery,
+                    Description = "搜索到的模型描述"
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"搜索模型时出错: {ex.Message}");
+            }
+        }
+
+        private async void ExecuteInstallModel(string modelName)
+        {
+            await InstallModel(modelName);
+        }
+
+        private async void ExecuteInstallDeepseekModel(string size)
+        {
+            await InstallModel($"deepseek-r1:{size}");
+        }
+
+        private async Task InstallModel(string modelName)
+        {
+            if (IsDownloading) return;
+
+            try
+            {
+                IsDownloading = true;
+                DownloadStatus = $"正在下载模型 {modelName}";
+                CommandOutput = string.Empty;
+                DownloadProgress = 0;
+
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "ollama",
+                        Arguments = $"pull {modelName}",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.OutputDataReceived += (sender, args) =>
+                {
+                    if (args.Data != null)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            CommandOutput += args.Data + Environment.NewLine;
+                            
+                            // 解析进度
+                            var match = Regex.Match(args.Data, @"(\d+)%");
+                            if (match.Success)
+                            {
+                                DownloadProgress = double.Parse(match.Groups[1].Value);
+                            }
+                        });
+                    }
+                };
+
+                process.Start();
+                process.BeginOutputReadLine();
+                await process.WaitForExitAsync();
+
+                if (process.ExitCode == 0)
+                {
+                    DownloadStatus = "下载完成";
+                    CheckInstalledModels();
+                }
+                else
+                {
+                    DownloadStatus = "下载失败";
+                }
+            }
+            catch (Exception ex)
+            {
+                DownloadStatus = $"下载出错: {ex.Message}";
+                Debug.WriteLine($"安装模型时出错: {ex.Message}");
+            }
+            finally
+            {
+                IsDownloading = false;
             }
         }
     }

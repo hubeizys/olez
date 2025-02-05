@@ -390,6 +390,7 @@
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
@@ -398,16 +399,160 @@
                              Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                              Text="步骤 3: 下载模型"/>
 
-                    <StackPanel Grid.Row="1" Margin="0,16">
-                        <TextBlock Text="正在下载1.5B模型，这可能需要一些时间。请保持网络连接。"
-                                 TextWrapping="Wrap"
-                                 Margin="0,0,0,16"/>
-                        <ProgressBar
-                                   Height="4"
-                                   IsIndeterminate="True"/>
-                    </StackPanel>
+                    <!-- 搜索区域 -->
+                    <materialDesign:Card Grid.Row="1" Margin="0,16,0,16">
+                        <Grid Margin="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="2" 
+                            <TextBox Grid.Row="0"
+                                    materialDesign:HintAssist.Hint="搜索 Ollama 模型"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Return" Command="{Binding SearchModelsCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+
+                            <ItemsControl Grid.Row="1" 
+                                        Margin="0,16,0,0"
+                                        ItemsSource="{Binding SearchResults}"
+                                        Visibility="{Binding HasSearchResults, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <materialDesign:Card 
+                                            Margin="4"
+                                            MinWidth="150"
+                                            Background="{DynamicResource MaterialDesignBackground}">
+                                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                                    Height="Auto"
+                                                    Margin="8"
+                                                    Command="{Binding DataContext.InstallModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding ModelName}">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding ModelName}"
+                                                                     TextWrapping="Wrap"
+                                                                     HorizontalAlignment="Center"
+                                                                     Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                                                            <TextBlock Text="{Binding Description}"
+                                                                     TextWrapping="Wrap"
+                                                                     HorizontalAlignment="Center"
+                                                                     Margin="0,4,0,0"
+                                                                     FontSize="12"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                        </materialDesign:Card>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </materialDesign:Card>
+
+                    <!-- DeepSeek-R1 模型列表 -->
+                    <materialDesign:Card Grid.Row="2" Margin="0,0,0,16">
+                        <StackPanel Margin="16">
+                            <TextBlock Text="DeepSeek-R1 系列模型"
+                                     Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                     Margin="0,0,0,16"/>
+
+                            <WrapPanel>
+                                <ItemsControl ItemsSource="{Binding DeepseekModels}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <materialDesign:Card 
+                                                Margin="4"
+                                                MinWidth="150"
+                                                Background="{DynamicResource MaterialDesignBackground}">
+                                                <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                                        Height="Auto"
+                                                        Margin="8"
+                                                        Command="{Binding DataContext.InstallDeepseekModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding Size}">
+                                                    <StackPanel>
+                                                        <TextBlock TextWrapping="Wrap"
+                                                                 HorizontalAlignment="Center"
+                                                                 Style="{StaticResource MaterialDesignSubtitle1TextBlock}">
+                                                            <Run Text="DeepSeek-R1"/>
+                                                            <Run Text="{Binding Size}"/>
+                                                        </TextBlock>
+                                                        <TextBlock FontSize="12"
+                                                                 Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                                 HorizontalAlignment="Center"
+                                                                 Margin="0,4,0,0">
+                                                            <Run Text="{Binding RequiredVRAM}"/>
+                                                            <Run Text="GB VRAM"/>
+                                                        </TextBlock>
+                                                        <Border Margin="0,4,0,0"
+                                                                Background="#E8F5E9"
+                                                                CornerRadius="2"
+                                                                Padding="4,2"
+                                                                Visibility="{Binding IsInstalled, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                            <TextBlock FontSize="12"
+                                                                     Foreground="#2E7D32"
+                                                                     Text="已安装"
+                                                                     HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Button>
+                                            </materialDesign:Card>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </WrapPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- 下载进度显示 -->
+                    <materialDesign:Card Grid.Row="2" 
+                                       Margin="0,0,0,16"
+                                       Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel Margin="16">
+                            <TextBlock Text="模型下载进度"
+                                     Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                     Margin="0,0,0,16"/>
+                            
+                            <TextBlock Text="{Binding DownloadStatus}"
+                                     TextWrapping="Wrap"
+                                     Margin="0,0,0,8"/>
+                            
+                            <Grid>
+                                <ProgressBar Value="{Binding DownloadProgress}"
+                                           Maximum="100"
+                                           Height="4"/>
+                                <TextBlock Text="{Binding DownloadProgress, StringFormat={}{0:N1}%}"
+                                         HorizontalAlignment="Center"
+                                         Margin="0,8,0,0"/>
+                            </Grid>
+
+                            <!-- 命令行输出 -->
+                            <Border Margin="0,16,0,0"
+                                    BorderBrush="{DynamicResource MaterialDesignDivider}"
+                                    BorderThickness="1"
+                                    CornerRadius="4">
+                                <ScrollViewer MaxHeight="200" 
+                                            VerticalScrollBarVisibility="Auto">
+                                    <TextBlock Text="{Binding CommandOutput}"
+                                             FontFamily="Consolas"
+                                             Padding="8"
+                                             TextWrapping="Wrap"/>
+                                </ScrollViewer>
+                            </Border>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <StackPanel Grid.Row="3" 
                               Orientation="Horizontal" 
                               HorizontalAlignment="Right">
                         <Button Content="上一步"
