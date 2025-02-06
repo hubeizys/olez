@@ -580,6 +580,74 @@
                                             Text="{Binding HardwareInfo.GpuMemoryUsage, StringFormat={}{0:N1}%}" />
                                     </Grid>
                                 </Grid>
+                                    <ItemsControl
+                                    Margin="0,16,0,0"
+                                    ItemsSource="{Binding CudaInfo.Gpus}"
+                                    Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,8,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+
+                                                <TextBlock
+                                                    Grid.Row="0"
+                                                    Grid.Column="0"
+                                                    Margin="0,0,8,0"
+                                                    Text="GPU型号：" />
+                                                <TextBlock
+                                                    Grid.Row="0"
+                                                    Grid.Column="1"
+                                                    Text="{Binding Name}" />
+
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Grid.Column="0"
+                                                    Margin="0,4,8,0"
+                                                    Text="显存总量：" />
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Grid.Column="1"
+                                                    Margin="0,4,0,0">
+                                                    <Run Text="{Binding MemoryTotal}" />
+                                                    <Run Text="MB" />
+                                                </TextBlock>
+
+                                                <TextBlock
+                                                    Grid.Row="2"
+                                                    Grid.Column="0"
+                                                    Margin="0,4,8,0"
+                                                    Text="可用显存：" />
+                                                <TextBlock
+                                                    Grid.Row="2"
+                                                    Grid.Column="1"
+                                                    Margin="0,4,0,0">
+                                                    <Run Text="{Binding MemoryFree}" />
+                                                    <Run Text="MB" />
+                                                </TextBlock>
+
+                                                <TextBlock
+                                                    Grid.Row="3"
+                                                    Grid.Column="0"
+                                                    Margin="0,4,8,0"
+                                                    Text="架构：" />
+                                                <TextBlock
+                                                    Grid.Row="3"
+                                                    Grid.Column="1"
+                                                    Margin="0,4,0,0"
+                                                    Text="{Binding Architecture}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </materialDesign:Card>
                         <!--  CUDA状态  -->
@@ -676,74 +744,7 @@
                                         Visibility="{Binding CudaInfo.HasCudnn, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 </Grid>
 
-                                <ItemsControl
-                                    Margin="0,16,0,0"
-                                    ItemsSource="{Binding CudaInfo.Gpus}"
-                                    Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid Margin="0,8,0,0">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-
-                                                <TextBlock
-                                                    Grid.Row="0"
-                                                    Grid.Column="0"
-                                                    Margin="0,0,8,0"
-                                                    Text="GPU型号：" />
-                                                <TextBlock
-                                                    Grid.Row="0"
-                                                    Grid.Column="1"
-                                                    Text="{Binding Name}" />
-
-                                                <TextBlock
-                                                    Grid.Row="1"
-                                                    Grid.Column="0"
-                                                    Margin="0,4,8,0"
-                                                    Text="显存总量：" />
-                                                <TextBlock
-                                                    Grid.Row="1"
-                                                    Grid.Column="1"
-                                                    Margin="0,4,0,0">
-                                                    <Run Text="{Binding MemoryTotal}" />
-                                                    <Run Text="MB" />
-                                                </TextBlock>
-
-                                                <TextBlock
-                                                    Grid.Row="2"
-                                                    Grid.Column="0"
-                                                    Margin="0,4,8,0"
-                                                    Text="可用显存：" />
-                                                <TextBlock
-                                                    Grid.Row="2"
-                                                    Grid.Column="1"
-                                                    Margin="0,4,0,0">
-                                                    <Run Text="{Binding MemoryFree}" />
-                                                    <Run Text="MB" />
-                                                </TextBlock>
-
-                                                <TextBlock
-                                                    Grid.Row="3"
-                                                    Grid.Column="0"
-                                                    Margin="0,4,8,0"
-                                                    Text="架构：" />
-                                                <TextBlock
-                                                    Grid.Row="3"
-                                                    Grid.Column="1"
-                                                    Margin="0,4,0,0"
-                                                    Text="{Binding Architecture}" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                            
 
                                 <TextBlock
                                     Margin="0,8,0,0"
