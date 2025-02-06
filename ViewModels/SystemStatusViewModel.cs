@@ -229,7 +229,7 @@ namespace ollez.ViewModels
             try
             {
                 var ollamaStatus = await _systemCheckService.CheckOllamaAsync();
-                if (!ollamaStatus.IsRunning && !ollamaStatus.HasError)
+                if (!ollamaStatus.IsRunning )
                 {
                     // 尝试启动 Ollama
                     await _systemCheckService.StartOllamaAsync();

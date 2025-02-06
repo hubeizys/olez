@@ -429,9 +429,12 @@ namespace ollez.Services
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = "ollama",
-                    Arguments = "serve",
-                    UseShellExecute = true,
+                    Arguments = "ps",
+                    UseShellExecute = false,
+                    Verb = "runas", // 请求管理员权限
                     CreateNoWindow = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     WindowStyle = ProcessWindowStyle.Hidden
                 };
 
@@ -441,6 +444,10 @@ namespace ollez.Services
                     Log.Error("无法启动 Ollama 进程");
                     return false;
                 }
+                process.OutputDataReceived += (sender, e) =>
+                {
+                    Log.Information("Ollama 进程输出: {Output}", e.Data);
+                };
 
                 // 等待一段时间让服务启动
                 await Task.Delay(2000);
