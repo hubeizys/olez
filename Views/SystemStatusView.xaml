@@ -535,11 +535,19 @@
                             MinHeight="280">
                             <StackPanel>
                                 <DockPanel>
-                                    <materialDesign:PackIcon
-                                        Width="24"
-                                        Height="24"
-                                        VerticalAlignment="Center"
-                                        Kind="Chip" />
+                                    <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                            Width="24" Height="24" Padding="0" Margin="0,0,8,0">
+                                        <Button.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock TextWrapping="Wrap" MaxWidth="300">
+                                                    CUDA 是NVIDIA的并行计算平台，能显著提升AI模型的运行速度。
+                                                    <LineBreak/><LineBreak/>
+                                                    安装CUDA后，AI模型将可以利用您的NVIDIA显卡进行加速计算，提供更快的响应速度和更好的性能。
+                                                </TextBlock>
+                                            </ToolTip>
+                                        </Button.ToolTip>
+                                        <materialDesign:PackIcon Kind="HelpCircleOutline" Width="20" Height="20"/>
+                                    </Button>
                                     <TextBlock
                                         Margin="8,0,0,0"
                                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"
@@ -555,15 +563,18 @@
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
                                     <TextBlock
                                         Grid.Row="0"
                                         Grid.Column="0"
                                         Margin="0,0,8,0"
-                                        Text="状态：" />
+                                        Text="CUDA状态：" />
                                     <TextBlock Grid.Row="0" Grid.Column="1">
-                                        <Run Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}" Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}" />
+                                        <Run Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}" 
+                                             Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}" />
                                     </TextBlock>
 
                                     <TextBlock
@@ -591,6 +602,46 @@
                                         Margin="0,8,0,0"
                                         Text="{Binding CudaInfo.DriverVersion}"
                                         Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                    <TextBlock
+                                        Grid.Row="3"
+                                        Grid.Column="0"
+                                        Margin="0,8,8,0"
+                                        Text="CUDNN状态："
+                                        Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"
+                                              Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                                Width="24" Height="24" Padding="0" Margin="0,0,8,0">
+                                            <Button.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock TextWrapping="Wrap" MaxWidth="300">
+                                                        CUDNN 是NVIDIA的深度神经网络库，是对CUDA的重要补充。
+                                                        <LineBreak/><LineBreak/>
+                                                        安装CUDNN后，能进一步优化深度学习模型的性能，提供更高效的计算能力，使AI模型运行得更快更流畅。
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </Button.ToolTip>
+                                            <materialDesign:PackIcon Kind="HelpCircleOutline" Width="20" Height="20"/>
+                                        </Button>
+                                        <TextBlock>
+                                            <Run Foreground="{Binding CudaInfo.HasCudnn, Converter={StaticResource BoolToColorConverter}}" 
+                                                 Text="{Binding CudaInfo.HasCudnn, Converter={StaticResource AvailabilityConverter}}" />
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <TextBlock
+                                        Grid.Row="4"
+                                        Grid.Column="0"
+                                        Margin="0,8,8,0"
+                                        Text="CUDNN版本："
+                                        Visibility="{Binding CudaInfo.HasCudnn, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <TextBlock
+                                        Grid.Row="4"
+                                        Grid.Column="1"
+                                        Margin="0,8,0,0"
+                                        Text="{Binding CudaInfo.CudnnVersion}"
+                                        Visibility="{Binding CudaInfo.HasCudnn, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 </Grid>
 
                                 <ItemsControl

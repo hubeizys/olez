@@ -9,7 +9,6 @@ using System.Text.Json;
 using ollez.Models;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Diagnostics.FileVersionInfo;
 
 namespace ollez.Services
 {
@@ -55,7 +54,7 @@ namespace ollez.Services
             try
             {
                 Log.Information("开始检查CUDA状态");
-                
+
                 string output;
                 string error;
                 using (var process = new Process
@@ -162,19 +161,76 @@ namespace ollez.Services
                 {
                     try
                     {
-                        // 检查 CUDNN DLL 是否存在
-                        var cudaPath = Environment.GetEnvironmentVariable("CUDA_PATH");
-                        if (!string.IsNullOrEmpty(cudaPath))
+                        // 从系统环境变量 PATH 中查找 CUDNN
+                        var pathValues = Environment.GetEnvironmentVariable("PATH")?.Split(';') ?? Array.Empty<string>();
+                        var cudnnPath = pathValues
+                            .Where(path => path.Contains("NVIDIA") && path.Contains("CUDNN"))
+                            .OrderByDescending(path => path) // 获取最新版本
+                            .FirstOrDefault();
+
+                        if (!string.IsNullOrEmpty(cudnnPath))
                         {
-                            var cudnnPath = Path.Combine(cudaPath, "bin", "cudnn64_8.dll");
-                            if (File.Exists(cudnnPath))
+                            // 获取最新版本的目录
+                            var versionDirs = Directory.GetDirectories(cudnnPath)
+                                .OrderByDescending(d => d).FirstOrDefault();
+                            if (versionDirs != null)
                             {
                                 info.HasCudnn = true;
-                                // 获取 CUDNN 版本
-                                var fileInfo = FileVersionInfo.GetVersionInfo(cudnnPath);
-                                info.CudnnVersion = fileInfo.FileVersion ?? "未知";
+                                info.CudnnVersion = Path.GetFileName(versionDirs);
+                                Log.Information("找到 CUDNN: {Path}", versionDirs);
                             }
+
+
                         }
+
+                        // if (!string.IsNullOrEmpty(cudnnPath))
+                        // {
+                        //     // 检查是否存在 cudnn64_*.dll
+                        //     var cudnnFiles = Directory.GetFiles(cudnnPath, "cudnn64_*.dll");
+                        //     if (cudnnFiles.Length > 0)
+                        //     {
+                        //         info.HasCudnn = true;
+                        //         // 获取版本信息
+                        //         var fileInfo = FileVersionInfo.GetVersionInfo(cudnnFiles[0]);
+                        //         info.CudnnVersion = fileInfo.FileVersion ?? "未知";
+                        //         Log.Information("找到 CUDNN: {Path}", cudnnPath);
+                        //     }
+                        // }
+                        // else
+                        // {
+                        //     // 尝试在默认安装路径查找
+                        //     var nvidiaProgramFiles = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "NVIDIA");
+                        //     if (Directory.Exists(nvidiaProgramFiles))
+                        //     {
+                        //         var cudnnDir = Directory.GetDirectories(nvidiaProgramFiles, "CUDNN")
+                        //             .FirstOrDefault();
+
+                        //         if (cudnnDir != null)
+                        //         {
+                        //             // 获取最新版本的目录
+                        //             var versionDirs = Directory.GetDirectories(cudnnDir)
+                        //                 .Where(d => Path.GetFileName(d).StartsWith("v"))
+                        //                 .OrderByDescending(d => d);
+
+                        //             foreach (var versionDir in versionDirs)
+                        //             {
+                        //                 var binPath = Path.Combine(versionDir, "bin");
+                        //                 if (Directory.Exists(binPath))
+                        //                 {
+                        //                     var cudnnFiles = Directory.GetFiles(binPath, "cudnn64_*.dll", SearchOption.AllDirectories);
+                        //                     if (cudnnFiles.Length > 0)
+                        //                     {
+                        //                         info.HasCudnn = true;
+                        //                         var fileInfo = FileVersionInfo.GetVersionInfo(cudnnFiles[0]);
+                        //                         info.CudnnVersion = fileInfo.FileVersion ?? "未知";
+                        //                         Log.Information("找到 CUDNN: {Path}", binPath);
+                        //                         break;
+                        //                     }
+                        //                 }
+                        //             }
+                        //         }
+                        //     }
+                        // }
                     }
                     catch (Exception ex)
                     {
@@ -325,7 +381,7 @@ namespace ollez.Services
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var versionInfo = JsonSerializer.Deserialize<JsonElement>(content);
-                    
+
                     ollamaInfo.IsRunning = true;
                     ollamaInfo.Version = versionInfo.GetProperty("version").GetString() ?? string.Empty;
 
@@ -344,7 +400,7 @@ namespace ollez.Services
                                 Status = "已安装",
                                 IsRunning = false
                             });
-                        
+
                         ollamaInfo.InstalledModels = new ObservableCollection<OllamaModel>(models);
                     }
                 }
@@ -438,4 +494,4 @@ namespace ollez.Services
             }
         }
     }
-} 
+}
