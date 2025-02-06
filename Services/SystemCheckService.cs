@@ -301,7 +301,6 @@ namespace ollez.Services
                     
                     ollamaInfo.IsRunning = true;
                     ollamaInfo.Version = versionInfo.GetProperty("version").GetString() ?? string.Empty;
-                    //ollamaInfo.BuildType = versionInfo.GetProperty("build").GetString() ?? string.Empty;
 
                     // 获取已安装的模型
                     var modelsResponse = await _httpClient.GetAsync($"{_ollamaEndpoint}/api/tags");
@@ -330,6 +329,48 @@ namespace ollez.Services
             }
 
             return ollamaInfo;
+        }
+
+        public async Task<bool> StartOllamaAsync()
+        {
+            try
+            {
+                // 检查 Ollama 是否已经在运行
+                var ollamaInfo = await CheckOllamaAsync();
+                if (ollamaInfo.IsRunning)
+                {
+                    return true;
+                }
+
+                // 启动 Ollama 进程
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "ollama",
+                    Arguments = "serve",
+                    UseShellExecute = true,
+                    CreateNoWindow = false,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+
+                var process = Process.Start(startInfo);
+                if (process == null)
+                {
+                    Log.Error("无法启动 Ollama 进程");
+                    return false;
+                }
+
+                // 等待一段时间让服务启动
+                await Task.Delay(2000);
+
+                // 检查服务是否成功启动
+                ollamaInfo = await CheckOllamaAsync();
+                return ollamaInfo.IsRunning;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "启动 Ollama 时发生错误");
+                return false;
+            }
         }
 
         private long ParseSize(string sizeStr)

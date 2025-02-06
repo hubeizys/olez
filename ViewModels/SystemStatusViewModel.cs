@@ -19,25 +19,10 @@ using ollez.Views;
 using System.Windows.Input;
 using ollez.Data;
 using System.Linq;
+using System.Windows.Threading;
 
 namespace ollez.ViewModels
 {
-    public class InstallationStep
-    {
-        public string Title { get; }
-        public string Description { get; }
-        public string Link { get; }
-        public bool IsCompleted { get; set; }
-
-        public InstallationStep(string title, string description, string link, bool isCompleted = false)
-        {
-            Title = title;
-            Description = description;
-            Link = link;
-            IsCompleted = isCompleted;
-        }
-    }
-
     /// <summary>
     /// 系统状态视图的视图模型
     /// </summary>
@@ -47,6 +32,7 @@ namespace ollez.ViewModels
         private readonly IHardwareMonitorService _hardwareMonitorService;
         private readonly IRegionManager _regionManager;
         private readonly IChatDbService _chatDbService;
+        private readonly DispatcherTimer _checkTimer;
         private CudaInfo _cudaInfo = new();
         private HardwareInfo _hardwareInfo = new();
         private ObservableCollection<InstallationStep> _installationSteps = new();
@@ -126,6 +112,13 @@ namespace ollez.ViewModels
             _regionManager = regionManager;
             _chatDbService = chatDbService;
 
+            // 初始化定时器
+            _checkTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(30) // 每30秒检查一次
+            };
+            _checkTimer.Tick += async (s, e) => await CheckOllamaStatus();
+
             // 初始化硬件信息
             _hardwareInfo = new HardwareInfo();
             
@@ -137,7 +130,7 @@ namespace ollez.ViewModels
             
             // 立即执行一次检查
             _ = CheckSystem();
-
+            _checkTimer.Start();
         }
 
         private void InitializeInstallationSteps()
@@ -193,8 +186,6 @@ namespace ollez.ViewModels
                 InstallationSteps[3].IsCompleted = OllamaInfo.IsRunning && OllamaInfo.InstalledModels.Count > 0;
             }
             finally
-
-
             {
                 IsChecking = false;
             }
@@ -233,6 +224,25 @@ namespace ollez.ViewModels
             await _chatDbService.SaveOllamaConfigAsync(config);
         }
 
+        private async Task CheckOllamaStatus()
+        {
+            try
+            {
+                var ollamaStatus = await _systemCheckService.CheckOllamaAsync();
+                if (!ollamaStatus.IsRunning && !ollamaStatus.HasError)
+                {
+                    // 尝试启动 Ollama
+                    await _systemCheckService.StartOllamaAsync();
+                    // 重新检查系统状态
+                    await CheckSystem();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"检查Ollama状态时出错: {ex.Message}");
+            }
+        }
+
         public void OnNavigatedTo(NavigationContext navigationContext)
         {
             Debug.WriteLine("SystemStatusView - OnNavigatedTo");
@@ -241,6 +251,7 @@ namespace ollez.ViewModels
             
             // 开始监控
             _hardwareMonitorService.StartMonitoring();
+            _checkTimer.Start();
         }
 
         public bool IsNavigationTarget(NavigationContext navigationContext)
@@ -254,6 +265,7 @@ namespace ollez.ViewModels
             // 当离开此视图时的处理逻辑
             Debug.WriteLine("SystemStatusView - OnNavigatedFrom");
             _hardwareMonitorService.StopMonitoring();
+            _checkTimer.Stop();
         }
     }
 }

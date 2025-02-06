@@ -11,5 +11,6 @@ namespace ollez.Services
         Task<CudaInfo> CheckCudaAsync();
         Task<OllamaInfo> CheckOllamaAsync();
         Task<ModelRecommendation> GetModelRecommendationAsync();
+        Task<bool> StartOllamaAsync();
     }
 } 
