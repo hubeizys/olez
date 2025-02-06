@@ -59,6 +59,24 @@
             <converters:MessageForegroundConverter x:Key="MessageForegroundConverter" />
             <converters:PercentageConverter x:Key="PercentageConverter" />
             <converters:StringToUriConverter x:Key="StringToUriConverter" />
+
+            <!-- 全局性能优化设置 -->
+            <Style TargetType="{x:Type ScrollViewer}">
+                <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+                <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+                <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+            </Style>
+
+            <Style TargetType="{x:Type ItemsControl}">
+                <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+                <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+                <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+            </Style>
+
+            <!-- 禁用MaterialDesign的一些动画效果以提高性能 -->
+            <Style TargetType="{x:Type materialDesign:Card}">
+                <Setter Property="materialDesign:TransitionAssist.DisableTransitions" Value="True"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </prism:PrismApplication>
