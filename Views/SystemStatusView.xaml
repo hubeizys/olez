@@ -12,27 +12,67 @@
     </UserControl.Resources>
 
     <Grid>
-        <!-- 加载遮罩 -->
+        <!--  加载遮罩  -->
         <materialDesign:Card
-            Panel.ZIndex="1"
-            Background="{DynamicResource MaterialDesignBackground}"
             Padding="16"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
+            Panel.ZIndex="1"
+            Background="{DynamicResource MaterialDesignBackground}"
             Visibility="{Binding IsChecking, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <materialDesign:Card.Style>
+                <Style TargetType="materialDesign:Card">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsChecking}" Value="True">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="0"
+                                            To="1"
+                                            Duration="0:0:0.3" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </materialDesign:Card.Style>
             <StackPanel>
                 <ProgressBar
                     IsIndeterminate="True"
                     Style="{StaticResource MaterialDesignCircularProgressBar}"
                     Value="0" />
                 <TextBlock
+                    MaxWidth="300"
                     Margin="0,8,0,0"
                     HorizontalAlignment="Center"
-                    Text="正在加载系统信息..." />
+                    Text="{Binding CheckingStatus}"
+                    TextWrapping="Wrap" />
             </StackPanel>
         </materialDesign:Card>
 
         <ScrollViewer Visibility="{Binding IsChecking, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+            <ScrollViewer.Style>
+                <Style TargetType="ScrollViewer">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsChecking}" Value="False">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="0"
+                                            To="1"
+                                            Duration="0:0:0.3" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ScrollViewer.Style>
             <Grid Margin="16">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -43,11 +83,11 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- 安装指引面板 -->
+                <!--  安装指引面板  -->
                 <Expander
-                    ExpandDirection="Up"
                     Grid.Row="0"
                     Margin="0,0,0,16"
+                    ExpandDirection="Up"
                     IsExpanded="{Binding ShowInstallationGuide}">
                     <Expander.Header>
                         <DockPanel>
@@ -105,99 +145,111 @@
                     </materialDesign:Card>
                 </Expander>
 
-                <!-- 添加系统状态概览和设置向导按钮 -->
+                <!--  添加系统状态概览和设置向导按钮  -->
                 <materialDesign:Card Grid.Row="1" Margin="0,0,0,16">
                     <Grid Margin="16">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- 状态概览 -->
+                        <!--  状态概览  -->
                         <StackPanel Grid.Column="0">
-                            <!-- Ollama 状态 -->
+                            <!--  Ollama 状态  -->
                             <DockPanel Margin="0,0,0,8">
                                 <materialDesign:PackIcon
-                                    Kind="Robot"
                                     Width="20"
                                     Height="20"
-                                    VerticalAlignment="Center"/>
+                                    VerticalAlignment="Center"
+                                    Kind="Robot" />
                                 <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
-                                    <Run Text="Ollama: "/>
-                                    <Run Text="{Binding OllamaInfo.IsRunning, Converter={StaticResource RunningConverter}}"
-                                         Foreground="{Binding OllamaInfo.IsRunning, Converter={StaticResource BoolToColorConverter}}"/>
+                                    <Run Text="Ollama: " />
+                                    <Run Foreground="{Binding OllamaInfo.IsRunning, Converter={StaticResource BoolToColorConverter}}" Text="{Binding OllamaInfo.IsRunning, Converter={StaticResource RunningConverter}}" />
                                 </TextBlock>
-                                <Button Style="{StaticResource MaterialDesignIconButton}" 
-                                        Width="20" Height="20" Padding="0" Margin="8,0,0,0">
+                                <Button
+                                    Width="20"
+                                    Height="20"
+                                    Margin="8,0,0,0"
+                                    Padding="0"
+                                    Style="{StaticResource MaterialDesignIconButton}">
                                     <Button.ToolTip>
                                         <ToolTip>
-                                            <TextBlock TextWrapping="Wrap" MaxWidth="300">
-                                                Ollama 是一个本地大语言模型服务，它能让您在自己的电脑上运行各种AI模型，无需连接互联网，保护您的隐私。
-                                                <LineBreak/><LineBreak/>
-                                                安装后，您可以下载和运行不同规模的AI模型，实现智能对话、文本生成等功能。
-                                            </TextBlock>
+                                            <TextBlock MaxWidth="300" TextWrapping="Wrap">
+                                                Ollama 是一个本地大语言模型服务，它能让您在自己的电脑上运行各种AI模型，无需连接互联网，保护您的隐私。<LineBreak /><LineBreak />
+                                                安装后，您可以下载和运行不同规模的AI模型，实现智能对话、文本生成等功能。</TextBlock>
                                         </ToolTip>
                                     </Button.ToolTip>
-                                    <materialDesign:PackIcon Kind="HelpCircleOutline" Width="16" Height="16"/>
+                                    <materialDesign:PackIcon
+                                        Width="16"
+                                        Height="16"
+                                        Kind="HelpCircleOutline" />
                                 </Button>
                             </DockPanel>
 
-                            <!-- CUDA 状态 -->
+                            <!--  CUDA 状态  -->
                             <DockPanel Margin="0,0,0,8">
                                 <materialDesign:PackIcon
-                                    Kind="Chip"
                                     Width="20"
                                     Height="20"
-                                    VerticalAlignment="Center"/>
+                                    VerticalAlignment="Center"
+                                    Kind="Chip" />
                                 <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
-                                    <Run Text="CUDA: "/>
-                                    <Run Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}"
-                                         Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"/>
+                                    <Run Text="CUDA: " />
+                                    <Run Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}" Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}" />
                                 </TextBlock>
-                                <Button Style="{StaticResource MaterialDesignIconButton}" 
-                                        Width="20" Height="20" Padding="0" Margin="8,0,0,0">
+                                <Button
+                                    Width="20"
+                                    Height="20"
+                                    Margin="8,0,0,0"
+                                    Padding="0"
+                                    Style="{StaticResource MaterialDesignIconButton}">
                                     <Button.ToolTip>
                                         <ToolTip>
-                                            <TextBlock TextWrapping="Wrap" MaxWidth="300">
-                                                CUDA 是NVIDIA的并行计算平台，能显著提升AI模型的运行速度。
-                                                <LineBreak/><LineBreak/>
-                                                安装CUDA后，AI模型将可以利用您的NVIDIA显卡进行加速计算，提供更快的响应速度和更好的性能。
-                                            </TextBlock>
+                                            <TextBlock MaxWidth="300" TextWrapping="Wrap">
+                                                CUDA 是NVIDIA的并行计算平台，能显著提升AI模型的运行速度。<LineBreak /><LineBreak />
+                                                安装CUDA后，AI模型将可以利用您的NVIDIA显卡进行加速计算，提供更快的响应速度和更好的性能。</TextBlock>
                                         </ToolTip>
                                     </Button.ToolTip>
-                                    <materialDesign:PackIcon Kind="HelpCircleOutline" Width="16" Height="16"/>
+                                    <materialDesign:PackIcon
+                                        Width="16"
+                                        Height="16"
+                                        Kind="HelpCircleOutline" />
                                 </Button>
                             </DockPanel>
 
-                            <!-- CUDNN 状态 -->
+                            <!--  CUDNN 状态  -->
                             <DockPanel>
                                 <materialDesign:PackIcon
-                                    Kind="MemoryArrowDown"
                                     Width="20"
                                     Height="20"
-                                    VerticalAlignment="Center"/>
+                                    VerticalAlignment="Center"
+                                    Kind="MemoryArrowDown" />
                                 <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
-                                    <Run Text="CUDNN: "/>
-                                    <Run Text="{Binding CudaInfo.HasCudnn, Converter={StaticResource AvailabilityConverter}}"
-                                         Foreground="{Binding CudaInfo.HasCudnn, Converter={StaticResource BoolToColorConverter}}"/>
+                                    <Run Text="CUDNN: " />
+                                    <Run Foreground="{Binding CudaInfo.HasCudnn, Converter={StaticResource BoolToColorConverter}}" Text="{Binding CudaInfo.HasCudnn, Converter={StaticResource AvailabilityConverter}}" />
                                 </TextBlock>
-                                <Button Style="{StaticResource MaterialDesignIconButton}" 
-                                        Width="20" Height="20" Padding="0" Margin="8,0,0,0">
+                                <Button
+                                    Width="20"
+                                    Height="20"
+                                    Margin="8,0,0,0"
+                                    Padding="0"
+                                    Style="{StaticResource MaterialDesignIconButton}">
                                     <Button.ToolTip>
                                         <ToolTip>
-                                            <TextBlock TextWrapping="Wrap" MaxWidth="300">
-                                                CUDNN 是NVIDIA的深度神经网络库，是对CUDA的重要补充。
-                                                <LineBreak/><LineBreak/>
-                                                安装CUDNN后，能进一步优化深度学习模型的性能，提供更高效的计算能力，使AI模型运行得更快更流畅。
-                                            </TextBlock>
+                                            <TextBlock MaxWidth="300" TextWrapping="Wrap">
+                                                CUDNN 是NVIDIA的深度神经网络库，是对CUDA的重要补充。<LineBreak /><LineBreak />
+                                                安装CUDNN后，能进一步优化深度学习模型的性能，提供更高效的计算能力，使AI模型运行得更快更流畅。</TextBlock>
                                         </ToolTip>
                                     </Button.ToolTip>
-                                    <materialDesign:PackIcon Kind="HelpCircleOutline" Width="16" Height="16"/>
+                                    <materialDesign:PackIcon
+                                        Width="16"
+                                        Height="16"
+                                        Kind="HelpCircleOutline" />
                                 </Button>
                             </DockPanel>
                         </StackPanel>
 
-                        <!-- 设置向导按钮 -->
+                        <!--  设置向导按钮  -->
                         <StackPanel Grid.Column="1" Margin="16,0,0,0">
                             <Button
                                 materialDesign:ButtonProgressAssist.IsIndeterminate="True"
@@ -205,76 +257,76 @@
                                 materialDesign:ButtonProgressAssist.Value="-1"
                                 Command="{Binding OpenSetupCommand}"
                                 Content="系统设置向导"
-                                Style="{StaticResource MaterialDesignRaisedButton}"/>
-                            <TextBlock 
+                                Style="{StaticResource MaterialDesignRaisedButton}" />
+                            <TextBlock
                                 Margin="0,8,0,0"
-                                TextWrapping="Wrap"
                                 Foreground="{DynamicResource MaterialDesignBodyLight}"
-                                Text="如果您完全不知道应该如何配置，请点击系统设置向导，它将帮助您一步步完成模型配置。"/>
+                                Text="如果您完全不知道应该如何配置，请点击系统设置向导，它将帮助您一步步完成模型配置。"
+                                TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>
                 </materialDesign:Card>
 
-                <!-- 已安装模型展示 -->
+                <!--  已安装模型展示  -->
                 <materialDesign:Card Grid.Row="2" Margin="0,0,0,16">
                     <StackPanel Margin="16">
                         <DockPanel Margin="0,0,0,16">
                             <materialDesign:PackIcon
-                                Kind="Brain"
                                 Width="24"
                                 Height="24"
-                                VerticalAlignment="Center"/>
+                                VerticalAlignment="Center"
+                                Kind="Brain" />
                             <TextBlock
                                 Margin="8,0,0,0"
                                 Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                                Text="已安装模型"/>
+                                Text="已安装模型" />
                         </DockPanel>
 
-                        <!-- 使用WrapPanel实现Flow布局 -->
+                        <!--  使用WrapPanel实现Flow布局  -->
                         <WrapPanel Orientation="Horizontal">
                             <ItemsControl ItemsSource="{Binding OllamaInfo.InstalledModels}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal"/>
+                                        <WrapPanel Orientation="Horizontal" />
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <materialDesign:Card 
-                                            Margin="4"
+                                        <materialDesign:Card
                                             MinWidth="150"
+                                            Margin="4"
                                             Background="{DynamicResource MaterialDesignBackground}">
                                             <Button
-                                                Style="{StaticResource MaterialDesignFlatButton}"
                                                 Height="Auto"
                                                 Margin="8"
                                                 Command="{Binding DataContext.NavigateToChatCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding Name}">
+                                                CommandParameter="{Binding Name}"
+                                                Style="{StaticResource MaterialDesignFlatButton}">
                                                 <StackPanel>
                                                     <TextBlock
+                                                        HorizontalAlignment="Center"
+                                                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
                                                         Text="{Binding Name}"
-                                                        TextWrapping="Wrap"
-                                                        HorizontalAlignment="Center"
-                                                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                                                        TextWrapping="Wrap" />
                                                     <TextBlock
-                                                        FontSize="12"
-                                                        Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                        Margin="0,4,0,0"
                                                         HorizontalAlignment="Center"
-                                                        Margin="0,4,0,0">
+                                                        FontSize="12"
+                                                        Foreground="{DynamicResource MaterialDesignBodyLight}">
                                                         <Run Text="{Binding Size, StringFormat={}{0:N2}}" />
                                                         <Run Text="GB" />
                                                     </TextBlock>
                                                     <Border
                                                         Margin="0,4,0,0"
+                                                        Padding="4,2"
                                                         Background="#E8F5E9"
                                                         CornerRadius="2"
-                                                        Padding="4,2"
                                                         Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
                                                         <TextBlock
+                                                            HorizontalAlignment="Center"
                                                             FontSize="12"
                                                             Foreground="#2E7D32"
-                                                            Text="运行中"
-                                                            HorizontalAlignment="Center"/>
+                                                            Text="运行中" />
                                                     </Border>
                                                 </StackPanel>
                                             </Button>
@@ -290,7 +342,7 @@
                     <TextBlock
                         Margin="0,0,0,16"
                         Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                        Text="系统环境检查"/>
+                        Text="系统环境检查" />
                 </Grid>
 
                 <Grid Grid.Row="4">
@@ -493,7 +545,7 @@
                     <!--  原有的 CUDA 和 Ollama 状态卡片移到 Grid.Row="1"  -->
                     <Grid Grid.Row="1">
                         <Grid.RowDefinitions>
-                            
+
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
@@ -506,9 +558,9 @@
                         <!--  GPU状态  -->
                         <materialDesign:Card
                             Grid.Column="0"
+                            MinHeight="280"
                             Margin="0,0,8,16"
-                            Padding="16"
-                            MinHeight="280">
+                            Padding="16">
                             <StackPanel>
                                 <DockPanel>
                                     <materialDesign:PackIcon
@@ -580,7 +632,7 @@
                                             Text="{Binding HardwareInfo.GpuMemoryUsage, StringFormat={}{0:N1}%}" />
                                     </Grid>
                                 </Grid>
-                                    <ItemsControl
+                                <ItemsControl
                                     Margin="0,16,0,0"
                                     ItemsSource="{Binding CudaInfo.Gpus}"
                                     Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -653,9 +705,9 @@
                         <!--  CUDA状态  -->
                         <materialDesign:Card
                             Grid.Column="1"
+                            MinHeight="280"
                             Margin="8,0,8,16"
-                            Padding="16"
-                            MinHeight="280">
+                            Padding="16">
                             <StackPanel>
                                 <DockPanel>
                                     <materialDesign:PackIcon
@@ -688,8 +740,7 @@
                                         Margin="0,0,8,0"
                                         Text="CUDA状态：" />
                                     <TextBlock Grid.Row="0" Grid.Column="1">
-                                        <Run Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}" 
-                                             Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}" />
+                                        <Run Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}" Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}" />
                                     </TextBlock>
 
                                     <TextBlock
@@ -724,10 +775,12 @@
                                         Margin="0,8,8,0"
                                         Text="CUDNN状态："
                                         Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                    <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,8,0,0"
-                                              Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                        <Run Foreground="{Binding CudaInfo.HasCudnn, Converter={StaticResource BoolToColorConverter}}" 
-                                             Text="{Binding CudaInfo.HasCudnn, Converter={StaticResource AvailabilityConverter}}" />
+                                    <TextBlock
+                                        Grid.Row="3"
+                                        Grid.Column="1"
+                                        Margin="0,8,0,0"
+                                        Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <Run Foreground="{Binding CudaInfo.HasCudnn, Converter={StaticResource BoolToColorConverter}}" Text="{Binding CudaInfo.HasCudnn, Converter={StaticResource AvailabilityConverter}}" />
                                     </TextBlock>
 
                                     <TextBlock
@@ -744,7 +797,7 @@
                                         Visibility="{Binding CudaInfo.HasCudnn, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 </Grid>
 
-                            
+
 
                                 <TextBlock
                                     Margin="0,8,0,0"
@@ -760,9 +813,9 @@
                         <!--  Ollama状态  -->
                         <materialDesign:Card
                             Grid.Column="2"
+                            MinHeight="280"
                             Margin="8,0,0,16"
-                            Padding="16"
-                            MinHeight="280">
+                            Padding="16">
                             <StackPanel>
                                 <DockPanel>
                                     <materialDesign:PackIcon

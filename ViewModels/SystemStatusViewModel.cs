@@ -57,6 +57,7 @@ namespace ollez.ViewModels
         };
         private bool _isChecking;
         private bool _showInstallationGuide = false;
+        private string _checkingStatus = "正在加载系统信息...";
 
         public CudaInfo CudaInfo
         {
@@ -98,6 +99,12 @@ namespace ollez.ViewModels
         {
             get => _showInstallationGuide;
             set => SetProperty(ref _showInstallationGuide, value);
+        }
+
+        public string CheckingStatus
+        {
+            get => _checkingStatus;
+            set => SetProperty(ref _checkingStatus, value);
         }
 
         public DelegateCommand CheckSystemCommand { get; }
@@ -163,21 +170,34 @@ namespace ollez.ViewModels
         private async Task CheckSystem()
         {
             IsChecking = true;
-
             try
             {
-                // 获取硬件信息
-                HardwareInfo = await _hardwareMonitorService.GetHardwareInfoAsync();
+                // 创建所有检查任务
+                CheckingStatus = "正在检查硬件信息...";
+                var hardwareTask = _hardwareMonitorService.GetHardwareInfoAsync();
+                
+                CheckingStatus = "正在检查CUDA状态...";
+                var cudaTask = _systemCheckService.CheckCudaAsync();
+                
+                CheckingStatus = "正在检查Ollama状态...";
+                var ollamaTask = _systemCheckService.CheckOllamaAsync();
+
+                // 并行等待所有任务完成
+                await Task.WhenAll(hardwareTask, cudaTask, ollamaTask);
+
+                // 更新结果
+                HardwareInfo = await hardwareTask;
+                CudaInfo = await cudaTask;
+                OllamaInfo = await ollamaTask;
+
+                // 启动硬件监控
                 _hardwareMonitorService.StartMonitoring();
 
-                // 执行其他现有的检查...
-                CudaInfo = await _systemCheckService.CheckCudaAsync();
-                OllamaInfo = await _systemCheckService.CheckOllamaAsync();
-
-                // 初始化时加载Ollama配置
+                CheckingStatus = "正在加载Ollama配置...";
                 LoadOllamaConfig();
+
+                CheckingStatus = "正在获取模型推荐...";
                 ModelRecommendation = await _systemCheckService.GetModelRecommendationAsync();
-                
 
                 // 更新安装步骤状态
                 InstallationSteps[0].IsCompleted = CudaInfo.IsAvailable;
@@ -187,6 +207,7 @@ namespace ollez.ViewModels
             }
             finally
             {
+                CheckingStatus = "加载完成";
                 IsChecking = false;
             }
         }
