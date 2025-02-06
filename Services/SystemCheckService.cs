@@ -8,6 +8,8 @@ using Serilog;
 using System.Text.Json;
 using ollez.Models;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Diagnostics.FileVersionInfo;
 
 namespace ollez.Services
 {
@@ -152,6 +154,31 @@ namespace ollez.Services
                         {
                             info.Version = cudaMatch.Groups[1].Value;
                         }
+                    }
+                }
+
+                // 检查 CUDNN
+                if (info.IsAvailable)
+                {
+                    try
+                    {
+                        // 检查 CUDNN DLL 是否存在
+                        var cudaPath = Environment.GetEnvironmentVariable("CUDA_PATH");
+                        if (!string.IsNullOrEmpty(cudaPath))
+                        {
+                            var cudnnPath = Path.Combine(cudaPath, "bin", "cudnn64_8.dll");
+                            if (File.Exists(cudnnPath))
+                            {
+                                info.HasCudnn = true;
+                                // 获取 CUDNN 版本
+                                var fileInfo = FileVersionInfo.GetVersionInfo(cudnnPath);
+                                info.CudnnVersion = fileInfo.FileVersion ?? "未知";
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "检查 CUDNN 状态时发生错误");
                     }
                 }
 
