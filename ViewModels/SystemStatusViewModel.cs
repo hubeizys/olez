@@ -126,8 +126,8 @@ namespace ollez.ViewModels
             };
             _checkTimer.Tick += async (s, e) => await CheckOllamaStatus();
 
-            // 初始化硬件信息
-            _hardwareInfo = new HardwareInfo();
+            // 设置默认值
+            InitializeDefaultValues();
             
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystem());
             ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
@@ -135,9 +135,90 @@ namespace ollez.ViewModels
             NavigateToChatCommand = new DelegateCommand<string>(NavigateToChat);
             InitializeInstallationSteps();
             
-            // 立即执行一次检查
-            _ = CheckSystem();
+            // 异步执行实际检查
+            _ = Task.Run(async () => await CheckSystem());
             _checkTimer.Start();
+        }
+
+        private void InitializeDefaultValues()
+        {
+            // 设置默认的硬件信息
+            HardwareInfo = new HardwareInfo
+            {
+                CpuName = "正在检测中...",
+                CpuCores = 0,
+                CpuUsage = 0,
+                TotalMemory = 0,
+                AvailableMemory = 0,
+                MemoryUsage = 0,
+                GpuName = "正在检测中...",
+                GpuMemoryTotal = 0,
+                GpuMemoryUsed = 0,
+                GpuMemoryUsage = 0,
+                Drives = new ObservableCollection<ollez.Models.DriveInfo>()
+            };
+
+            // 设置默认的CUDA信息
+            CudaInfo = new CudaInfo
+            {
+                IsAvailable = false,
+                Version = "正在检测中...",
+                DriverVersion = "正在检测中...",
+                HasCudnn = false,
+                CudnnVersion = "正在检测中...",
+                Gpus = Array.Empty<GpuInfo>()
+            };
+
+            // 设置默认的Ollama信息
+            OllamaInfo = new OllamaInfo
+            {
+                IsRunning = false,
+                HasError = false,
+                Endpoint = "http://localhost:11434",
+                Version = "正在检测中...",
+                BuildType = "正在检测中...",
+                InstallPath = "正在检测中...",
+                ModelsPath = "正在检测中...",
+                InstalledModels = new ObservableCollection<OllamaModel>()
+            };
+
+            // 设置默认的模型推荐信息
+            ModelRecommendation = new ModelRecommendation
+            {
+                CanRunLargeModels = false,
+                RecommendedModel = new ModelRequirements
+                {
+                    Name = "正在分析系统配置...",
+                    Description = "正在根据您的系统配置分析合适的模型...",
+                    MinimumVram = 0
+                },
+                RecommendationReason = "正在分析您的系统配置，稍后将为您推荐最适合的模型..."
+            };
+
+            // 初始化安装步骤状态
+            InstallationSteps = new ObservableCollection<InstallationStep>
+            {
+                new InstallationStep(
+                    "安装 NVIDIA 显卡驱动",
+                    "正在检查驱动状态...",
+                    "https://www.nvidia.com/download/index.aspx"
+                ),
+                new InstallationStep(
+                    "安装 CUDA Toolkit",
+                    "正在检查CUDA状态...",
+                    "https://developer.nvidia.com/cuda-downloads"
+                ),
+                new InstallationStep(
+                    "安装 Ollama",
+                    "正在检查Ollama状态...",
+                    "https://ollama.com/download"
+                ),
+                new InstallationStep(
+                    "下载推荐模型",
+                    "等待系统环境检查完成...",
+                    string.Empty
+                )
+            };
         }
 
         private void InitializeInstallationSteps()
