@@ -115,6 +115,7 @@
 
                         <!-- 状态概览 -->
                         <StackPanel Grid.Column="0">
+                            <!-- Ollama 状态 -->
                             <DockPanel Margin="0,0,0,8">
                                 <materialDesign:PackIcon
                                     Kind="Robot"
@@ -126,9 +127,23 @@
                                     <Run Text="{Binding OllamaInfo.IsRunning, Converter={StaticResource RunningConverter}}"
                                          Foreground="{Binding OllamaInfo.IsRunning, Converter={StaticResource BoolToColorConverter}}"/>
                                 </TextBlock>
+                                <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                        Width="20" Height="20" Padding="0" Margin="8,0,0,0">
+                                    <Button.ToolTip>
+                                        <ToolTip>
+                                            <TextBlock TextWrapping="Wrap" MaxWidth="300">
+                                                Ollama 是一个本地大语言模型服务，它能让您在自己的电脑上运行各种AI模型，无需连接互联网，保护您的隐私。
+                                                <LineBreak/><LineBreak/>
+                                                安装后，您可以下载和运行不同规模的AI模型，实现智能对话、文本生成等功能。
+                                            </TextBlock>
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                    <materialDesign:PackIcon Kind="HelpCircleOutline" Width="16" Height="16"/>
+                                </Button>
                             </DockPanel>
 
-                            <DockPanel>
+                            <!-- CUDA 状态 -->
+                            <DockPanel Margin="0,0,0,8">
                                 <materialDesign:PackIcon
                                     Kind="Chip"
                                     Width="20"
@@ -139,6 +154,46 @@
                                     <Run Text="{Binding CudaInfo.IsAvailable, Converter={StaticResource AvailabilityConverter}}"
                                          Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"/>
                                 </TextBlock>
+                                <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                        Width="20" Height="20" Padding="0" Margin="8,0,0,0">
+                                    <Button.ToolTip>
+                                        <ToolTip>
+                                            <TextBlock TextWrapping="Wrap" MaxWidth="300">
+                                                CUDA 是NVIDIA的并行计算平台，能显著提升AI模型的运行速度。
+                                                <LineBreak/><LineBreak/>
+                                                安装CUDA后，AI模型将可以利用您的NVIDIA显卡进行加速计算，提供更快的响应速度和更好的性能。
+                                            </TextBlock>
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                    <materialDesign:PackIcon Kind="HelpCircleOutline" Width="16" Height="16"/>
+                                </Button>
+                            </DockPanel>
+
+                            <!-- CUDNN 状态 -->
+                            <DockPanel>
+                                <materialDesign:PackIcon
+                                    Kind="MemoryArrowDown"
+                                    Width="20"
+                                    Height="20"
+                                    VerticalAlignment="Center"/>
+                                <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <Run Text="CUDNN: "/>
+                                    <Run Text="{Binding CudaInfo.HasCudnn, Converter={StaticResource AvailabilityConverter}}"
+                                         Foreground="{Binding CudaInfo.HasCudnn, Converter={StaticResource BoolToColorConverter}}"/>
+                                </TextBlock>
+                                <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                        Width="20" Height="20" Padding="0" Margin="8,0,0,0">
+                                    <Button.ToolTip>
+                                        <ToolTip>
+                                            <TextBlock TextWrapping="Wrap" MaxWidth="300">
+                                                CUDNN 是NVIDIA的深度神经网络库，是对CUDA的重要补充。
+                                                <LineBreak/><LineBreak/>
+                                                安装CUDNN后，能进一步优化深度学习模型的性能，提供更高效的计算能力，使AI模型运行得更快更流畅。
+                                            </TextBlock>
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                    <materialDesign:PackIcon Kind="HelpCircleOutline" Width="16" Height="16"/>
+                                </Button>
                             </DockPanel>
                         </StackPanel>
 
@@ -535,19 +590,11 @@
                             MinHeight="280">
                             <StackPanel>
                                 <DockPanel>
-                                    <Button Style="{StaticResource MaterialDesignIconButton}" 
-                                            Width="24" Height="24" Padding="0" Margin="0,0,8,0">
-                                        <Button.ToolTip>
-                                            <ToolTip>
-                                                <TextBlock TextWrapping="Wrap" MaxWidth="300">
-                                                    CUDA 是NVIDIA的并行计算平台，能显著提升AI模型的运行速度。
-                                                    <LineBreak/><LineBreak/>
-                                                    安装CUDA后，AI模型将可以利用您的NVIDIA显卡进行加速计算，提供更快的响应速度和更好的性能。
-                                                </TextBlock>
-                                            </ToolTip>
-                                        </Button.ToolTip>
-                                        <materialDesign:PackIcon Kind="HelpCircleOutline" Width="20" Height="20"/>
-                                    </Button>
+                                    <materialDesign:PackIcon
+                                        Width="24"
+                                        Height="24"
+                                        VerticalAlignment="Center"
+                                        Kind="Chip" />
                                     <TextBlock
                                         Margin="8,0,0,0"
                                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"
@@ -609,26 +656,11 @@
                                         Margin="0,8,8,0"
                                         Text="CUDNN状态："
                                         Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,8,0,0"
                                               Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                        <Button Style="{StaticResource MaterialDesignIconButton}" 
-                                                Width="24" Height="24" Padding="0" Margin="0,0,8,0">
-                                            <Button.ToolTip>
-                                                <ToolTip>
-                                                    <TextBlock TextWrapping="Wrap" MaxWidth="300">
-                                                        CUDNN 是NVIDIA的深度神经网络库，是对CUDA的重要补充。
-                                                        <LineBreak/><LineBreak/>
-                                                        安装CUDNN后，能进一步优化深度学习模型的性能，提供更高效的计算能力，使AI模型运行得更快更流畅。
-                                                    </TextBlock>
-                                                </ToolTip>
-                                            </Button.ToolTip>
-                                            <materialDesign:PackIcon Kind="HelpCircleOutline" Width="20" Height="20"/>
-                                        </Button>
-                                        <TextBlock>
-                                            <Run Foreground="{Binding CudaInfo.HasCudnn, Converter={StaticResource BoolToColorConverter}}" 
-                                                 Text="{Binding CudaInfo.HasCudnn, Converter={StaticResource AvailabilityConverter}}" />
-                                        </TextBlock>
-                                    </StackPanel>
+                                        <Run Foreground="{Binding CudaInfo.HasCudnn, Converter={StaticResource BoolToColorConverter}}" 
+                                             Text="{Binding CudaInfo.HasCudnn, Converter={StaticResource AvailabilityConverter}}" />
+                                    </TextBlock>
 
                                     <TextBlock
                                         Grid.Row="4"
