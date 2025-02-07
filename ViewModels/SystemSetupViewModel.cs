@@ -31,12 +31,8 @@ namespace ollez.ViewModels
         private string _selectedDrive = string.Empty;
         private ObservableCollection<string> _availableDrives = new();
         private string _selectedInstallPath = @"D:\Ollama";
-        private bool _hasLocalSetup;
-        private string _localSetupPath;
-        private string _link = "https://ollama.com/download";
-        private bool _isDownloading;
-        private double _downloadProgress;
-        private string _downloadStatus = "准备下载...";
+        private bool _hasOllamaSetup;
+        private string _ollamaSetupPath;
         private bool _showGuideIndicator = true;
         private string _userGuide = string.Empty;
         private bool _isOllamaInstalled;
@@ -109,7 +105,8 @@ namespace ollez.ViewModels
             SelectInstallPathCommand = new DelegateCommand(ExecuteSelectInstallPath);
             SelectModelPathCommand = new DelegateCommand(ExecuteSelectModelPath);
             InstallOllamaCommand = new DelegateCommand(ExecuteInstallOllama);
-            OpenLocalSetupFolderCommand = new DelegateCommand(ExecuteOpenLocalSetupFolder);
+            OpenCudaFolderCommand = new DelegateCommand(ExecuteOpenCudaFolder);
+            OpenOllamaFolderCommand = new DelegateCommand(ExecuteOpenOllamaFolder);
             DownloadOllamaCommand = new DelegateCommand(async () => await ExecuteDownloadOllama());
             DownloadNvidiaCommand = new DelegateCommand(async () => await ExecuteDownloadNvidia());
             DownloadCudaCommand = new DelegateCommand(async () => await ExecuteDownloadCuda());
@@ -227,7 +224,7 @@ namespace ollez.ViewModels
 
         private void UpdateUserGuide()
         {
-            if (!HasLocalSetup)
+            if (!HasOllamaSetup)
             {
                 UserGuide = "请先下载Ollama安装包";
                 ShowGuideIndicator = true;
@@ -276,13 +273,13 @@ namespace ollez.ViewModels
             var ollamaSetupPath = Path.Combine(appDir, "ollama", "OllamaSetup.exe");
             if (File.Exists(ollamaSetupPath))
             {
-                HasLocalSetup = true;
-                LocalSetupPath = ollamaSetupPath;
+                HasOllamaSetup = true;
+                OllamaSetupPath = ollamaSetupPath;
                 ShowOllamaDownloadButton = false;
             }
             else
             {
-                HasLocalSetup = false;
+                HasOllamaSetup = false;
                 ShowOllamaDownloadButton = true;
             }
         }
@@ -335,40 +332,16 @@ namespace ollez.ViewModels
             }
         }
 
-        public bool HasLocalSetup
+        public bool HasOllamaSetup
         {
-            get => _hasLocalSetup;
-            set => SetProperty(ref _hasLocalSetup, value);
+            get => _hasOllamaSetup;
+            set => SetProperty(ref _hasOllamaSetup, value);
         }
 
-        public string LocalSetupPath
+        public string OllamaSetupPath
         {
-            get => _localSetupPath;
-            set => SetProperty(ref _localSetupPath, value);
-        }
-
-        public string Link
-        {
-            get => _link;
-            set => SetProperty(ref _link, value);
-        }
-
-        public bool IsDownloading
-        {
-            get => _isDownloading;
-            set => SetProperty(ref _isDownloading, value);
-        }
-
-        public double DownloadProgress
-        {
-            get => _downloadProgress;
-            set => SetProperty(ref _downloadProgress, value);
-        }
-
-        public string DownloadStatus
-        {
-            get => _downloadStatus;
-            set => SetProperty(ref _downloadStatus, value);
+            get => _ollamaSetupPath;
+            set => SetProperty(ref _ollamaSetupPath, value);
         }
 
         public string SelectedModelPath
@@ -463,7 +436,8 @@ namespace ollez.ViewModels
         public DelegateCommand SelectInstallPathCommand { get; }
         public DelegateCommand SelectModelPathCommand { get; }
         public DelegateCommand InstallOllamaCommand { get; }
-        public DelegateCommand OpenLocalSetupFolderCommand { get; }
+        public DelegateCommand OpenCudaFolderCommand { get; }
+        public DelegateCommand OpenOllamaFolderCommand { get; }
         public DelegateCommand DownloadOllamaCommand { get; }
         public DelegateCommand DownloadNvidiaCommand { get; }
         public DelegateCommand DownloadCudaCommand { get; }
@@ -579,11 +553,11 @@ namespace ollez.ViewModels
         private void ExecuteInstallOllama()
         {
             if (string.IsNullOrEmpty(SelectedInstallPath)) return;
-            if (string.IsNullOrEmpty(LocalSetupPath) || !File.Exists(LocalSetupPath)) return;
+            if (string.IsNullOrEmpty(OllamaSetupPath) || !File.Exists(OllamaSetupPath)) return;
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = LocalSetupPath,
+                FileName = OllamaSetupPath,
                 Arguments = $"/DIR=\"{SelectedInstallPath}\"",
                 UseShellExecute = true,
                 Verb = "runas"
@@ -602,7 +576,7 @@ namespace ollez.ViewModels
             }
         }
 
-        private void ExecuteOpenLocalSetupFolder()
+        private void ExecuteOpenCudaFolder()
         {
             var appDir = AppDomain.CurrentDomain.BaseDirectory;
             var cudaDir = Path.Combine(appDir, "cuda");
@@ -614,6 +588,21 @@ namespace ollez.ViewModels
             else
             {
                 MessageBox.Show("CUDA安装包目录不存在", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void ExecuteOpenOllamaFolder()
+        {
+            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+            var ollamaDir = Path.Combine(appDir, "ollama");
+            
+            if (Directory.Exists(ollamaDir))
+            {
+                Process.Start("explorer.exe", ollamaDir);
+            }
+            else
+            {
+                MessageBox.Show("Ollama安装包目录不存在", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -663,8 +652,8 @@ namespace ollez.ViewModels
                 }
 
                 OllamaDownloadStatus = "下载完成！";
-                HasLocalSetup = true;
-                LocalSetupPath = ollamaSetupPath;
+                HasOllamaSetup = true;
+                OllamaSetupPath = ollamaSetupPath;
                 UpdateUserGuide();
             }
             catch (Exception ex)

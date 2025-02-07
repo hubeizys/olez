@@ -136,10 +136,10 @@
                                                 Margin="0,0,8,0"
                                                 VerticalAlignment="Center"
                                                 Kind="FileCheck" />
-                                            <TextBlock VerticalAlignment="Center" Text="已检测到本地安装包" />
+                                            <TextBlock VerticalAlignment="Center" Text="已检测到CUDA本地安装包" />
                                             <Button
                                                 Margin="16,0,0,0"
-                                                Command="{Binding OpenLocalSetupFolderCommand}"
+                                                Command="{Binding OpenCudaFolderCommand}"
                                                 Content="查看文件"
                                                 Style="{StaticResource MaterialDesignFlatButton}" />
                                         </DockPanel>
@@ -296,25 +296,10 @@
                                     </Grid.RowDefinitions>
 
                                     <!--  状态显示区域  -->
-                                    <StackPanel
-                                        Grid.Row="0"
-                                        Orientation="Horizontal"
-                                        Visibility="{Binding HasLocalSetup, Converter={StaticResource BoolToVis}}">
-                                        <materialDesign:PackIcon
-                                            Width="24"
-                                            Height="24"
-                                            Margin="0,0,8,0"
-                                            VerticalAlignment="Center"
-                                            Kind="FileCheck" />
-                                        <TextBlock
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource MaterialDesignBody1TextBlock}"
-                                            Text="已检测到本地安装包" />
-                                        <Button
-                                            Margin="16,0,0,0"
-                                            Command="{Binding OpenLocalSetupFolderCommand}"
-                                            Content="看看文件"
-                                            Style="{StaticResource MaterialDesignFlatButton}" />
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Visibility="{Binding HasOllamaSetup, Converter={StaticResource BoolToVis}}">
+                                        <materialDesign:PackIcon Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center" Kind="FileCheck" />
+                                        <TextBlock VerticalAlignment="Center" Style="{StaticResource MaterialDesignBody1TextBlock}" Text="已检测到Ollama本地安装包" />
+                                        <Button Margin="16,0,0,0" Command="{Binding OpenOllamaFolderCommand}" Content="查看文件" Style="{StaticResource MaterialDesignFlatButton}" />
                                     </StackPanel>
 
                                     <!--  下载状态和进度显示  -->
