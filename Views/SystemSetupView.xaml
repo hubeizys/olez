@@ -8,19 +8,20 @@
              prism:ViewModelLocator.AutoWireViewModel="True">
 
     <UserControl.Resources>
-        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
-        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <BooleanToVisibilityConverter x:Key="BoolToVis" />
-        <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
     </UserControl.Resources>
 
-    <materialDesign:Card Width="600" Margin="16">
+    <materialDesign:Card Width="600"
+                         Margin="16">
         <materialDesign:Transitioner SelectedIndex="{Binding CurrentStep}">
             <!-- 步骤1：NVIDIA驱动和CUDA -->
-            <materialDesign:TransitionerSlide 
+            <materialDesign:TransitionerSlide
                 OpeningEffect="{materialDesign:TransitionEffect SlideInFromLeft, Duration=0:0:0.4}">
                 <materialDesign:TransitionerSlide.ForwardWipe>
-                    <materialDesign:CircleWipe />
+                    <materialDesign:CircleWipe/>
                 </materialDesign:TransitionerSlide.ForwardWipe>
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
@@ -30,22 +31,22 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" 
-                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                             Text="步骤 1: NVIDIA驱动和CUDA安装"/>
+                    <TextBlock Grid.Row="0"
+                               Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                               Text="步骤 1: NVIDIA驱动和CUDA安装"/>
 
                     <!-- 用户引导提示卡片 -->
-                    <materialDesign:Card Grid.Row="1" 
-                                       Margin="0,16,0,0" 
-                                       Background="{DynamicResource PrimaryHueMidBrush}"
-                                       Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
-                                       UniformCornerRadius="4">
+                    <materialDesign:Card Grid.Row="1"
+                                         Margin="0,16,0,0"
+                                         Background="{DynamicResource PrimaryHueMidBrush}"
+                                         Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                         UniformCornerRadius="4">
                         <Grid Margin="16,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            
+
                             <Button Grid.Column="0"
                                     Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}"
                                     materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
@@ -55,19 +56,20 @@
                                     IsEnabled="False">
                                 <materialDesign:PackIcon Kind="ArrowRightBold"/>
                             </Button>
-                            
+
                             <TextBlock Grid.Column="1"
-                                     Text="{Binding NvidiaGuide}"
-                                     Style="{StaticResource MaterialDesignBody1TextBlock}"
-                                     VerticalAlignment="Center"
-                                     TextWrapping="Wrap"/>
+                                       Text="{Binding NvidiaGuide}"
+                                       Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap"/>
                         </Grid>
                     </materialDesign:Card>
 
-                    <StackPanel Grid.Row="2" Margin="0,16">
+                    <StackPanel Grid.Row="2"
+                                Margin="0,16">
                         <!-- 状态卡片 -->
-                        <materialDesign:Card Margin="0,0,0,16" 
-                                           Background="{DynamicResource MaterialDesignBackground}">
+                        <materialDesign:Card Margin="0,0,0,16"
+                                             Background="{DynamicResource MaterialDesignBackground}">
                             <Grid Margin="16">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -75,51 +77,65 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                
+
                                 <!-- NVIDIA驱动状态 -->
                                 <DockPanel Grid.Row="0">
-                                    <materialDesign:PackIcon Kind="ExpansionCard" 
-                                                           VerticalAlignment="Center"
-                                                           Width="24"
-                                                           Height="24"
-                                                           Margin="0,0,8,0"/>
-                                    <TextBlock Text="NVIDIA驱动: " 
-                                             VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="ExpansionCard"
+                                                             VerticalAlignment="Center"
+                                                             Width="24"
+                                                             Height="24"
+                                                             Margin="0,0,8,0"/>
+                                    <TextBlock Text="NVIDIA驱动: "
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Margin="8,0,0,0"
-                                             VerticalAlignment="Center">
+                                               VerticalAlignment="Center">
                                         <Run Text="{Binding CudaInfo.DriverVersion, TargetNullValue='未安装'}"
                                              Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"/>
                                     </TextBlock>
                                 </DockPanel>
 
                                 <!-- CUDA状态 -->
-                                <DockPanel Grid.Row="1" Margin="0,8,0,0">
-                                    <materialDesign:PackIcon Kind="Chip" 
-                                                           VerticalAlignment="Center"
-                                                           Width="24"
-                                                           Height="24"
-                                                           Margin="0,0,8,0"/>
-                                    <TextBlock Text="CUDA版本: " 
-                                             VerticalAlignment="Center"/>
+                                <DockPanel Grid.Row="1"
+                                           Margin="0,8,0,0">
+                                    <materialDesign:PackIcon Kind="Chip"
+                                                             VerticalAlignment="Center"
+                                                             Width="24"
+                                                             Height="24"
+                                                             Margin="0,0,8,0"/>
+                                    <TextBlock Text="CUDA版本: "
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Margin="8,0,0,0"
-                                             VerticalAlignment="Center">
+                                               VerticalAlignment="Center">
                                         <Run Text="{Binding CudaInfo.Version, TargetNullValue='未安装'}"
                                              Foreground="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToColorConverter}}"/>
                                     </TextBlock>
                                 </DockPanel>
 
+                                <!-- CUDA提示信息 -->
+                                <TextBlock Grid.Row="2"
+                                           Margin="0,4,0,0"
+                                           Foreground="#D32F2F"
+                                           TextWrapping="Wrap"
+                                           Style="{StaticResource MaterialDesignBody2TextBlock}">
+                                    <materialDesign:PackIcon Kind="AlertCircle"
+                                                             VerticalAlignment="Center"
+                                                             Width="16"
+                                                             Height="16"/>
+                                    <Run Text="可以不安装CUDA跳过这一步，但会疯狂使用CPU，强烈建议安装CUDA以获得更好的性能"/>
+                                </TextBlock>
+
                                 <!-- 本地安装包状态 -->
-                                <StackPanel Grid.Row="2" 
-                                          Margin="0,16,0,0"
-                                          Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Grid.Row="2"
+                                            Margin="0,16,0,0"
+                                            Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}">
                                     <DockPanel>
-                                        <materialDesign:PackIcon Kind="FileCheck" 
-                                                               VerticalAlignment="Center"
-                                                               Width="24"
-                                                               Height="24"
-                                                               Margin="0,0,8,0"/>
-                                        <TextBlock Text="已检测到本地安装包" 
-                                                 VerticalAlignment="Center"/>
+                                        <materialDesign:PackIcon Kind="FileCheck"
+                                                                 VerticalAlignment="Center"
+                                                                 Width="24"
+                                                                 Height="24"
+                                                                 Margin="0,0,8,0"/>
+                                        <TextBlock Text="已检测到本地安装包"
+                                                   VerticalAlignment="Center"/>
                                         <Button Content="查看文件"
                                                 Command="{Binding OpenLocalSetupFolderCommand}"
                                                 Style="{StaticResource MaterialDesignFlatButton}"
@@ -128,15 +144,15 @@
                                 </StackPanel>
 
                                 <!-- 下载状态和进度 -->
-                                <StackPanel Grid.Row="2" 
-                                          Margin="0,16,0,0"
-                                          Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Grid.Row="2"
+                                            Margin="0,16,0,0"
+                                            Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
                                     <TextBlock Text="{Binding DownloadStatus}"
-                                             Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                               Style="{StaticResource MaterialDesignBody1TextBlock}"/>
                                     <Grid Margin="0,8,0,0">
                                         <ProgressBar Value="{Binding DownloadProgress}"
-                                                   Maximum="1"
-                                                   Height="4"/>
+                                                     Maximum="1"
+                                                     Height="4"/>
                                         <Button Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
                                                 materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
                                                 materialDesign:ButtonProgressAssist.Value="{Binding DownloadProgress}"
@@ -144,7 +160,9 @@
                                                 HorizontalAlignment="Right"
                                                 Width="36"
                                                 Height="36">
-                                            <materialDesign:PackIcon Kind="Download" Width="18" Height="18"/>
+                                            <materialDesign:PackIcon Kind="Download"
+                                                                     Width="18"
+                                                                     Height="18"/>
                                         </Button>
                                     </Grid>
                                 </StackPanel>
@@ -177,38 +195,54 @@
                         <!-- 操作按钮 -->
                         <materialDesign:Card Background="{DynamicResource MaterialDesignBackground}">
                             <StackPanel Margin="16">
+
                                 <Button Content="下载NVIDIA驱动"
-                                       Command="{Binding DownloadNvidiaCommand}"
-                                       Style="{StaticResource MaterialDesignRaisedButton}"
-                                       HorizontalAlignment="Left"
-                                       Margin="0,0,0,8"
-                                       Visibility="{Binding ShowNvidiaDownloadButton, Converter={StaticResource BoolToVis}}"/>
-                                <Button Content="安装NVIDIA驱动"
-                                       Command="{Binding InstallNvidiaCommand}"
-                                       Style="{StaticResource MaterialDesignRaisedButton}"
-                                       HorizontalAlignment="Left"
-                                       Margin="0,0,0,8"
-                                       Visibility="{Binding HasLocalNvidiaSetup, Converter={StaticResource BoolToVis}}"/>
+                                        Command="{Binding DownloadNvidiaCommand}"
+                                        Style="{StaticResource MaterialDesignRaisedButton}"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,0,0,8"
+                                        Visibility="{Binding ShowNvidiaDownloadButton, Converter={StaticResource BoolToVis}}"/>
+
+                                <DockPanel   Visibility="{Binding HasLocalNvidiaSetup, Converter={StaticResource BoolToVis}}">
+                                    <Button Content="安装NVIDIA驱动"
+                                            Command="{Binding InstallNvidiaCommand}"
+                                            Style="{StaticResource MaterialDesignRaisedButton}"
+                                            HorizontalAlignment="Left"
+                                            Margin="0,0,0,8"/>
+                                    <TextBlock Text="已安装，点击重新安装"
+                                               Margin="16,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Foreground="#666666"
+                                               Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToVis}}"/>
+                                </DockPanel>
+
                                 <Button Content="下载CUDA Toolkit"
-                                       Command="{Binding DownloadCudaCommand}"
-                                       Style="{StaticResource MaterialDesignRaisedButton}"
-                                       HorizontalAlignment="Left"
-                                       Margin="0,0,0,8"
-                                       Visibility="{Binding ShowCudaDownloadButton, Converter={StaticResource BoolToVis}}"/>
-                                <Button Content="安装CUDA Toolkit"
-                                       Command="{Binding InstallCudaCommand}"
-                                       Style="{StaticResource MaterialDesignRaisedButton}"
-                                       HorizontalAlignment="Left"
-                                       Margin="0,0,0,8"
-                                       Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}"/>
+                                        Command="{Binding DownloadCudaCommand}"
+                                        Style="{StaticResource MaterialDesignRaisedButton}"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,0,0,8"
+                                        Visibility="{Binding ShowCudaDownloadButton, Converter={StaticResource BoolToVis}}"/>
+
+                                <DockPanel   Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}">
+                                    <Button Content="安装CUDA Toolkit"
+                                            Command="{Binding InstallCudaCommand}"
+                                            Style="{StaticResource MaterialDesignRaisedButton}"
+                                            HorizontalAlignment="Left"
+                                            Margin="0,0,0,8"/>
+                                    <TextBlock Text="已安装，点击重新安装"
+                                               Margin="16,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Foreground="#666666"
+                                               Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToVis}}"/>
+                                </DockPanel>
                             </StackPanel>
                         </materialDesign:Card>
                     </StackPanel>
 
-                    <StackPanel Grid.Row="3" 
-                              Orientation="Horizontal" 
-                              HorizontalAlignment="Right"
-                              Margin="0,16,0,0">
+                    <StackPanel Grid.Row="3"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,16,0,0">
                         <Button Content="跳过"
                                 Command="{Binding SkipCommand}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
@@ -223,10 +257,11 @@
             <materialDesign:TransitionerSlide
                 OpeningEffect="{materialDesign:TransitionEffect SlideInFromRight, Duration=0:0:0.4}">
                 <materialDesign:TransitionerSlide.BackwardWipe>
-                    <materialDesign:CircleWipe />
+                    <materialDesign:CircleWipe/>
                 </materialDesign:TransitionerSlide.BackwardWipe>
                 <materialDesign:TransitionerSlide.ForwardWipe>
-                    <materialDesign:SlideWipe Direction="Up" Duration="0:0:0.4"/>
+                    <materialDesign:SlideWipe Direction="Up"
+                                              Duration="0:0:0.4"/>
                 </materialDesign:TransitionerSlide.ForwardWipe>
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
@@ -236,22 +271,22 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" 
-                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                             Text="步骤 2: Ollama安装"/>
+                    <TextBlock Grid.Row="0"
+                               Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                               Text="步骤 2: Ollama安装"/>
 
                     <!-- 用户引导提示 -->
-                    <materialDesign:Card Grid.Row="1" 
-                                       Margin="0,16,0,0" 
-                                       Background="{DynamicResource PrimaryHueMidBrush}"
-                                       Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
-                                       UniformCornerRadius="4">
+                    <materialDesign:Card Grid.Row="1"
+                                         Margin="0,16,0,0"
+                                         Background="{DynamicResource PrimaryHueMidBrush}"
+                                         Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                         UniformCornerRadius="4">
                         <Grid Margin="16,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            
+
                             <Button Grid.Column="0"
                                     Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}"
                                     materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
@@ -261,37 +296,38 @@
                                     IsEnabled="False">
                                 <materialDesign:PackIcon Kind="ArrowRightBold"/>
                             </Button>
-                            
+
                             <TextBlock Grid.Column="1"
-                                     Text="{Binding UserGuide}"
-                                     Style="{StaticResource MaterialDesignBody1TextBlock}"
-                                     VerticalAlignment="Center"
-                                     TextWrapping="Wrap"/>
+                                       Text="{Binding UserGuide}"
+                                       Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap"/>
                         </Grid>
                     </materialDesign:Card>
 
-                    <StackPanel Grid.Row="2" Margin="0,16">
+                    <StackPanel Grid.Row="2"
+                                Margin="0,16">
                         <!-- 本地安装包状态和操作区域 -->
-                        <materialDesign:Card Margin="0,0,0,16" 
-                                           Background="{DynamicResource MaterialDesignBackground}">
+                        <materialDesign:Card Margin="0,0,0,16"
+                                             Background="{DynamicResource MaterialDesignBackground}">
                             <Grid Margin="16">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                
+
                                 <!-- 状态显示区域 -->
-                                <StackPanel Grid.Row="0" 
-                                          Orientation="Horizontal" 
-                                          Visibility="{Binding HasLocalSetup, Converter={StaticResource BoolToVis}}">
-                                    <materialDesign:PackIcon Kind="FileCheck" 
-                                                           VerticalAlignment="Center"
-                                                           Width="24"
-                                                           Height="24"
-                                                           Margin="0,0,8,0"/>
-                                    <TextBlock Text="已检测到本地安装包" 
-                                             Style="{StaticResource MaterialDesignBody1TextBlock}"
-                                             VerticalAlignment="Center"/>
+                                <StackPanel Grid.Row="0"
+                                            Orientation="Horizontal"
+                                            Visibility="{Binding HasLocalSetup, Converter={StaticResource BoolToVis}}">
+                                    <materialDesign:PackIcon Kind="FileCheck"
+                                                             VerticalAlignment="Center"
+                                                             Width="24"
+                                                             Height="24"
+                                                             Margin="0,0,8,0"/>
+                                    <TextBlock Text="已检测到本地安装包"
+                                               Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                               VerticalAlignment="Center"/>
                                     <Button Content="看看文件"
                                             Command="{Binding OpenLocalSetupFolderCommand}"
                                             Style="{StaticResource MaterialDesignFlatButton}"
@@ -299,15 +335,15 @@
                                 </StackPanel>
 
                                 <!-- 下载状态和进度显示 -->
-                                <StackPanel Grid.Row="1" 
-                                          Margin="0,8,0,0"
-                                          Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Grid.Row="1"
+                                            Margin="0,8,0,0"
+                                            Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
                                     <TextBlock Text="{Binding DownloadStatus}"
-                                             Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                               Style="{StaticResource MaterialDesignBody1TextBlock}"/>
                                     <Grid Margin="0,8,0,0">
                                         <ProgressBar Value="{Binding DownloadProgress}"
-                                                   Maximum="1"
-                                                   Height="4"/>
+                                                     Maximum="1"
+                                                     Height="4"/>
                                         <Button Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
                                                 materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
                                                 materialDesign:ButtonProgressAssist.Value="{Binding DownloadProgress}"
@@ -315,7 +351,9 @@
                                                 HorizontalAlignment="Right"
                                                 Width="36"
                                                 Height="36">
-                                            <materialDesign:PackIcon Kind="Download" Width="18" Height="18"/>
+                                            <materialDesign:PackIcon Kind="Download"
+                                                                     Width="18"
+                                                                     Height="18"/>
                                         </Button>
                                     </Grid>
                                 </StackPanel>
@@ -327,33 +365,35 @@
                             <StackPanel Margin="16">
                                 <!-- 下载按钮 -->
                                 <Button Content="下载Ollama"
-                                       Command="{Binding DownloadOllamaCommand}"
-                                       Style="{StaticResource MaterialDesignRaisedButton}"
-                                       HorizontalAlignment="Left"
-                                       Visibility="{Binding ShowOllamaDownloadButton, Converter={StaticResource BoolToVis}}"/>
+                                        Command="{Binding DownloadOllamaCommand}"
+                                        Style="{StaticResource MaterialDesignRaisedButton}"
+                                        HorizontalAlignment="Left"
+                                        Visibility="{Binding ShowOllamaDownloadButton, Converter={StaticResource BoolToVis}}"/>
 
                                 <!-- 安装路径选择 -->
                                 <DockPanel Margin="0,16,0,0">
-                                    <TextBlock Text="安装路径：" VerticalAlignment="Center"/>
+                                    <TextBlock Text="安装路径："
+                                               VerticalAlignment="Center"/>
                                     <Button Command="{Binding SelectInstallPathCommand}"
                                             Content="选择路径"
                                             Style="{StaticResource MaterialDesignFlatButton}"
                                             DockPanel.Dock="Right"/>
-                                    <TextBlock Text="{Binding SelectedInstallPath}" 
-                                             VerticalAlignment="Center"
-                                             Margin="8,0"/>
+                                    <TextBlock Text="{Binding SelectedInstallPath}"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0"/>
                                 </DockPanel>
 
                                 <!-- 模型路径选择 -->
                                 <DockPanel Margin="0,16,0,0">
-                                    <TextBlock Text="模型路径：" VerticalAlignment="Center"/>
+                                    <TextBlock Text="模型路径："
+                                               VerticalAlignment="Center"/>
                                     <Button Command="{Binding SelectModelPathCommand}"
                                             Content="选择路径"
                                             Style="{StaticResource MaterialDesignFlatButton}"
                                             DockPanel.Dock="Right"/>
-                                    <TextBlock Text="{Binding SelectedModelPath}" 
-                                             VerticalAlignment="Center"
-                                             Margin="8,0"/>
+                                    <TextBlock Text="{Binding SelectedModelPath}"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0"/>
                                 </DockPanel>
 
                                 <!-- 安装按钮 -->
@@ -367,10 +407,10 @@
                         </materialDesign:Card>
                     </StackPanel>
 
-                    <StackPanel Grid.Row="3" 
-                              Orientation="Horizontal" 
-                              HorizontalAlignment="Right"
-                              Margin="0,16,0,0">
+                    <StackPanel Grid.Row="3"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,16,0,0">
                         <Button Content="上一步"
                                 Command="{Binding PreviousCommand}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
@@ -385,7 +425,8 @@
             <materialDesign:TransitionerSlide
                 OpeningEffect="{materialDesign:TransitionEffect SlideInFromTop, Duration=0:0:0.4}">
                 <materialDesign:TransitionerSlide.BackwardWipe>
-                    <materialDesign:SlideWipe Direction="Down" Duration="0:0:0.4"/>
+                    <materialDesign:SlideWipe Direction="Down"
+                                              Duration="0:0:0.4"/>
                 </materialDesign:TransitionerSlide.BackwardWipe>
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
@@ -395,12 +436,13 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" 
-                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                             Text="步骤 3: 下载模型"/>
+                    <TextBlock Grid.Row="0"
+                               Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                               Text="步骤 3: 下载模型"/>
 
                     <!-- 搜索区域 -->
-                    <materialDesign:Card Grid.Row="1" Margin="0,16,0,16">
+                    <materialDesign:Card Grid.Row="1"
+                                         Margin="0,16,0,16">
                         <Grid Margin="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -408,18 +450,19 @@
                             </Grid.RowDefinitions>
 
                             <TextBox Grid.Row="0"
-                                    materialDesign:HintAssist.Hint="搜索 Ollama 模型"
-                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                    Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}">
+                                     materialDesign:HintAssist.Hint="搜索 Ollama 模型"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}">
                                 <TextBox.InputBindings>
-                                    <KeyBinding Key="Return" Command="{Binding SearchModelsCommand}"/>
+                                    <KeyBinding Key="Return"
+                                                Command="{Binding SearchModelsCommand}"/>
                                 </TextBox.InputBindings>
                             </TextBox>
 
-                            <ItemsControl Grid.Row="1" 
-                                        Margin="0,16,0,0"
-                                        ItemsSource="{Binding SearchResults}"
-                                        Visibility="{Binding HasSearchResults, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ItemsControl Grid.Row="1"
+                                          Margin="0,16,0,0"
+                                          ItemsSource="{Binding SearchResults}"
+                                          Visibility="{Binding HasSearchResults, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel/>
@@ -427,7 +470,7 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <materialDesign:Card 
+                                        <materialDesign:Card
                                             Margin="4"
                                             MinWidth="150"
                                             Background="{DynamicResource MaterialDesignBackground}">
@@ -436,18 +479,18 @@
                                                     Margin="8"
                                                     Command="{Binding DataContext.InstallModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding ModelName}">
-                                                        <StackPanel>
-                                                            <TextBlock Text="{Binding ModelName}"
-                                                                     TextWrapping="Wrap"
-                                                                     HorizontalAlignment="Center"
-                                                                     Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
-                                                            <TextBlock Text="{Binding Description}"
-                                                                     TextWrapping="Wrap"
-                                                                     HorizontalAlignment="Center"
-                                                                     Margin="0,4,0,0"
-                                                                     FontSize="12"/>
-                                                        </StackPanel>
-                                                    </Button>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding ModelName}"
+                                                               TextWrapping="Wrap"
+                                                               HorizontalAlignment="Center"
+                                                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                                                    <TextBlock Text="{Binding Description}"
+                                                               TextWrapping="Wrap"
+                                                               HorizontalAlignment="Center"
+                                                               Margin="0,4,0,0"
+                                                               FontSize="12"/>
+                                                </StackPanel>
+                                            </Button>
                                         </materialDesign:Card>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -456,11 +499,12 @@
                     </materialDesign:Card>
 
                     <!-- DeepSeek-R1 模型列表 -->
-                    <materialDesign:Card Grid.Row="2" Margin="0,0,0,16">
+                    <materialDesign:Card Grid.Row="2"
+                                         Margin="0,0,0,16">
                         <StackPanel Margin="16">
                             <TextBlock Text="DeepSeek-R1 系列模型"
-                                     Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                                     Margin="0,0,0,16"/>
+                                       Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                       Margin="0,0,0,16"/>
 
                             <WrapPanel>
                                 <ItemsControl ItemsSource="{Binding DeepseekModels}">
@@ -471,7 +515,7 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <materialDesign:Card 
+                                            <materialDesign:Card
                                                 Margin="4"
                                                 MinWidth="150"
                                                 Background="{DynamicResource MaterialDesignBackground}">
@@ -482,15 +526,15 @@
                                                         CommandParameter="{Binding Size}">
                                                     <StackPanel>
                                                         <TextBlock TextWrapping="Wrap"
-                                                                 HorizontalAlignment="Center"
-                                                                 Style="{StaticResource MaterialDesignSubtitle1TextBlock}">
+                                                                   HorizontalAlignment="Center"
+                                                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}">
                                                             <Run Text="DeepSeek-R1"/>
                                                             <Run Text="{Binding Size}"/>
                                                         </TextBlock>
                                                         <TextBlock FontSize="12"
-                                                                 Foreground="{DynamicResource MaterialDesignBodyLight}"
-                                                                 HorizontalAlignment="Center"
-                                                                 Margin="0,4,0,0">
+                                                                   Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                                   HorizontalAlignment="Center"
+                                                                   Margin="0,4,0,0">
                                                             <Run Text="{Binding RequiredVRAM}"/>
                                                             <Run Text="GB VRAM"/>
                                                         </TextBlock>
@@ -500,9 +544,9 @@
                                                                 Padding="4,2"
                                                                 Visibility="{Binding IsInstalled, Converter={StaticResource BooleanToVisibilityConverter}}">
                                                             <TextBlock FontSize="12"
-                                                                     Foreground="#2E7D32"
-                                                                     Text="已安装"
-                                                                     HorizontalAlignment="Center"/>
+                                                                       Foreground="#2E7D32"
+                                                                       Text="已安装"
+                                                                       HorizontalAlignment="Center"/>
                                                         </Border>
                                                     </StackPanel>
                                                 </Button>
@@ -515,25 +559,25 @@
                     </materialDesign:Card>
 
                     <!-- 下载进度显示 -->
-                    <materialDesign:Card Grid.Row="2" 
-                                       Margin="0,0,0,16"
-                                       Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <materialDesign:Card Grid.Row="2"
+                                         Margin="0,0,0,16"
+                                         Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel Margin="16">
                             <TextBlock Text="模型下载进度"
-                                     Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                     Margin="0,0,0,16"/>
-                            
+                                       Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                       Margin="0,0,0,16"/>
+
                             <TextBlock Text="{Binding DownloadStatus}"
-                                     TextWrapping="Wrap"
-                                     Margin="0,0,0,8"/>
-                            
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,8"/>
+
                             <Grid>
                                 <ProgressBar Value="{Binding DownloadProgress}"
-                                           Maximum="100"
-                                           Height="4"/>
+                                             Maximum="100"
+                                             Height="4"/>
                                 <TextBlock Text="{Binding DownloadProgress, StringFormat={}{0:N1}%}"
-                                         HorizontalAlignment="Center"
-                                         Margin="0,8,0,0"/>
+                                           HorizontalAlignment="Center"
+                                           Margin="0,8,0,0"/>
                             </Grid>
 
                             <!-- 命令行输出 -->
@@ -541,20 +585,20 @@
                                     BorderBrush="{DynamicResource MaterialDesignDivider}"
                                     BorderThickness="1"
                                     CornerRadius="4">
-                                <ScrollViewer MaxHeight="200" 
-                                            VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer MaxHeight="200"
+                                              VerticalScrollBarVisibility="Auto">
                                     <TextBlock Text="{Binding CommandOutput}"
-                                             FontFamily="Consolas"
-                                             Padding="8"
-                                             TextWrapping="Wrap"/>
+                                               FontFamily="Consolas"
+                                               Padding="8"
+                                               TextWrapping="Wrap"/>
                                 </ScrollViewer>
                             </Border>
                         </StackPanel>
                     </materialDesign:Card>
 
-                    <StackPanel Grid.Row="3" 
-                              Orientation="Horizontal" 
-                              HorizontalAlignment="Right">
+                    <StackPanel Grid.Row="3"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right">
                         <Button Content="上一步"
                                 Command="{Binding PreviousCommand}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
