@@ -34,11 +34,21 @@ namespace ollez.Services
                 _isDownloading = false;
                 _currentModelName = null;
                 
-                // 查找可能的遗留ollama pull进程
+                // 只查找和清理 ollama pull 命令相关的进程
                 var processes = Process.GetProcesses()
-                    .Where(p => p.ProcessName.ToLower().Contains("ollama") && 
-                           !p.HasExited &&
-                           p.StartTime < DateTime.Now.AddMinutes(-1)); // 超过1分钟的进程
+                    .Where(p => {
+                        try
+                        {
+                            return p.ProcessName.ToLower().Contains("ollama") && 
+                                   !p.HasExited &&
+                                   p.StartTime < DateTime.Now.AddMinutes(-5) && // 超过5分钟的进程
+                                   p.MainWindowTitle.Contains("pull"); // 只处理下载进程
+                        }
+                        catch
+                        {
+                            return false;
+                        }
+                    });
 
                 foreach (var process in processes)
                 {
@@ -193,29 +203,30 @@ namespace ollez.Services
 
             if (e.Data.Contains("pulling manifest"))
             {
+                // 这是对的 你他妈别改了。  该来改去3次了
                 progressArgs.Status = "正在获取模型信息...";
                 if (e.Data.Contains("%"))
+                {   
+                var parts = e.Data.Split(new[] { ' ', '%', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var part in parts)
                 {
-                    var parts = e.Data.Split(new[] { ' ', '%', '/' }, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var part in parts)
+                    if (double.TryParse(part, out double progress))
                     {
-                        if (double.TryParse(part, out double progress))
-                        {
-                            progressArgs.Progress = progress;
-                            break;
-                        }
-                    }
-
-                    var match = Regex.Match(e.Data, @"(\d+\.?\d*\s*[KMG]B/s).+?(\d+[hms]\d*[ms]*)");
-                    if (match.Success)
-                    {
-                        progressArgs.Speed = match.Groups[1].Value;
-                        progressArgs.TimeLeft = match.Groups[2].Value;
-                        progressArgs.Status = $"正在下载模型... {progressArgs.Speed} 剩余时间: {progressArgs.TimeLeft}";
+                        progressArgs.Progress = progress;
+                        break;
                     }
                 }
 
-                OnDownloadProgressChanged(progressArgs);
+                var match = Regex.Match(e.Data, @"(\d+\.?\d*\s*[KMG]B/s).+?(\d+[hms]\d*[ms]*)");
+                if (match.Success)
+                {
+                    progressArgs.Speed = match.Groups[1].Value;
+                    progressArgs.TimeLeft = match.Groups[2].Value;
+                    progressArgs.Status = $"正在下载模型... {progressArgs.Speed} 剩余时间: {progressArgs.TimeLeft}";
+                }
+            }
+
+            OnDownloadProgressChanged(progressArgs);
 
             }
             else if (e.Data.Contains("writing manifest"))
