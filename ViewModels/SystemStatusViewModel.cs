@@ -376,18 +376,7 @@ namespace ollez.ViewModels
         {
             if (string.IsNullOrEmpty(modelName)) return;
 
-            // 显示确认对话框
-            var dialogContent = new TextBlock
-            {
-                Text = $"确定要删除模型 {modelName} 吗？此操作不可恢复。",
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new System.Windows.Thickness(0, 0, 0, 8)
-            };
 
-            var result = await DialogHost.Show(dialogContent, "RootDialog");
-            
-            if (result is bool dialogResult && dialogResult)
-            {
                 try
                 {
                     IsChecking = true;
@@ -414,7 +403,7 @@ namespace ollez.ViewModels
                 {
                     IsChecking = false;
                 }
-            }
+    
         }
     }
 }

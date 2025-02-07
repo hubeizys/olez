@@ -5,7 +5,9 @@
     xmlns:converters="clr-namespace:ollez.Converters"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/"
+    x:Name="RootView"
     prism:ViewModelLocator.AutoWireViewModel="True">
+
 
     <UserControl.Resources>
         <converters:StringToUriConverter x:Key="StringToUriConverter" />
@@ -295,7 +297,7 @@
 
                             <!--  使用WrapPanel实现Flow布局  -->
                             <WrapPanel Orientation="Horizontal">
-                                <ItemsControl ItemsSource="{Binding OllamaInfo.InstalledModels}">
+                                <ItemsControl x:Name="ModelsItemsControl" ItemsSource="{Binding OllamaInfo.InstalledModels}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <VirtualizingStackPanel  Orientation="Horizontal" />
@@ -326,7 +328,7 @@
                                                         <ContextMenu>
                                                             <MenuItem
                                                                 Header="删除模型"
-                                                                Command="{Binding DeleteModelCommand}"
+                                                                Command="{Binding DataContext.DeleteModelCommand, Source={x:Reference RootView}}"
                                                                 CommandParameter="{Binding Name}">
                                                                 <MenuItem.Icon>
                                                                     <materialDesign:PackIcon Kind="Delete" />

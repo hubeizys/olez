@@ -467,7 +467,20 @@ namespace ollez.Services
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{_ollamaEndpoint}/api/delete/{modelName}");
+                var content = new StringContent(
+                    JsonSerializer.Serialize(new { model = modelName }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Delete,
+                    RequestUri = new Uri($"{_ollamaEndpoint}/api/delete"),
+                    Content = content
+                };
+
+                var response = await _httpClient.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {
                     return true;
