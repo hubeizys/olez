@@ -145,55 +145,20 @@
                                         </DockPanel>
                                     </StackPanel>
 
-                                    <!--  下载状态和进度  -->
-                                    <StackPanel
-                                        Grid.Row="2"
-                                        Margin="0,16,0,0"
-                                        Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Style="{StaticResource MaterialDesignBody1TextBlock}" Text="{Binding DownloadStatus}" />
+                                    <!--  NVIDIA驱动下载状态和进度  -->
+                                    <StackPanel Grid.Row="2" Margin="0,16,0,0" Visibility="{Binding IsDownloadingNvidia, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Style="{StaticResource MaterialDesignBody1TextBlock}" Text="{Binding NvidiaDownloadStatus}" />
                                         <Grid Margin="0,8,0,0">
-                                            <ProgressBar
-                                                Height="4"
-                                                Maximum="1"
-                                                Value="{Binding DownloadProgress}" />
-                                            <Button
-                                                Width="36"
-                                                Height="36"
-                                                HorizontalAlignment="Right"
-                                                materialDesign:ButtonProgressAssist.IsIndeterminate="True"
-                                                materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
-                                                materialDesign:ButtonProgressAssist.Value="{Binding DownloadProgress}"
-                                                Style="{StaticResource MaterialDesignFloatingActionMiniButton}">
-                                                <materialDesign:PackIcon
-                                                    Width="18"
-                                                    Height="18"
-                                                    Kind="Download" />
+                                            <ProgressBar Height="4" Maximum="1" Value="{Binding NvidiaDownloadProgress}" />
+                                            <Button Width="36" Height="36" HorizontalAlignment="Right"
+                                                    materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                                                    materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                                    materialDesign:ButtonProgressAssist.Value="{Binding NvidiaDownloadProgress}"
+                                                    Style="{StaticResource MaterialDesignFloatingActionMiniButton}">
+                                                <materialDesign:PackIcon Width="18" Height="18" Kind="Download" />
                                             </Button>
                                         </Grid>
                                     </StackPanel>
-
-                                    <!--  环境变量设置进度  -->
-                                    <!-- <StackPanel Grid.Row="3"
-                                              Margin="0,16,0,0"
-                                              IsEnabled="{Binding IsEnvControlsEnabled}"
-                                              Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToVis}}">
-                                        <DockPanel>
-                                            <TextBlock Text="环境变量设置进度"
-                                                     Style="{StaticResource MaterialDesignBody2TextBlock}"/>
-                                            <TextBlock Text="{Binding EnvSetupProgress, StringFormat={}{0}%}"
-                                                     HorizontalAlignment="Right"
-                                                     Style="{StaticResource MaterialDesignBody2TextBlock}"/>
-                                        </DockPanel>
-                                        <ProgressBar Value="{Binding EnvSetupProgress}"
-                                                   Maximum="100"
-                                                   Height="4"
-                                                   Margin="0,4,0,0"/>
-                                        <Button Content="设置环境变量"
-                                               Command="{Binding SetupEnvCommand}"
-                                               Style="{StaticResource MaterialDesignRaisedButton}"
-                                               HorizontalAlignment="Left"
-                                               Margin="0,8,0,0"/>
-                                    </StackPanel>-->
                                 </Grid>
                             </materialDesign:Card>
 
@@ -356,20 +321,20 @@
                                     <StackPanel
                                         Grid.Row="1"
                                         Margin="0,8,0,0"
-                                        Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Style="{StaticResource MaterialDesignBody1TextBlock}" Text="{Binding DownloadStatus}" />
+                                        Visibility="{Binding IsDownloadingOllama, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Style="{StaticResource MaterialDesignBody1TextBlock}" Text="{Binding OllamaDownloadStatus}" />
                                         <Grid Margin="0,8,0,0">
                                             <ProgressBar
                                                 Height="4"
                                                 Maximum="1"
-                                                Value="{Binding DownloadProgress}" />
+                                                Value="{Binding OllamaDownloadProgress}" />
                                             <Button
                                                 Width="36"
                                                 Height="36"
                                                 HorizontalAlignment="Right"
                                                 materialDesign:ButtonProgressAssist.IsIndeterminate="True"
                                                 materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
-                                                materialDesign:ButtonProgressAssist.Value="{Binding DownloadProgress}"
+                                                materialDesign:ButtonProgressAssist.Value="{Binding OllamaDownloadProgress}"
                                                 Style="{StaticResource MaterialDesignFloatingActionMiniButton}">
                                                 <materialDesign:PackIcon
                                                     Width="18"
@@ -552,7 +517,7 @@
                             <!--  下载进度显示  -->
                             <materialDesign:Card
                                 Margin="0,0,0,16"
-                                Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                Visibility="{Binding IsDownloadingModel, Converter={StaticResource BoolToVis}}">
                                 <StackPanel Margin="16">
                                     <TextBlock
                                         Margin="0,0,0,16"
@@ -568,11 +533,11 @@
                                         <ProgressBar
                                             Height="4"
                                             Maximum="100"
-                                            Value="{Binding DownloadProgress}" />
+                                            Value="{Binding ModelDownloadProgress}" />
                                         <TextBlock
                                             Margin="0,8,0,0"
                                             HorizontalAlignment="Center"
-                                            Text="{Binding DownloadProgress, StringFormat={}{0:N1}%}" />
+                                            Text="{Binding ModelDownloadProgress, StringFormat={}{0:N1}%}" />
                                     </Grid>
 
                                     <!--  命令行输出  -->

@@ -63,6 +63,15 @@ namespace ollez.ViewModels
         private bool _showNvidiaDownloadButton = true;
         private bool _showCudaDownloadButton = true;
         private string _currentDownloadingModel;
+        private bool _isDownloadingOllama;
+        private bool _isDownloadingModel;
+        private string _ollamaDownloadStatus = "准备下载...";
+        private string _modelDownloadStatus = "准备下载...";
+        private double _ollamaDownloadProgress;
+        private double _modelDownloadProgress;
+        private string _nvidiaDownloadStatus;
+        private string _cudaDownloadStatus;
+
 
         public SystemSetupViewModel(
             IHardwareMonitorService hardwareMonitorService,
@@ -362,7 +371,6 @@ namespace ollez.ViewModels
             set => SetProperty(ref _downloadStatus, value);
         }
 
-
         public string SelectedModelPath
         {
             get => _selectedModelPath;
@@ -613,9 +621,9 @@ namespace ollez.ViewModels
         {
             try
             {
-                IsDownloading = true;
+                IsDownloadingOllama = true;
                 ShowOllamaDownloadButton = false;
-                DownloadStatus = "正在下载Ollama安装包...";
+                OllamaDownloadStatus = "正在下载Ollama安装包...";
                 UserGuide = "正在下载安装包，请稍候...";
 
                 var appDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -647,27 +655,27 @@ namespace ollez.ViewModels
 
                             if (totalBytes != -1)
                             {
-                                DownloadProgress = (double)totalBytesRead / totalBytes;
-                                DownloadStatus = $"下载进度: {(DownloadProgress * 100):F1}%";
+                                OllamaDownloadProgress = (double)totalBytesRead / totalBytes;
+                                OllamaDownloadStatus = $"下载进度: {(OllamaDownloadProgress * 100):F1}%";
                             }
                         }
                     }
                 }
 
-                DownloadStatus = "下载完成！";
+                OllamaDownloadStatus = "下载完成！";
                 HasLocalSetup = true;
                 LocalSetupPath = ollamaSetupPath;
                 UpdateUserGuide();
             }
             catch (Exception ex)
             {
-                DownloadStatus = $"下载失败: {ex.Message}";
+                OllamaDownloadStatus = $"下载失败: {ex.Message}";
                 ShowOllamaDownloadButton = true;
                 UserGuide = "下载失败，请重试";
             }
             finally
             {
-                IsDownloading = false;
+                IsDownloadingOllama = false;
             }
         }
 
@@ -708,13 +716,13 @@ namespace ollez.ViewModels
 
         private async Task ExecuteDownloadNvidia()
         {
-            if (_isDownloadingNvidia) return;
+            if (IsDownloadingNvidia) return;
 
             try
             {
-                _isDownloadingNvidia = true;
+                IsDownloadingNvidia = true;
                 ShowNvidiaDownloadButton = false;
-                DownloadStatus = "正在下载NVIDIA驱动...";
+                NvidiaDownloadStatus = "正在下载NVIDIA驱动...";
                 NvidiaGuide = "正在下载NVIDIA驱动，请稍候...";
 
                 var appDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -747,39 +755,39 @@ namespace ollez.ViewModels
 
                             if (totalBytes != -1)
                             {
-                                _nvidiaDownloadProgress = (double)totalBytesRead / totalBytes;
-                                DownloadStatus = $"下载进度: {(_nvidiaDownloadProgress * 100):F1}%";
+                                NvidiaDownloadProgress = (double)totalBytesRead / totalBytes;
+                                NvidiaDownloadStatus = $"下载进度: {(NvidiaDownloadProgress * 100):F1}%";
                             }
                         }
                     }
                 }
 
-                DownloadStatus = "NVIDIA驱动下载完成！";
+                NvidiaDownloadStatus = "NVIDIA驱动下载完成！";
                 _localNvidiaSetupPath = nvidiaSetupPath;
                 HasLocalNvidiaSetup = true;
                 UpdateNvidiaGuide();
             }
             catch (Exception ex)
             {
-                DownloadStatus = $"下载失败: {ex.Message}";
+                NvidiaDownloadStatus = $"下载失败: {ex.Message}";
                 ShowNvidiaDownloadButton = true;
                 NvidiaGuide = "NVIDIA驱动下载失败，请重试";
             }
             finally
             {
-                _isDownloadingNvidia = false;
+                IsDownloadingNvidia = false;
             }
         }
 
         private async Task ExecuteDownloadCuda()
         {
-            if (_isDownloadingCuda) return;
+            if (IsDownloadingCuda) return;
 
             try
             {
-                _isDownloadingCuda = true;
+                IsDownloadingCuda = true;
                 ShowCudaDownloadButton = false;
-                DownloadStatus = "正在下载CUDA Toolkit...";
+                CudaDownloadStatus = "正在下载CUDA Toolkit...";
                 NvidiaGuide = "正在下载CUDA Toolkit，请稍候...";
 
                 var appDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -812,27 +820,27 @@ namespace ollez.ViewModels
 
                             if (totalBytes != -1)
                             {
-                                _cudaDownloadProgress = (double)totalBytesRead / totalBytes;
-                                DownloadStatus = $"下载进度: {(_cudaDownloadProgress * 100):F1}%";
+                                CudaDownloadProgress = (double)totalBytesRead / totalBytes;
+                                CudaDownloadStatus = $"下载进度: {(CudaDownloadProgress * 100):F1}%";
                             }
                         }
                     }
                 }
 
-                DownloadStatus = "CUDA Toolkit下载完成！";
+                CudaDownloadStatus = "CUDA Toolkit下载完成！";
                 _localCudaSetupPath = cudaSetupPath;
                 HasLocalCudaSetup = true;
                 UpdateNvidiaGuide();
             }
             catch (Exception ex)
             {
-                DownloadStatus = $"下载失败: {ex.Message}";
+                CudaDownloadStatus = $"下载失败: {ex.Message}";
                 ShowCudaDownloadButton = true;
                 NvidiaGuide = "CUDA Toolkit下载失败，请重试";
             }
             finally
             {
-                _isDownloadingCuda = false;
+                IsDownloadingCuda = false;
             }
         }
 
@@ -1089,8 +1097,8 @@ namespace ollez.ViewModels
 
         private async Task InstallModelByTerm(string modelName)
         {
-                var modelSize = modelName.Split(':').LastOrDefault();
-                var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
+            var modelSize = modelName.Split(':').LastOrDefault();
+            var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
             try
             {
                 // 如果当前正在下载同一个模型，直接返回
@@ -1099,11 +1107,10 @@ namespace ollez.ViewModels
                     return;
                 }
 
-                
-                IsDownloading = true;
-                // DownloadStatus = "正在准备下载...";
+                IsDownloadingModel = true;
+                ModelDownloadStatus = "正在初始化下载环境...";
                 CommandOutput = "正在初始化下载环境...";
-                DownloadProgress = 0;
+                ModelDownloadProgress = 0;
                 _currentDownloadingModel = modelName;
 
                 if (targetModel != null)
@@ -1116,10 +1123,10 @@ namespace ollez.ViewModels
             }
             catch (Exception ex)
             {
-                DownloadStatus = $"启动下载失败: {ex.Message}";
+                ModelDownloadStatus = $"启动下载失败: {ex.Message}";
                 Debug.WriteLine($"启动下载时出错: {ex.Message}");
                 CommandOutput = $"发生错误: {ex.Message}";
-                IsDownloading = false;
+                IsDownloadingModel = false;
                 if (targetModel != null)
                 {
                     targetModel.IsDownloading = false;
@@ -1132,8 +1139,8 @@ namespace ollez.ViewModels
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                DownloadProgress = e.Progress;
-                // DownloadStatus = e.Status;
+                ModelDownloadProgress = e.Progress;
+                ModelDownloadStatus = e.Status;
                 CommandOutput = e.Status;
                 
                 var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();
@@ -1149,8 +1156,8 @@ namespace ollez.ViewModels
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                // DownloadStatus = e.Message;
-                IsDownloading = false;
+                ModelDownloadStatus = e.Message;
+                IsDownloadingModel = false;
                 
                 var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();
                 var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
@@ -1166,6 +1173,78 @@ namespace ollez.ViewModels
                 
                 _currentDownloadingModel = null;
             });
+        }
+
+        public bool IsDownloadingOllama
+        {
+            get => _isDownloadingOllama;
+            set => SetProperty(ref _isDownloadingOllama, value);
+        }
+
+        public bool IsDownloadingNvidia
+        {
+            get => _isDownloadingNvidia;
+            set => SetProperty(ref _isDownloadingNvidia, value);
+        }
+
+        public bool IsDownloadingCuda
+        {
+            get => _isDownloadingCuda;
+            set => SetProperty(ref _isDownloadingCuda, value);
+        }
+
+        public bool IsDownloadingModel
+        {
+            get => _isDownloadingModel;
+            set => SetProperty(ref _isDownloadingModel, value);
+        }
+
+        public string OllamaDownloadStatus
+        {
+            get => _ollamaDownloadStatus;
+            set => SetProperty(ref _ollamaDownloadStatus, value);
+        }
+
+        public string NvidiaDownloadStatus
+        {
+            get => _nvidiaDownloadStatus;
+            set => SetProperty(ref _nvidiaDownloadStatus, value);
+        }
+
+        public string CudaDownloadStatus
+        {
+            get => _cudaDownloadStatus;
+            set => SetProperty(ref _cudaDownloadStatus, value);
+        }
+
+        public string ModelDownloadStatus
+        {
+            get => _modelDownloadStatus;
+            set => SetProperty(ref _modelDownloadStatus, value);
+        }
+
+        public double OllamaDownloadProgress
+        {
+            get => _ollamaDownloadProgress;
+            set => SetProperty(ref _ollamaDownloadProgress, value);
+        }
+
+        public double NvidiaDownloadProgress
+        {
+            get => _nvidiaDownloadProgress;
+            set => SetProperty(ref _nvidiaDownloadProgress, value);
+        }
+
+        public double CudaDownloadProgress
+        {
+            get => _cudaDownloadProgress;
+            set => SetProperty(ref _cudaDownloadProgress, value);
+        }
+
+        public double ModelDownloadProgress
+        {
+            get => _modelDownloadProgress;
+            set => SetProperty(ref _modelDownloadProgress, value);
         }
     }
 } 
