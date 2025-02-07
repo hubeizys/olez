@@ -1056,22 +1056,22 @@ namespace ollez.ViewModels
 
         private async void ExecuteInstallModel(string modelName)
         {
-            await InstallModel(modelName);
+            //await InstallModel(modelName);
         }
 
         private async void ExecuteInstallDeepseekModel(string size)
         {
-            await InstallModel($"deepseek-r1:{size}");
+            await InstallModelByTerm($"deepseek-r1:{size}");
         }
 
-        private async Task InstallModel(string modelName)
+        private async Task InstallModelByTerm(string modelName)
         {
             if (IsDownloading) return;
 
             // 找到对应的 DeepseekModel
             var modelSize = modelName.Split(':').LastOrDefault();
             var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
-
+            var outputBuilder = new StringBuilder();
             try
             {
                 IsDownloading = true;
@@ -1085,108 +1085,101 @@ namespace ollez.ViewModels
                     targetModel.DownloadProgress = 0;
                 }
 
-                using (var client = new HttpClient())
+                var process = new Process
                 {
-                    client.Timeout = TimeSpan.FromHours(2); // 设置较长的超时时间
-                    
-                    var requestBody = new StringContent(
-                        JsonSerializer.Serialize(new { name = modelName }),
-                        Encoding.UTF8,
-                        "application/json"
-                    );
-
-                    try {
-                        var response2 = await client.PostAsync("http://localhost:11434/api/pull", requestBody);
-                        Debug.WriteLine("收到响应");
-                        response2.EnsureSuccessStatusCode();
-                    }
-                    catch (HttpRequestException ex) {
-                        Debug.WriteLine($"请求失败: {ex.Message}");
-                    }
-
-
-                    var response = await client.PostAsync("http://localhost:11434/api/pull", requestBody);
-                    response.EnsureSuccessStatusCode();
-
-                    var outputBuilder = new StringBuilder();
-                    using (var stream = await response.Content.ReadAsStreamAsync())
-                    using (var reader = new StreamReader(stream))
+                    StartInfo = new ProcessStartInfo
                     {
-                        string? line;
-                        while ((line = await reader.ReadLineAsync()) != null)
+                        FileName = "ollama",
+                        Arguments = $"pull {modelName}",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        StandardOutputEncoding = Encoding.UTF8,
+                        StandardErrorEncoding = Encoding.UTF8
+                    }
+                };
+
+
+                process.OutputDataReceived += (sender, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
-                            if (string.IsNullOrEmpty(line)) continue;
-
-                            try 
+                            outputBuilder.AppendLine(e.Data);
+                            CommandOutput = outputBuilder.ToString();
+                            
+                            try
                             {
-                                var jsonResponse = JsonSerializer.Deserialize<JsonElement>(line);
-                                outputBuilder.AppendLine(line);
-                                CommandOutput = outputBuilder.ToString();
-
+                                var jsonResponse = JsonSerializer.Deserialize<JsonElement>(e.Data);
                                 if (jsonResponse.TryGetProperty("status", out var statusElement))
                                 {
                                     var status = statusElement.GetString();
-                                    switch (status)
+                                    DownloadStatus = status switch
                                     {
-                                        case "pulling manifest":
-                                            DownloadStatus = "正在获取模型信息...";
-                                            break;
-                                            
-                                        case "downloading":
-                                            if (jsonResponse.TryGetProperty("completed", out var completedElement) &&
-                                                jsonResponse.TryGetProperty("total", out var totalElement))
-                                            {
-                                                var completed = completedElement.GetInt64();
-                                                var total = totalElement.GetInt64();
-                                                var progress = (double)completed / total * 100;
-                                                
-                                                DownloadProgress = progress;
-                                                if (targetModel != null)
-                                                {
-                                                    targetModel.DownloadProgress = progress;
-                                                }
-                                                
-                                                DownloadStatus = $"下载进度: {progress:F1}%";
-                                            }
-                                            break;
-                                            
-                                        case "verifying sha256 digest":
-                                            DownloadStatus = "正在验证文件完整性...";
-                                            break;
-                                            
-                                        case "writing manifest":
-                                            DownloadStatus = "正在写入模型文件...";
-                                            break;
-                                            
-                                        case "removing any unused layers":
-                                            DownloadStatus = "正在清理未使用的文件...";
-                                            break;
-                                            
-                                        case "success":
-                                            DownloadStatus = "下载完成！";
-                                            break;
-                                            
-                                        default:
-                                            DownloadStatus = $"状态: {status}";
-                                            break;
+                                        "pulling manifest" => "正在获取模型信息...",
+                                        "downloading" => "正在下载模型...",
+                                        "verifying sha" => "正在验证文件完整性...",
+                                        "writing manifest" => "正在写入模型文件...",
+                                        _ => status
+                                    };
+
+                                    if (status == "downloading" &&
+                                        jsonResponse.TryGetProperty("completed", out var completedElement) &&
+                                        jsonResponse.TryGetProperty("total", out var totalElement))
+                                    {
+                                        var completed = completedElement.GetInt64();
+                                        var total = totalElement.GetInt64();
+                                        var progress = (double)completed / total * 100;
+                                        
+                                        DownloadProgress = progress;
+                                        if (targetModel != null)
+                                        {
+                                            targetModel.DownloadProgress = progress;
+                                        }
                                     }
                                 }
                             }
-                            catch (JsonException ex)
+                            catch (JsonException)
                             {
-                                Debug.WriteLine($"解析JSON响应时出错: {ex.Message}");
-                                continue;
+                                // 如果不是JSON格式，直接显示原始输出
                             }
-                        }
+                        });
                     }
+                };
+
+                process.ErrorDataReceived += (sender, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            outputBuilder.AppendLine($"错误: {e.Data}");
+                            CommandOutput = outputBuilder.ToString();
+                        });
+                    }
+                };
+
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                await process.WaitForExitAsync();
+
+                if (process.ExitCode != 0)
+                {
+                    throw new Exception($"模型下载失败，退出代码: {process.ExitCode}");
                 }
 
+                DownloadStatus = "下载完成";
                 CheckInstalledModels();
             }
             catch (Exception ex)
             {
                 DownloadStatus = $"下载出错: {ex.Message}";
                 Debug.WriteLine($"安装模型时出错: {ex.Message}");
+                outputBuilder.AppendLine($"发生错误: {ex.Message}");
+                CommandOutput = outputBuilder.ToString();
             }
             finally
             {
