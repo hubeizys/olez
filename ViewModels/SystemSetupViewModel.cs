@@ -79,6 +79,19 @@ namespace ollez.ViewModels
             _modelDownloadService.DownloadProgressChanged += ModelDownloadService_DownloadProgressChanged;
             _modelDownloadService.DownloadCompleted += ModelDownloadService_DownloadCompleted;
             
+            // 初始化下载状态
+            IsDownloading = _modelDownloadService.IsDownloading;
+            if (IsDownloading)
+            {
+                _currentDownloadingModel = _modelDownloadService.CurrentModelName;
+                var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();
+                var targetModel = DeepseekModels?.FirstOrDefault(m => m.Size == modelSize);
+                if (targetModel != null)
+                {
+                    targetModel.IsDownloading = true;
+                }
+            }
+            
             _currentStep = 0;
             
             NextCommand = new DelegateCommand(ExecuteNext, CanExecuteNext);
@@ -1066,7 +1079,7 @@ namespace ollez.ViewModels
 
         private async void ExecuteInstallModel(string modelName)
         {
-            //await InstallModel(modelName);
+            await InstallModelByTerm(modelName);
         }
 
         private async void ExecuteInstallDeepseekModel(string size)
@@ -1076,15 +1089,19 @@ namespace ollez.ViewModels
 
         private async Task InstallModelByTerm(string modelName)
         {
-            if (_modelDownloadService.IsDownloading) return;
-
-            var modelSize = modelName.Split(':').LastOrDefault();
-            var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
-            
+                var modelSize = modelName.Split(':').LastOrDefault();
+                var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
             try
             {
+                // 如果当前正在下载同一个模型，直接返回
+                if (_modelDownloadService.IsDownloading && _modelDownloadService.CurrentModelName == modelName)
+                {
+                    return;
+                }
+
+                
                 IsDownloading = true;
-                DownloadStatus = "正在准备下载...";
+                // DownloadStatus = "正在准备下载...";
                 CommandOutput = "正在初始化下载环境...";
                 DownloadProgress = 0;
                 _currentDownloadingModel = modelName;
@@ -1116,7 +1133,7 @@ namespace ollez.ViewModels
             Application.Current.Dispatcher.Invoke(() =>
             {
                 DownloadProgress = e.Progress;
-                DownloadStatus = e.Status;
+                // DownloadStatus = e.Status;
                 CommandOutput = e.Status;
                 
                 var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();
@@ -1132,7 +1149,7 @@ namespace ollez.ViewModels
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                DownloadStatus = e.Message;
+                // DownloadStatus = e.Message;
                 IsDownloading = false;
                 
                 var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();

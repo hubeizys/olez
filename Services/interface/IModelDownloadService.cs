@@ -10,6 +10,7 @@ namespace ollez.Services
         Task StartDownload(string modelName);
         Task StopDownload();
         bool IsDownloading { get; }
+        string CurrentModelName { get; }
     }
 
     public class DownloadProgressEventArgs : EventArgs

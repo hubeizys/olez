@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ollez.Services
 {
@@ -11,18 +12,81 @@ namespace ollez.Services
         private Process _process;
         private CancellationTokenSource _cancellationTokenSource;
         private bool _isDownloading;
+        private string _currentModelName;
 
         public event EventHandler<DownloadProgressEventArgs> DownloadProgressChanged;
         public event EventHandler<DownloadCompletedEventArgs> DownloadCompleted;
 
         public bool IsDownloading => _isDownloading;
+        
+        public string CurrentModelName => _currentModelName;
+
+        public ModelDownloadService()
+        {
+            // 在构造函数中检查并清理可能的遗留进程
+            CheckAndCleanupProcess();
+        }
+
+        private void CheckAndCleanupProcess()
+        {
+            try
+            {
+                _isDownloading = false;
+                _currentModelName = null;
+                
+                // 查找可能的遗留ollama pull进程
+                var processes = Process.GetProcesses()
+                    .Where(p => p.ProcessName.ToLower().Contains("ollama") && 
+                           !p.HasExited &&
+                           p.StartTime < DateTime.Now.AddMinutes(-1)); // 超过1分钟的进程
+
+                foreach (var process in processes)
+                {
+                    try
+                    {
+                        process.Kill();
+                        process.WaitForExit(1000);
+                    }
+                    catch
+                    {
+                        // 忽略清理过程中的错误
+                    }
+                    finally
+                    {
+                        process.Dispose();
+                    }
+                }
+            }
+            catch
+            {
+                // 忽略清理过程中的错误
+            }
+        }
 
         public async Task StartDownload(string modelName)
         {
             if (_isDownloading)
-                return;
+            {
+                // 如果已经在下载，检查是否是同一个模型
+                if (_currentModelName == modelName)
+                {
+                    // 如果是同一个模型，返回当前进度
+                    OnDownloadProgressChanged(new DownloadProgressEventArgs 
+                    { 
+                        Status = "正在下载中...",
+                        Progress = 0 // 这里可以保存实际进度
+                    });
+                    return;
+                }
+                else
+                {
+                    // 如果是不同的模型，先停止当前下载
+                    await StopDownload();
+                }
+            }
 
             _isDownloading = true;
+            _currentModelName = modelName;
             _cancellationTokenSource = new CancellationTokenSource();
 
             try
@@ -69,8 +133,25 @@ namespace ollez.Services
             finally
             {
                 _isDownloading = false;
-                _process?.Dispose();
-                _process = null;
+                _currentModelName = null;
+                if (_process != null)
+                {
+                    try
+                    {
+                        if (!_process.HasExited)
+                        {
+                            _process.Kill();
+                        }
+                    }
+                    catch { }
+                    finally
+                    {
+                        _process.Dispose();
+                        _process = null;
+                    }
+                }
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
             }
         }
 
@@ -85,11 +166,21 @@ namespace ollez.Services
                 if (_process != null && !_process.HasExited)
                 {
                     _process.Kill();
+                    await _process.WaitForExitAsync();
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"停止下载时出错: {ex.Message}");
+            }
+            finally
+            {
+                _isDownloading = false;
+                _currentModelName = null;
+                _process?.Dispose();
+                _process = null;
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
             }
         }
 
@@ -123,7 +214,9 @@ namespace ollez.Services
                         progressArgs.Status = $"正在下载模型... {progressArgs.Speed} 剩余时间: {progressArgs.TimeLeft}";
                     }
                 }
-           
+
+                OnDownloadProgressChanged(progressArgs);
+
             }
             else if (e.Data.Contains("writing manifest"))
             {
@@ -133,10 +226,8 @@ namespace ollez.Services
             {
                 progressArgs.Status = "正在验证文件完整性...";
             }
-
-
-            OnDownloadProgressChanged(progressArgs);
         }
+
 
         protected virtual void OnDownloadProgressChanged(DownloadProgressEventArgs e)
         {
