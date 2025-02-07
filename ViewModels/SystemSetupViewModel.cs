@@ -1085,55 +1085,102 @@ namespace ollez.ViewModels
                     targetModel.DownloadProgress = 0;
                 }
 
-                var client = new HttpClient();
-                var requestBody = new StringContent(
-                    JsonSerializer.Serialize(new { model = modelName, stream = true }),
-                    Encoding.UTF8,
-                    "application/json"
-                );
-
-                var response = await client.PostAsync("http://localhost:11434/api/pull", requestBody);
-                response.EnsureSuccessStatusCode();
-
-                var outputBuilder = new StringBuilder();
-                using (var stream = await response.Content.ReadAsStreamAsync())
-                using (var reader = new StreamReader(stream))
+                using (var client = new HttpClient())
                 {
-                    string? line;
-                    while ((line = await reader.ReadLineAsync()) != null)
+                    client.Timeout = TimeSpan.FromHours(2); // 设置较长的超时时间
+                    
+                    var requestBody = new StringContent(
+                        JsonSerializer.Serialize(new { name = modelName }),
+                        Encoding.UTF8,
+                        "application/json"
+                    );
+
+                    try {
+                        var response2 = await client.PostAsync("http://localhost:11434/api/pull", requestBody);
+                        Debug.WriteLine("收到响应");
+                        response2.EnsureSuccessStatusCode();
+                    }
+                    catch (HttpRequestException ex) {
+                        Debug.WriteLine($"请求失败: {ex.Message}");
+                    }
+
+
+                    var response = await client.PostAsync("http://localhost:11434/api/pull", requestBody);
+                    response.EnsureSuccessStatusCode();
+
+                    var outputBuilder = new StringBuilder();
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var reader = new StreamReader(stream))
                     {
-                        if (string.IsNullOrEmpty(line)) continue;
-
-                        var jsonResponse = JsonSerializer.Deserialize<JsonElement>(line);
-                        outputBuilder.AppendLine(line);
-                        CommandOutput = outputBuilder.ToString();
-
-                        if (jsonResponse.TryGetProperty("status", out var statusElement))
+                        string? line;
+                        while ((line = await reader.ReadLineAsync()) != null)
                         {
-                            var status = statusElement.GetString();
-                            if (status == "downloading")
+                            if (string.IsNullOrEmpty(line)) continue;
+
+                            try 
                             {
-                                var completed = jsonResponse.GetProperty("completed").GetInt32();
-                                var total = jsonResponse.GetProperty("total").GetInt32();
-                                var progress = (double)completed / total * 100;
-                                
-                                DownloadProgress = progress;
-                                if (targetModel != null)
+                                var jsonResponse = JsonSerializer.Deserialize<JsonElement>(line);
+                                outputBuilder.AppendLine(line);
+                                CommandOutput = outputBuilder.ToString();
+
+                                if (jsonResponse.TryGetProperty("status", out var statusElement))
                                 {
-                                    targetModel.DownloadProgress = progress;
+                                    var status = statusElement.GetString();
+                                    switch (status)
+                                    {
+                                        case "pulling manifest":
+                                            DownloadStatus = "正在获取模型信息...";
+                                            break;
+                                            
+                                        case "downloading":
+                                            if (jsonResponse.TryGetProperty("completed", out var completedElement) &&
+                                                jsonResponse.TryGetProperty("total", out var totalElement))
+                                            {
+                                                var completed = completedElement.GetInt64();
+                                                var total = totalElement.GetInt64();
+                                                var progress = (double)completed / total * 100;
+                                                
+                                                DownloadProgress = progress;
+                                                if (targetModel != null)
+                                                {
+                                                    targetModel.DownloadProgress = progress;
+                                                }
+                                                
+                                                DownloadStatus = $"下载进度: {progress:F1}%";
+                                            }
+                                            break;
+                                            
+                                        case "verifying sha256 digest":
+                                            DownloadStatus = "正在验证文件完整性...";
+                                            break;
+                                            
+                                        case "writing manifest":
+                                            DownloadStatus = "正在写入模型文件...";
+                                            break;
+                                            
+                                        case "removing any unused layers":
+                                            DownloadStatus = "正在清理未使用的文件...";
+                                            break;
+                                            
+                                        case "success":
+                                            DownloadStatus = "下载完成！";
+                                            break;
+                                            
+                                        default:
+                                            DownloadStatus = $"状态: {status}";
+                                            break;
+                                    }
                                 }
-                                
-                                DownloadStatus = $"下载进度: {progress:F1}%";
                             }
-                            else
+                            catch (JsonException ex)
                             {
-                                DownloadStatus = $"状态: {status}";
+                                Debug.WriteLine($"解析JSON响应时出错: {ex.Message}");
+                                continue;
                             }
                         }
                     }
                 }
 
-                DownloadStatus = "下载完成";
                 CheckInstalledModels();
             }
             catch (Exception ex)
