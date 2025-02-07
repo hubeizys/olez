@@ -124,7 +124,7 @@ namespace ollez.ViewModels
             // 初始化定时器
             _checkTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMinutes(5) // 每5分钟检查一次
+                Interval = TimeSpan.FromSeconds(30) // 每30秒检查一次
             };
             _checkTimer.Tick += async (s, e) => 
             {
@@ -274,6 +274,8 @@ namespace ollez.ViewModels
             IsChecking = true;
             try
             {
+              
+
                 // 创建所有检查任务
                 CheckingStatus = "正在检查硬件信息...";
                 var hardwareTask = _hardwareMonitorService.GetHardwareInfoAsync();

@@ -4,11 +4,18 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+using Serilog;
+using ollez.Attributes;
+using Serilog.Events;
 
 namespace ollez.Services
 {
-    public class ModelDownloadService : IModelDownloadService
+    public class ModelDownloadService : InjectBase, IModelDownloadService
     {
+        [Logger("dl", MinimumLevel = LogEventLevel.Debug)]
+        private readonly ILogger _debugLogger = null!;
         private Process _process;
         private CancellationTokenSource _cancellationTokenSource;
         private bool _isDownloading;
@@ -73,7 +80,7 @@ namespace ollez.Services
             }
         }
 
-        public async Task StartDownload(string modelName)
+        public async Task StartDownloadOld(string modelName)
         {
             if (_isDownloading)
             {
@@ -196,11 +203,14 @@ namespace ollez.Services
 
         private void ProcessOutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            if (string.IsNullOrEmpty(e.Data))
-                return;
+            //if (string.IsNullOrEmpty(e.Data))
+            //    return;
 
             var progressArgs = new DownloadProgressEventArgs { Status = "正在下载..." };
+            if (!string.IsNullOrEmpty(e.Data))
+            {
 
+       
             if (e.Data.Contains("pulling manifest"))
             {
                 // 这是对的 你他妈别改了。  该来改去3次了
@@ -237,6 +247,11 @@ namespace ollez.Services
             {
                 progressArgs.Status = "正在验证文件完整性...";
             }
+            }
+            else
+            {
+                progressArgs.Status = "正在下载...";
+            }
         }
 
 
@@ -252,6 +267,135 @@ namespace ollez.Services
                 Success = success,
                 Message = message
             });
+        }
+
+        public async Task StartDownload(string modelName)
+        {
+            if (_isDownloading)
+            {
+                if (_currentModelName == modelName)
+                {
+                    OnDownloadProgressChanged(new DownloadProgressEventArgs 
+                    { 
+                        Status = "正在下载中...",
+                        Progress = 0
+                    });
+                    return;
+                }
+                else
+                {
+                    await StopDownload();
+                }
+            }
+
+            _isDownloading = true;
+            _currentModelName = modelName;
+            _cancellationTokenSource = new CancellationTokenSource();
+
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    httpClient.BaseAddress = new Uri("http://localhost:11434");
+                    httpClient.Timeout = TimeSpan.FromHours(1); // 设置较长的超时时间
+                    
+                    var request = new HttpRequestMessage(HttpMethod.Post, "/api/pull")
+                    {
+                        Content = new StringContent(
+                            $"{{\"model\": \"{modelName}\"}}",
+                            System.Text.Encoding.UTF8,
+                            "application/json"
+                        )
+                    };
+
+                    // 使用 SendAsync 替代 PostAsync，并设置 HttpCompletionOption.ResponseHeadersRead
+                    using (var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, _cancellationTokenSource.Token))
+                    {
+                        response.EnsureSuccessStatusCode();
+                        
+                        // 获取响应流
+                        using (var stream = await response.Content.ReadAsStreamAsync())
+                        using (var reader = new System.IO.StreamReader(stream))
+                        {
+                            string line;
+                            while ((line = await reader.ReadLineAsync()) != null && !_cancellationTokenSource.Token.IsCancellationRequested)
+                            {
+                                if (string.IsNullOrEmpty(line)) continue;
+
+                                try 
+                                {
+                                    _debugLogger.Information("收到数据: {line}", line);
+                                    var progressInfo = System.Text.Json.JsonSerializer.Deserialize<PullProgressInfo>(line);
+                                    var progressArgs = new DownloadProgressEventArgs { Status = "正在下载..." };
+
+                                    if (progressInfo == null) continue;
+
+                                    if (progressInfo.Status == "downloading" && progressInfo.Total > 0)
+                                    {
+                                        progressArgs.Progress = (progressInfo.Completed * 100.0) / progressInfo.Total;
+                                        progressArgs.Speed = $"{(progressInfo.Completed / 1024.0 / 1024.0):F2}MB";
+                                        progressArgs.Status = $"正在下载模型... {progressArgs.Progress:F2}%";
+                                    }
+                                    else
+                                    {
+                                        switch (progressInfo.Status)
+                                        {
+                                            case "pulling manifest":
+                                                progressArgs.Status = "正在获取模型信息...";
+                                                break;
+                                            case "verifying sha256 digest":
+                                                progressArgs.Status = "正在验证文件完整性...";
+                                                break;
+                                            case "writing manifest":
+                                                progressArgs.Status = "正在写入模型文件...";
+                                                break;
+                                            case "success":
+                                                OnDownloadCompleted(true, "下载完成");
+                                                return;
+                                        }
+                                    }
+
+                                    OnDownloadProgressChanged(progressArgs);
+                                }
+                                catch (JsonException ex)
+                                {
+                                    _debugLogger.Error(ex, "解析JSON失败: {line}", line);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 如果是正常退出循环（非取消），且没有收到success状态，认为是异常结束
+                if (!_cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    OnDownloadCompleted(false, "下载异常结束");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                OnDownloadCompleted(false, "下载已取消");
+            }
+            catch (Exception ex)
+            {
+                OnDownloadCompleted(false, $"下载出错: {ex.Message}");
+            }
+            finally
+            {
+                _isDownloading = false;
+                _currentModelName = null;
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
+            }
+        }
+
+        private class PullProgressInfo
+        {
+            public string Status { get; set; }
+            public string Digest { get; set; }
+            public long Total { get; set; }
+            public long Completed { get; set; }
         }
     }
 } 
