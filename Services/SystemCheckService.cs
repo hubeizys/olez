@@ -425,11 +425,29 @@ namespace ollez.Services
                     return true;
                 }
 
+                // 检查是否已有 ollama 进程在运行
+                var existingProcesses = Process.GetProcessesByName("ollama");
+                foreach (var proc in existingProcesses)
+                {
+                    try
+                    {
+                        if (!proc.HasExited)
+                        {
+                            proc.Kill();
+                            await proc.WaitForExitAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "清理已存在的 Ollama 进程时出错");
+                    }
+                }
+
                 // 启动 Ollama 进程
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = "ollama",
-                    Arguments = "ps",
+                    Arguments = "serve",
                     UseShellExecute = false,
                     Verb = "runas", // 请求管理员权限
                     CreateNoWindow = false,
@@ -444,10 +462,16 @@ namespace ollez.Services
                     Log.Error("无法启动 Ollama 进程");
                     return false;
                 }
+
                 process.OutputDataReceived += (sender, e) =>
                 {
-                    Log.Information("Ollama 进程输出: {Output}", e.Data);
+                    if (!string.IsNullOrEmpty(e.Data))
+                    {
+                        Log.Information("Ollama 进程输出: {Output}", e.Data);
+                    }
                 };
+
+                process.BeginOutputReadLine();
 
                 // 等待一段时间让服务启动
                 await Task.Delay(2000);

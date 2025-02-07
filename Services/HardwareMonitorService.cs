@@ -28,12 +28,13 @@ namespace ollez.Services
         private readonly PerformanceCounter _cpuCounter;
         private readonly Process _currentProcess;
         private readonly ISystemCheckService _systemCheckService;
+        private readonly CudaInfo _cudaInfo;
         private HardwareInfo _currentInfo = new();
 
         public HardwareMonitorService(ISystemCheckService systemCheckService)
         {
             _logger = Log.Logger;
-            _updateTimer = new Timer(2000);
+            _updateTimer = new Timer(5000);
             _updateTimer.Elapsed += OnTimerElapsed;
 
             _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");

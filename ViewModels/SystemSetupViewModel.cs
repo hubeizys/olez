@@ -544,8 +544,49 @@ namespace ollez.ViewModels
                 string folderPath = System.IO.Path.GetDirectoryName(dialog.FileName);
                 if (!string.IsNullOrEmpty(folderPath))
                 {
-                    SelectedModelPath = folderPath;
-                    UpdateUserGuide();
+                    try
+                    {
+                        // 使用 PowerShell 设置环境变量，需要管理员权限
+                        var setEnvCommand = $"[Environment]::SetEnvironmentVariable('OLLAMA_MODELS', '{folderPath}', 'Machine')";
+                        var startInfo = new ProcessStartInfo
+                        {
+                            FileName = "powershell",
+                            Arguments = $"-Command \"{setEnvCommand}\"",
+                            UseShellExecute = false,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            CreateNoWindow = true,
+                            Verb = "runas"
+                        };
+
+                        using (var process = new Process { StartInfo = startInfo })
+                        {
+                            process.Start();
+                            process.WaitForExit();
+                        }
+
+                        // 杀死所有 ollama 进程
+                        foreach (var proc in Process.GetProcessesByName("ollama"))
+                        {
+                            try
+                            {
+                                proc.Kill();
+                                proc.WaitForExit();
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"杀死 ollama 进程时出错: {ex.Message}");
+                            }
+                        }
+
+                        SelectedModelPath = folderPath;
+                        UpdateUserGuide();
+                        MessageBox.Show("模型路径已更新，Ollama 进程已重置，请重新启动 Ollama。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"设置环境变量时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
         }
@@ -956,11 +997,13 @@ namespace ollez.ViewModels
             var config = await _chatDbService.GetOllamaConfigAsync();
             if (config != null)
             {
-                _selectedModelPath = config.ModelsPath;
                 _selectedInstallPath = config.InstallPath;
-                RaisePropertyChanged(nameof(SelectedModelPath));
                 RaisePropertyChanged(nameof(SelectedInstallPath));
             }
+
+            // 设置模型路径
+            _selectedModelPath = GetDefaultModelPath();
+            RaisePropertyChanged(nameof(SelectedModelPath));
 
             // 初始化时检查已安装的模型
             CheckInstalledModels();
@@ -1234,6 +1277,18 @@ namespace ollez.ViewModels
         {
             get => _modelDownloadProgress;
             set => SetProperty(ref _modelDownloadProgress, value);
+        }
+
+        private string GetDefaultModelPath()
+        {
+            var ollamaModels = Environment.GetEnvironmentVariable("OLLAMA_MODELS", EnvironmentVariableTarget.Machine);
+            if (!string.IsNullOrEmpty(ollamaModels))
+            {
+                return ollamaModels;
+            }
+            
+            var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(userProfile, ".ollama", "models");
         }
     }
 } 

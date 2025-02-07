@@ -146,16 +146,28 @@
                                     </StackPanel>
 
                                     <!--  NVIDIA驱动下载状态和进度  -->
-                                    <StackPanel Grid.Row="2" Margin="0,16,0,0" Visibility="{Binding IsDownloadingNvidia, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel
+                                        Grid.Row="2"
+                                        Margin="0,16,0,0"
+                                        Visibility="{Binding IsDownloadingNvidia, Converter={StaticResource BoolToVis}}">
                                         <TextBlock Style="{StaticResource MaterialDesignBody1TextBlock}" Text="{Binding NvidiaDownloadStatus}" />
                                         <Grid Margin="0,8,0,0">
-                                            <ProgressBar Height="4" Maximum="1" Value="{Binding NvidiaDownloadProgress}" />
-                                            <Button Width="36" Height="36" HorizontalAlignment="Right"
-                                                    materialDesign:ButtonProgressAssist.IsIndeterminate="True"
-                                                    materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
-                                                    materialDesign:ButtonProgressAssist.Value="{Binding NvidiaDownloadProgress}"
-                                                    Style="{StaticResource MaterialDesignFloatingActionMiniButton}">
-                                                <materialDesign:PackIcon Width="18" Height="18" Kind="Download" />
+                                            <ProgressBar
+                                                Height="4"
+                                                Maximum="1"
+                                                Value="{Binding NvidiaDownloadProgress}" />
+                                            <Button
+                                                Width="36"
+                                                Height="36"
+                                                HorizontalAlignment="Right"
+                                                materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                                                materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                                materialDesign:ButtonProgressAssist.Value="{Binding NvidiaDownloadProgress}"
+                                                Style="{StaticResource MaterialDesignFloatingActionMiniButton}">
+                                                <materialDesign:PackIcon
+                                                    Width="18"
+                                                    Height="18"
+                                                    Kind="Download" />
                                             </Button>
                                         </Grid>
                                     </StackPanel>
@@ -296,10 +308,25 @@
                                     </Grid.RowDefinitions>
 
                                     <!--  状态显示区域  -->
-                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Visibility="{Binding HasOllamaSetup, Converter={StaticResource BoolToVis}}">
-                                        <materialDesign:PackIcon Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center" Kind="FileCheck" />
-                                        <TextBlock VerticalAlignment="Center" Style="{StaticResource MaterialDesignBody1TextBlock}" Text="已检测到Ollama本地安装包" />
-                                        <Button Margin="16,0,0,0" Command="{Binding OpenOllamaFolderCommand}" Content="查看文件" Style="{StaticResource MaterialDesignFlatButton}" />
+                                    <StackPanel
+                                        Grid.Row="0"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding HasOllamaSetup, Converter={StaticResource BoolToVis}}">
+                                        <materialDesign:PackIcon
+                                            Width="24"
+                                            Height="24"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Kind="FileCheck" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                            Text="已检测到Ollama本地安装包" />
+                                        <Button
+                                            Margin="16,0,0,0"
+                                            Command="{Binding OpenOllamaFolderCommand}"
+                                            Content="查看文件"
+                                            Style="{StaticResource MaterialDesignFlatButton}" />
                                     </StackPanel>
 
                                     <!--  下载状态和进度显示  -->
@@ -376,8 +403,7 @@
                                         HorizontalAlignment="Left"
                                         Command="{Binding InstallOllamaCommand}"
                                         Content="安装Ollama"
-                                        Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Visibility="{Binding HasLocalSetup, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        Style="{StaticResource MaterialDesignRaisedButton}" />
                                 </StackPanel>
                             </materialDesign:Card>
                         </StackPanel>
@@ -500,9 +526,7 @@
                             </materialDesign:Card>
 
                             <!--  下载进度显示  -->
-                            <materialDesign:Card
-                                Margin="0,0,0,16"
-                                Visibility="{Binding IsDownloadingModel, Converter={StaticResource BoolToVis}}">
+                            <materialDesign:Card Margin="0,0,0,16" Visibility="{Binding IsDownloadingModel, Converter={StaticResource BoolToVis}}">
                                 <StackPanel Margin="16">
                                     <TextBlock
                                         Margin="0,0,0,16"
@@ -537,7 +561,7 @@
                                                        Padding="8"
                                                        TextWrapping="Wrap"/>
                                         </ScrollViewer>
-                                    </Border> -->
+                                    </Border>-->
                                 </StackPanel>
                             </materialDesign:Card>
                         </StackPanel>
@@ -558,4 +582,4 @@
             </materialDesign:TransitionerSlide>
         </materialDesign:Transitioner>
     </materialDesign:Card>
-</UserControl> 
+</UserControl>

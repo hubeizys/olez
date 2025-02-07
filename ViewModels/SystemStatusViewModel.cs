@@ -124,9 +124,27 @@ namespace ollez.ViewModels
             // 初始化定时器
             _checkTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(30) // 每30秒检查一次
+                Interval = TimeSpan.FromMinutes(5) // 每5分钟检查一次
             };
-            _checkTimer.Tick += async (s, e) => await CheckOllamaStatus();
+            _checkTimer.Tick += async (s, e) => 
+            {
+                try 
+                {
+                    var ollamaInfo = await _systemCheckService.CheckOllamaAsync();
+                    if (!ollamaInfo.IsRunning && !IsChecking)
+                    {
+                        IsChecking = true;
+                        await _systemCheckService.StartOllamaAsync();
+                        await CheckSystem();
+                        IsChecking = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"检查Ollama状态时出错: {ex.Message}");
+                    IsChecking = false;
+                }
+            };
 
             // 设置默认值
             InitializeDefaultValues();
@@ -327,25 +345,6 @@ namespace ollez.ViewModels
             config.InstallPath = OllamaInfo.InstallPath;
             config.ModelsPath = OllamaInfo.ModelsPath;
             await _chatDbService.SaveOllamaConfigAsync(config);
-        }
-
-        private async Task CheckOllamaStatus()
-        {
-            try
-            {
-                var ollamaStatus = await _systemCheckService.CheckOllamaAsync();
-                if (!ollamaStatus.IsRunning )
-                {
-                    // 尝试启动 Ollama
-                    await _systemCheckService.StartOllamaAsync();
-                    // 重新检查系统状态
-                    await CheckSystem();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"检查Ollama状态时出错: {ex.Message}");
-            }
         }
 
         public void OnNavigatedTo(NavigationContext navigationContext)
