@@ -14,6 +14,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace ollez.ViewModels
 {
@@ -1066,12 +1067,22 @@ namespace ollez.ViewModels
         {
             if (IsDownloading) return;
 
+            // 找到对应的 DeepseekModel
+            var modelSize = modelName.Split(':').LastOrDefault();
+            var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
+
             try
             {
                 IsDownloading = true;
                 DownloadStatus = $"正在下载模型 {modelName}";
                 CommandOutput = string.Empty;
                 DownloadProgress = 0;
+
+                if (targetModel != null)
+                {
+                    targetModel.IsDownloading = true;
+                    targetModel.DownloadProgress = 0;
+                }
 
                 var process = new Process
                 {
@@ -1086,26 +1097,42 @@ namespace ollez.ViewModels
                     }
                 };
 
-                process.OutputDataReceived += (sender, args) =>
+                var outputBuilder = new StringBuilder();
+                process.OutputDataReceived += (sender, e) =>
                 {
-                    if (args.Data != null)
+                    if (!string.IsNullOrEmpty(e.Data))
                     {
-                        Application.Current.Dispatcher.Invoke(() =>
+                        outputBuilder.AppendLine(e.Data);
+                        CommandOutput = outputBuilder.ToString();
+
+                        // 解析进度
+                        if (e.Data.Contains("download:"))
                         {
-                            CommandOutput += args.Data + Environment.NewLine;
-                            
-                            // 解析进度
-                            var match = Regex.Match(args.Data, @"(\d+)%");
-                            if (match.Success)
+                            var match = Regex.Match(e.Data, @"(\d+)%");
+                            if (match.Success && double.TryParse(match.Groups[1].Value, out double progress))
                             {
-                                DownloadProgress = double.Parse(match.Groups[1].Value);
+                                DownloadProgress = progress;
+                                if (targetModel != null)
+                                {
+                                    targetModel.DownloadProgress = progress;
+                                }
                             }
-                        });
+                        }
+                    }
+                };
+
+                process.ErrorDataReceived += (sender, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                    {
+                        outputBuilder.AppendLine($"错误: {e.Data}");
+                        CommandOutput = outputBuilder.ToString();
                     }
                 };
 
                 process.Start();
                 process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
                 await process.WaitForExitAsync();
 
                 if (process.ExitCode == 0)
@@ -1126,6 +1153,10 @@ namespace ollez.ViewModels
             finally
             {
                 IsDownloading = false;
+                if (targetModel != null)
+                {
+                    targetModel.IsDownloading = false;
+                }
             }
         }
     }
