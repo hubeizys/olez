@@ -12,5 +12,6 @@ namespace ollez.Services
         Task<OllamaInfo> CheckOllamaAsync();
         Task<ModelRecommendation> GetModelRecommendationAsync();
         Task<bool> StartOllamaAsync();
+        Task<bool> DeleteModelAsync(string modelName);
     }
 } 

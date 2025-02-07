@@ -111,6 +111,7 @@ namespace ollez.ViewModels
         public DelegateCommand ToggleGuideCommand { get; }
         public DelegateCommand OpenSetupCommand { get; }
         public ICommand NavigateToChatCommand { get; }
+        public DelegateCommand<string> DeleteModelCommand { get; }
 
         public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService, IRegionManager regionManager, IChatDbService chatDbService)
         {
@@ -133,6 +134,7 @@ namespace ollez.ViewModels
             ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
             OpenSetupCommand = new DelegateCommand(async () => await ExecuteOpenSetup());
             NavigateToChatCommand = new DelegateCommand<string>(NavigateToChat);
+            DeleteModelCommand = new DelegateCommand<string>(async (modelName) => await DeleteModel(modelName));
             InitializeInstallationSteps();
             
             // 异步执行实际检查
@@ -368,6 +370,51 @@ namespace ollez.ViewModels
             Debug.WriteLine("SystemStatusView - OnNavigatedFrom");
             _hardwareMonitorService.StopMonitoring();
             _checkTimer.Stop();
+        }
+
+        private async Task DeleteModel(string modelName)
+        {
+            if (string.IsNullOrEmpty(modelName)) return;
+
+            // 显示确认对话框
+            var dialogContent = new TextBlock
+            {
+                Text = $"确定要删除模型 {modelName} 吗？此操作不可恢复。",
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new System.Windows.Thickness(0, 0, 0, 8)
+            };
+
+            var result = await DialogHost.Show(dialogContent, "RootDialog");
+            
+            if (result is bool dialogResult && dialogResult)
+            {
+                try
+                {
+                    IsChecking = true;
+                    CheckingStatus = $"正在删除模型 {modelName}...";
+                    
+                    // 调用系统服务删除模型
+                    await _systemCheckService.DeleteModelAsync(modelName);
+                    
+                    // 重新检查系统状态以更新UI
+                    await CheckSystem();
+                }
+                catch (Exception ex)
+                {
+                    // 显示错误消息
+                    var errorContent = new TextBlock
+                    {
+                        Text = $"删除模型时出错：{ex.Message}",
+                        TextWrapping = TextWrapping.Wrap,
+                        Margin = new System.Windows.Thickness(0, 0, 0, 8)
+                    };
+                    await DialogHost.Show(errorContent, "RootDialog");
+                }
+                finally
+                {
+                    IsChecking = false;
+                }
+            }
         }
     }
 }

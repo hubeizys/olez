@@ -463,6 +463,24 @@ namespace ollez.Services
             }
         }
 
+        public async Task<bool> DeleteModelAsync(string modelName)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"{_ollamaEndpoint}/api/delete/{modelName}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "删除模型时发生错误");
+                return false;
+            }
+        }
+
         private long ParseSize(string sizeStr)
         {
             try
