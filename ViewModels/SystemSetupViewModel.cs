@@ -16,6 +16,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Text.Json;
+using Serilog;
 
 namespace ollez.ViewModels
 {
@@ -1107,8 +1108,9 @@ namespace ollez.ViewModels
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            outputBuilder.AppendLine(e.Data);
-                            CommandOutput = outputBuilder.ToString();
+                            // outputBuilder.AppendLine(e.Data);
+                            // Log.Information(e.Data);
+                            CommandOutput = e.Data;
                             
                             try
                             {
@@ -1153,13 +1155,55 @@ namespace ollez.ViewModels
                 {
                     if (!string.IsNullOrEmpty(e.Data))
                     {
-                        Application.Current.Dispatcher.Invoke(() =>
+
+                        // outputBuilder.AppendLine($"错误: {e.Data}");
+                        CommandOutput = e.Data;
+                        try
                         {
-                            outputBuilder.AppendLine($"错误: {e.Data}");
-                            CommandOutput = outputBuilder.ToString();
-                        });
+                            // pulling 96c415656d37...  98% ▕███████████████ ▏ 4.6 GB/4.7 GB   30 KB/s  48m29s[?25h[?25l[2K[1G[A[2K[1Gpulling manifest 
+                        
+                            var jsonResponse = JsonSerializer.Deserialize<JsonElement>(e.Data);
+                            if (jsonResponse.TryGetProperty("status", out var statusElement))
+                            {
+                                var status = statusElement.GetString();
+                                Application.Current.Dispatcher.Invoke(() => 
+                                {
+
+                                    DownloadStatus = status switch
+                                    {
+                                        "pulling manifest" => "正在获取模型信息...",
+                                        "downloading" => "正在下载模型...",
+                                        "verifying sha" => "正在验证文件完整性...",
+                                        "writing manifest" => "正在写入模型文件...",
+                                        _ => status
+                                    };
+
+                                    if (status == "downloading" &&
+                                        jsonResponse.TryGetProperty("completed", out var completedElement) &&
+                                        jsonResponse.TryGetProperty("total", out var totalElement))
+                                    {
+                                        var completed = completedElement.GetInt64();
+                                        var total = totalElement.GetInt64();
+                                        var progress = (double)completed / total * 100;
+                                        
+                                        DownloadProgress = progress;
+                                        if (targetModel != null)
+                                        {
+                                            targetModel.DownloadProgress = progress;
+                                        }
+                                    }       
+                                });
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            // 如果不是JSON格式，直接显示原始输出
+                        }
+                 
                     }
                 };
+
+                Log.Information("CommandOutput 输出: {CommandOutput}", CommandOutput);
 
                 process.Start();
                 process.BeginOutputReadLine();
