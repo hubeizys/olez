@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Text.Json;
 
 namespace ollez.ViewModels
 {
@@ -1084,66 +1085,56 @@ namespace ollez.ViewModels
                     targetModel.DownloadProgress = 0;
                 }
 
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "ollama",
-                        Arguments = $"pull {modelName}",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    }
-                };
+                var client = new HttpClient();
+                var requestBody = new StringContent(
+                    JsonSerializer.Serialize(new { model = modelName, stream = true }),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+                var response = await client.PostAsync("http://localhost:11434/api/pull", requestBody);
+                response.EnsureSuccessStatusCode();
 
                 var outputBuilder = new StringBuilder();
-                process.OutputDataReceived += (sender, e) =>
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var reader = new StreamReader(stream))
                 {
-                    if (!string.IsNullOrEmpty(e.Data))
+                    string? line;
+                    while ((line = await reader.ReadLineAsync()) != null)
                     {
-                        outputBuilder.AppendLine(e.Data);
+                        if (string.IsNullOrEmpty(line)) continue;
+
+                        var jsonResponse = JsonSerializer.Deserialize<JsonElement>(line);
+                        outputBuilder.AppendLine(line);
                         CommandOutput = outputBuilder.ToString();
 
-                        // 解析进度
-                        if (e.Data.Contains("download:"))
+                        if (jsonResponse.TryGetProperty("status", out var statusElement))
                         {
-                            var match = Regex.Match(e.Data, @"(\d+)%");
-                            if (match.Success && double.TryParse(match.Groups[1].Value, out double progress))
+                            var status = statusElement.GetString();
+                            if (status == "downloading")
                             {
+                                var completed = jsonResponse.GetProperty("completed").GetInt32();
+                                var total = jsonResponse.GetProperty("total").GetInt32();
+                                var progress = (double)completed / total * 100;
+                                
                                 DownloadProgress = progress;
                                 if (targetModel != null)
                                 {
                                     targetModel.DownloadProgress = progress;
                                 }
+                                
+                                DownloadStatus = $"下载进度: {progress:F1}%";
+                            }
+                            else
+                            {
+                                DownloadStatus = $"状态: {status}";
                             }
                         }
                     }
-                };
-
-                process.ErrorDataReceived += (sender, e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
-                    {
-                        outputBuilder.AppendLine($"错误: {e.Data}");
-                        CommandOutput = outputBuilder.ToString();
-                    }
-                };
-
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                await process.WaitForExitAsync();
-
-                if (process.ExitCode == 0)
-                {
-                    DownloadStatus = "下载完成";
-                    CheckInstalledModels();
                 }
-                else
-                {
-                    DownloadStatus = "下载失败";
-                }
+
+                DownloadStatus = "下载完成";
+                CheckInstalledModels();
             }
             catch (Exception ex)
             {
