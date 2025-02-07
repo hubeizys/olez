@@ -1072,12 +1072,12 @@ namespace ollez.ViewModels
             // 找到对应的 DeepseekModel
             var modelSize = modelName.Split(':').LastOrDefault();
             var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
-            var outputBuilder = new StringBuilder();
+            
             try
             {
                 IsDownloading = true;
-                DownloadStatus = $"正在下载模型 {modelName}";
-                CommandOutput = string.Empty;
+                DownloadStatus = "正在准备下载...";
+                CommandOutput = "正在初始化下载环境...";
                 DownloadProgress = 0;
 
                 if (targetModel != null)
@@ -1101,51 +1101,56 @@ namespace ollez.ViewModels
                     }
                 };
 
-
                 process.OutputDataReceived += (sender, e) =>
                 {
                     if (!string.IsNullOrEmpty(e.Data))
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            // outputBuilder.AppendLine(e.Data);
-                            // Log.Information(e.Data);
                             CommandOutput = e.Data;
                             
-                            try
+                            // 使用字符串处理替代JSON解析
+                            if (e.Data.Contains("pulling manifest"))
                             {
-                                var jsonResponse = JsonSerializer.Deserialize<JsonElement>(e.Data);
-                                if (jsonResponse.TryGetProperty("status", out var statusElement))
+                                DownloadStatus = "正在获取模型信息...";
+                            }
+                            else if (e.Data.Contains("writing manifest"))
+                            {
+                                DownloadStatus = "正在写入模型文件...";
+                            }
+                            else if (e.Data.Contains("verifying sha"))
+                            {
+                                DownloadStatus = "正在验证文件完整性...";
+                            }
+                            else if (e.Data.Contains("%"))
+                            {
+                                // 解析进度信息
+                                var parts = e.Data.Split(new[] { ' ', '%', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                                foreach (var part in parts)
                                 {
-                                    var status = statusElement.GetString();
-                                    DownloadStatus = status switch
+                                    if (double.TryParse(part, out double progress))
                                     {
-                                        "pulling manifest" => "正在获取模型信息...",
-                                        "downloading" => "正在下载模型...",
-                                        "verifying sha" => "正在验证文件完整性...",
-                                        "writing manifest" => "正在写入模型文件...",
-                                        _ => status
-                                    };
-
-                                    if (status == "downloading" &&
-                                        jsonResponse.TryGetProperty("completed", out var completedElement) &&
-                                        jsonResponse.TryGetProperty("total", out var totalElement))
-                                    {
-                                        var completed = completedElement.GetInt64();
-                                        var total = totalElement.GetInt64();
-                                        var progress = (double)completed / total * 100;
-                                        
                                         DownloadProgress = progress;
                                         if (targetModel != null)
                                         {
                                             targetModel.DownloadProgress = progress;
                                         }
+                                        break;
                                     }
                                 }
-                            }
-                            catch (JsonException)
-                            {
-                                // 如果不是JSON格式，直接显示原始输出
+                                
+                                // 提取下载速度和剩余时间
+                                var match = System.Text.RegularExpressions.Regex.Match(e.Data, @"(\d+\.?\d*\s*[KMG]B/s).+?(\d+[hms]\d*[ms]*)");
+                                if (match.Success)
+                                {
+                                    var speed = match.Groups[1].Value;
+                                    var timeLeft = match.Groups[2].Value;
+                                    DownloadStatus = $"正在下载模型... {speed} 剩余时间: {timeLeft}";
+                                }
+                                else
+                                {
+                                    DownloadStatus = "正在下载模型...";
+                                }
                             }
                         });
                     }
@@ -1155,78 +1160,90 @@ namespace ollez.ViewModels
                 {
                     if (!string.IsNullOrEmpty(e.Data))
                     {
-
-                        // outputBuilder.AppendLine($"错误: {e.Data}");
-                        CommandOutput = e.Data;
-                        try
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
-                            // pulling 96c415656d37...  98% ▕███████████████ ▏ 4.6 GB/4.7 GB   30 KB/s  48m29s[?25h[?25l[2K[1G[A[2K[1Gpulling manifest 
-                        
-                            var jsonResponse = JsonSerializer.Deserialize<JsonElement>(e.Data);
-                            if (jsonResponse.TryGetProperty("status", out var statusElement))
+                            CommandOutput = e.Data;
+                            // 对错误输出进行同样的处理
+                            if (e.Data.Contains("%"))
                             {
-                                var status = statusElement.GetString();
-                                Application.Current.Dispatcher.Invoke(() => 
+                                var parts = e.Data.Split(new[] { ' ', '%', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                                foreach (var part in parts)
                                 {
-
-                                    DownloadStatus = status switch
+                                    if (double.TryParse(part, out double progress))
                                     {
-                                        "pulling manifest" => "正在获取模型信息...",
-                                        "downloading" => "正在下载模型...",
-                                        "verifying sha" => "正在验证文件完整性...",
-                                        "writing manifest" => "正在写入模型文件...",
-                                        _ => status
-                                    };
-
-                                    if (status == "downloading" &&
-                                        jsonResponse.TryGetProperty("completed", out var completedElement) &&
-                                        jsonResponse.TryGetProperty("total", out var totalElement))
-                                    {
-                                        var completed = completedElement.GetInt64();
-                                        var total = totalElement.GetInt64();
-                                        var progress = (double)completed / total * 100;
-                                        
                                         DownloadProgress = progress;
                                         if (targetModel != null)
                                         {
                                             targetModel.DownloadProgress = progress;
                                         }
-                                    }       
-                                });
+                                        break;
+                                    }
+                                }
                             }
-                        }
-                        catch (JsonException)
-                        {
-                            // 如果不是JSON格式，直接显示原始输出
-                        }
-                 
+                        });
                     }
                 };
 
-                Log.Information("CommandOutput 输出: {CommandOutput}", CommandOutput);
-
+                // 启动进程但不等待它完成
                 process.Start();
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
-                await process.WaitForExitAsync();
 
-                if (process.ExitCode != 0)
+                // 创建一个后台任务来等待进程完成
+                _ = Task.Run(async () =>
                 {
-                    throw new Exception($"模型下载失败，退出代码: {process.ExitCode}");
-                }
+                    try
+                    {
+                        await process.WaitForExitAsync();
+                        
+                        if (process.ExitCode == 0)
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                DownloadStatus = "下载完成";
+                                CheckInstalledModels();
+                                IsDownloading = false;
+                                if (targetModel != null)
+                                {
+                                    targetModel.IsDownloading = false;
+                                }
+                            });
+                        }
+                        else
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                DownloadStatus = $"下载失败，退出代码: {process.ExitCode}";
+                                IsDownloading = false;
+                                if (targetModel != null)
+                                {
+                                    targetModel.IsDownloading = false;
+                                }
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            DownloadStatus = $"下载出错: {ex.Message}";
+                            IsDownloading = false;
+                            if (targetModel != null)
+                            {
+                                targetModel.IsDownloading = false;
+                            }
+                        });
+                    }
+                });
 
-                DownloadStatus = "下载完成";
-                CheckInstalledModels();
+                // 主任务立即返回，不等待下载完成
+                return;
             }
             catch (Exception ex)
             {
-                DownloadStatus = $"下载出错: {ex.Message}";
-                Debug.WriteLine($"安装模型时出错: {ex.Message}");
-                outputBuilder.AppendLine($"发生错误: {ex.Message}");
-                CommandOutput = outputBuilder.ToString();
-            }
-            finally
-            {
+                DownloadStatus = $"启动下载失败: {ex.Message}";
+                Debug.WriteLine($"启动下载时出错: {ex.Message}");
+                CommandOutput = $"发生错误: {ex.Message}";
                 IsDownloading = false;
                 if (targetModel != null)
                 {
