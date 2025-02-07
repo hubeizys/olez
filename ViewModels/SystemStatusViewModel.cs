@@ -33,6 +33,7 @@ namespace ollez.ViewModels
         private readonly IRegionManager _regionManager;
         private readonly IChatDbService _chatDbService;
         private readonly DispatcherTimer _checkTimer;
+        private readonly IModelDownloadService _modelDownloadService;
         private CudaInfo _cudaInfo = new();
         private HardwareInfo _hardwareInfo = new();
         private ObservableCollection<InstallationStep> _installationSteps = new();
@@ -113,13 +114,13 @@ namespace ollez.ViewModels
         public ICommand NavigateToChatCommand { get; }
         public DelegateCommand<string> DeleteModelCommand { get; }
 
-        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService, IRegionManager regionManager, IChatDbService chatDbService)
+        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService, IRegionManager regionManager, IChatDbService chatDbService, IModelDownloadService modelDownloadService)
         {
             _systemCheckService = systemCheckService;
             _hardwareMonitorService = hardwareMonitorService;
             _regionManager = regionManager;
             _chatDbService = chatDbService;
-
+            _modelDownloadService = modelDownloadService;
             // 初始化定时器
             _checkTimer = new DispatcherTimer
             {
@@ -297,7 +298,7 @@ namespace ollez.ViewModels
 
         private async Task ExecuteOpenSetup()
         {
-            var view = new SystemSetupView { DataContext = new SystemSetupViewModel(_hardwareMonitorService, _systemCheckService, _chatDbService) };
+            var view = new SystemSetupView { DataContext = new SystemSetupViewModel(_hardwareMonitorService, _systemCheckService, _chatDbService, _modelDownloadService) };
             await DialogHost.Show(view, "RootDialog");
         }
 

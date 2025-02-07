@@ -65,6 +65,7 @@ namespace ollez
             containerRegistry.RegisterSingleton<ISystemCheckService, SystemCheckService>();
             containerRegistry.RegisterSingleton<IHardwareMonitorService, HardwareMonitorService>();
             containerRegistry.RegisterSingleton<IChatService, ChatService>();
+            containerRegistry.RegisterSingleton<IModelDownloadService, ModelDownloadService>();
 
             // 注册数据库相关服务
             containerRegistry.Register<ChatDbContext>(() =>

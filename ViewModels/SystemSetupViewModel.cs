@@ -25,6 +25,7 @@ namespace ollez.ViewModels
         private readonly IHardwareMonitorService _hardwareMonitorService;
         private readonly ISystemCheckService _systemCheckService;
         private readonly IChatDbService _chatDbService;
+        private readonly IModelDownloadService _modelDownloadService;
         private int _currentStep;
         private bool _hasNvidia;
         private string _selectedDrive = string.Empty;
@@ -61,15 +62,23 @@ namespace ollez.ViewModels
         private bool _showOllamaDownloadButton = true;
         private bool _showNvidiaDownloadButton = true;
         private bool _showCudaDownloadButton = true;
+        private string _currentDownloadingModel;
 
         public SystemSetupViewModel(
             IHardwareMonitorService hardwareMonitorService,
             ISystemCheckService systemCheckService,
-            IChatDbService chatDbService)
+            IChatDbService chatDbService,
+            IModelDownloadService modelDownloadService)
         {
             _hardwareMonitorService = hardwareMonitorService;
             _systemCheckService = systemCheckService;
             _chatDbService = chatDbService;
+            _modelDownloadService = modelDownloadService;
+            
+            // 订阅下载事件
+            _modelDownloadService.DownloadProgressChanged += ModelDownloadService_DownloadProgressChanged;
+            _modelDownloadService.DownloadCompleted += ModelDownloadService_DownloadCompleted;
+            
             _currentStep = 0;
             
             NextCommand = new DelegateCommand(ExecuteNext, CanExecuteNext);
@@ -1067,9 +1076,8 @@ namespace ollez.ViewModels
 
         private async Task InstallModelByTerm(string modelName)
         {
-            if (IsDownloading) return;
+            if (_modelDownloadService.IsDownloading) return;
 
-            // 找到对应的 DeepseekModel
             var modelSize = modelName.Split(':').LastOrDefault();
             var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
             
@@ -1079,6 +1087,7 @@ namespace ollez.ViewModels
                 DownloadStatus = "正在准备下载...";
                 CommandOutput = "正在初始化下载环境...";
                 DownloadProgress = 0;
+                _currentDownloadingModel = modelName;
 
                 if (targetModel != null)
                 {
@@ -1086,158 +1095,7 @@ namespace ollez.ViewModels
                     targetModel.DownloadProgress = 0;
                 }
 
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "ollama",
-                        Arguments = $"pull {modelName}",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = Encoding.UTF8,
-                        StandardErrorEncoding = Encoding.UTF8
-                    }
-                };
-
-                process.OutputDataReceived += (sender, e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            CommandOutput = e.Data;
-                            
-                            // 使用字符串处理替代JSON解析
-                            if (e.Data.Contains("pulling manifest"))
-                            {
-                                DownloadStatus = "正在获取模型信息...";
-                            }
-                            else if (e.Data.Contains("writing manifest"))
-                            {
-                                DownloadStatus = "正在写入模型文件...";
-                            }
-                            else if (e.Data.Contains("verifying sha"))
-                            {
-                                DownloadStatus = "正在验证文件完整性...";
-                            }
-                            else if (e.Data.Contains("%"))
-                            {
-                                // 解析进度信息
-                                var parts = e.Data.Split(new[] { ' ', '%', '/' }, StringSplitOptions.RemoveEmptyEntries);
-                                foreach (var part in parts)
-                                {
-                                    if (double.TryParse(part, out double progress))
-                                    {
-                                        DownloadProgress = progress;
-                                        if (targetModel != null)
-                                        {
-                                            targetModel.DownloadProgress = progress;
-                                        }
-                                        break;
-                                    }
-                                }
-                                
-                                // 提取下载速度和剩余时间
-                                var match = System.Text.RegularExpressions.Regex.Match(e.Data, @"(\d+\.?\d*\s*[KMG]B/s).+?(\d+[hms]\d*[ms]*)");
-                                if (match.Success)
-                                {
-                                    var speed = match.Groups[1].Value;
-                                    var timeLeft = match.Groups[2].Value;
-                                    DownloadStatus = $"正在下载模型... {speed} 剩余时间: {timeLeft}";
-                                }
-                                else
-                                {
-                                    DownloadStatus = "正在下载模型...";
-                                }
-                            }
-                        });
-                    }
-                };
-
-                process.ErrorDataReceived += (sender, e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            CommandOutput = e.Data;
-                            // 对错误输出进行同样的处理
-                            if (e.Data.Contains("%"))
-                            {
-                                var parts = e.Data.Split(new[] { ' ', '%', '/' }, StringSplitOptions.RemoveEmptyEntries);
-                                foreach (var part in parts)
-                                {
-                                    if (double.TryParse(part, out double progress))
-                                    {
-                                        DownloadProgress = progress;
-                                        if (targetModel != null)
-                                        {
-                                            targetModel.DownloadProgress = progress;
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        });
-                    }
-                };
-
-                // 启动进程但不等待它完成
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                // 创建一个后台任务来等待进程完成
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await process.WaitForExitAsync();
-                        
-                        if (process.ExitCode == 0)
-                        {
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                DownloadStatus = "下载完成";
-                                CheckInstalledModels();
-                                IsDownloading = false;
-                                if (targetModel != null)
-                                {
-                                    targetModel.IsDownloading = false;
-                                }
-                            });
-                        }
-                        else
-                        {
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                DownloadStatus = $"下载失败，退出代码: {process.ExitCode}";
-                                IsDownloading = false;
-                                if (targetModel != null)
-                                {
-                                    targetModel.IsDownloading = false;
-                                }
-                            });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            DownloadStatus = $"下载出错: {ex.Message}";
-                            IsDownloading = false;
-                            if (targetModel != null)
-                            {
-                                targetModel.IsDownloading = false;
-                            }
-                        });
-                    }
-                });
-
-                // 主任务立即返回，不等待下载完成
-                return;
+                await _modelDownloadService.StartDownload(modelName);
             }
             catch (Exception ex)
             {
@@ -1249,7 +1107,48 @@ namespace ollez.ViewModels
                 {
                     targetModel.IsDownloading = false;
                 }
+                _currentDownloadingModel = null;
             }
+        }
+
+        private void ModelDownloadService_DownloadProgressChanged(object sender, DownloadProgressEventArgs e)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                DownloadProgress = e.Progress;
+                DownloadStatus = e.Status;
+                CommandOutput = e.Status;
+                
+                var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();
+                var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
+                if (targetModel != null)
+                {
+                    targetModel.DownloadProgress = e.Progress;
+                }
+            });
+        }
+
+        private void ModelDownloadService_DownloadCompleted(object sender, DownloadCompletedEventArgs e)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                DownloadStatus = e.Message;
+                IsDownloading = false;
+                
+                var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();
+                var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
+                if (targetModel != null)
+                {
+                    targetModel.IsDownloading = false;
+                }
+                
+                if (e.Success)
+                {
+                    CheckInstalledModels();
+                }
+                
+                _currentDownloadingModel = null;
+            });
         }
     }
 } 
