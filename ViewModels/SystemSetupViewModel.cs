@@ -89,8 +89,8 @@ namespace ollez.ViewModels
             _modelDownloadService.DownloadCompleted += ModelDownloadService_DownloadCompleted;
             
             // 初始化下载状态
-            IsDownloading = _modelDownloadService.IsDownloading;
-            if (IsDownloading)
+            IsDownloadingModel = _modelDownloadService.IsDownloading;
+            if (IsDownloadingModel)
             {
                 _currentDownloadingModel = _modelDownloadService.CurrentModelName;
                 var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();
