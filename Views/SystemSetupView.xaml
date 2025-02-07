@@ -150,7 +150,7 @@
                                 </StackPanel>
 
                                 <!-- 环境变量设置进度 -->
-                                <StackPanel Grid.Row="3" 
+                                <!-- <StackPanel Grid.Row="3" 
                                           Margin="0,16,0,0"
                                           IsEnabled="{Binding IsEnvControlsEnabled}"
                                           Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToVis}}">
@@ -170,7 +170,7 @@
                                            Style="{StaticResource MaterialDesignRaisedButton}"
                                            HorizontalAlignment="Left"
                                            Margin="0,8,0,0"/>
-                                </StackPanel>
+                                </StackPanel> -->
                             </Grid>
                         </materialDesign:Card>
 
@@ -182,7 +182,7 @@
                                        Style="{StaticResource MaterialDesignRaisedButton}"
                                        HorizontalAlignment="Left"
                                        Margin="0,0,0,8"
-                                       Visibility="{Binding ShowDownloadButton, Converter={StaticResource BoolToVis}}"/>
+                                       Visibility="{Binding ShowNvidiaDownloadButton, Converter={StaticResource BoolToVis}}"/>
                                 <Button Content="安装NVIDIA驱动"
                                        Command="{Binding InstallNvidiaCommand}"
                                        Style="{StaticResource MaterialDesignRaisedButton}"
@@ -194,7 +194,7 @@
                                        Style="{StaticResource MaterialDesignRaisedButton}"
                                        HorizontalAlignment="Left"
                                        Margin="0,0,0,8"
-                                       Visibility="{Binding ShowDownloadButton, Converter={StaticResource BoolToVis}}"/>
+                                       Visibility="{Binding ShowCudaDownloadButton, Converter={StaticResource BoolToVis}}"/>
                                 <Button Content="安装CUDA Toolkit"
                                        Command="{Binding InstallCudaCommand}"
                                        Style="{StaticResource MaterialDesignRaisedButton}"
@@ -330,7 +330,7 @@
                                        Command="{Binding DownloadOllamaCommand}"
                                        Style="{StaticResource MaterialDesignRaisedButton}"
                                        HorizontalAlignment="Left"
-                                       Visibility="{Binding ShowDownloadButton, Converter={StaticResource BoolToVis}}"/>
+                                       Visibility="{Binding ShowOllamaDownloadButton, Converter={StaticResource BoolToVis}}"/>
 
                                 <!-- 安装路径选择 -->
                                 <DockPanel Margin="0,16,0,0">

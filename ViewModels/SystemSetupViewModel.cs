@@ -33,10 +33,9 @@ namespace ollez.ViewModels
         private bool _isDownloading;
         private double _downloadProgress;
         private string _downloadStatus = "准备下载...";
-        private bool _showDownloadButton = true;
+        private bool _showGuideIndicator = true;
         private string _userGuide = string.Empty;
         private bool _isOllamaInstalled;
-        private bool _showGuideIndicator = true;
         private CancellationTokenSource? _installCheckCts;
         private string _selectedModelPath = string.Empty;
         private CudaInfo _cudaInfo = new();
@@ -56,6 +55,9 @@ namespace ollez.ViewModels
         private ObservableCollection<OllamaModel> _searchResults;
         private ObservableCollection<DeepseekModel> _deepseekModels;
         private string _commandOutput;
+        private bool _showOllamaDownloadButton = true;
+        private bool _showNvidiaDownloadButton = true;
+        private bool _showCudaDownloadButton = true;
 
         public SystemSetupViewModel(
             IHardwareMonitorService hardwareMonitorService,
@@ -242,12 +244,12 @@ namespace ollez.ViewModels
             {
                 HasLocalSetup = true;
                 LocalSetupPath = ollamaSetupPath;
-                ShowDownloadButton = false;
+                ShowOllamaDownloadButton = false;
             }
             else
             {
                 HasLocalSetup = false;
-                ShowDownloadButton = true;
+                ShowOllamaDownloadButton = true;
             }
         }
 
@@ -335,11 +337,6 @@ namespace ollez.ViewModels
             set => SetProperty(ref _downloadStatus, value);
         }
 
-        public bool ShowDownloadButton
-        {
-            get => _showDownloadButton;
-            set => SetProperty(ref _showDownloadButton, value);
-        }
 
         public string SelectedModelPath
         {
@@ -443,6 +440,24 @@ namespace ollez.ViewModels
         public DelegateCommand SearchModelsCommand { get; private set; }
         public DelegateCommand<string> InstallModelCommand { get; private set; }
         public DelegateCommand<string> InstallDeepseekModelCommand { get; private set; }
+
+        public bool ShowOllamaDownloadButton
+        {
+            get => _showOllamaDownloadButton;
+            set => SetProperty(ref _showOllamaDownloadButton, value);
+        }
+
+        public bool ShowNvidiaDownloadButton
+        {
+            get => _showNvidiaDownloadButton;
+            set => SetProperty(ref _showNvidiaDownloadButton, value);
+        }
+
+        public bool ShowCudaDownloadButton
+        {
+            get => _showCudaDownloadButton;
+            set => SetProperty(ref _showCudaDownloadButton, value);
+        }
 
         private void ExecuteNext()
         {
@@ -574,7 +589,7 @@ namespace ollez.ViewModels
             try
             {
                 IsDownloading = true;
-                ShowDownloadButton = false;
+                ShowOllamaDownloadButton = false;
                 DownloadStatus = "正在下载Ollama安装包...";
                 UserGuide = "正在下载安装包，请稍候...";
 
@@ -622,7 +637,7 @@ namespace ollez.ViewModels
             catch (Exception ex)
             {
                 DownloadStatus = $"下载失败: {ex.Message}";
-                ShowDownloadButton = true;
+                ShowOllamaDownloadButton = true;
                 UserGuide = "下载失败，请重试";
             }
             finally
@@ -673,7 +688,7 @@ namespace ollez.ViewModels
             try
             {
                 _isDownloadingNvidia = true;
-                ShowDownloadButton = false;
+                ShowNvidiaDownloadButton = false;
                 DownloadStatus = "正在下载NVIDIA驱动...";
                 NvidiaGuide = "正在下载NVIDIA驱动，请稍候...";
 
@@ -722,7 +737,7 @@ namespace ollez.ViewModels
             catch (Exception ex)
             {
                 DownloadStatus = $"下载失败: {ex.Message}";
-                ShowDownloadButton = true;
+                ShowNvidiaDownloadButton = true;
                 NvidiaGuide = "NVIDIA驱动下载失败，请重试";
             }
             finally
@@ -738,7 +753,7 @@ namespace ollez.ViewModels
             try
             {
                 _isDownloadingCuda = true;
-                ShowDownloadButton = false;
+                ShowCudaDownloadButton = false;
                 DownloadStatus = "正在下载CUDA Toolkit...";
                 NvidiaGuide = "正在下载CUDA Toolkit，请稍候...";
 
@@ -787,7 +802,7 @@ namespace ollez.ViewModels
             catch (Exception ex)
             {
                 DownloadStatus = $"下载失败: {ex.Message}";
-                ShowDownloadButton = true;
+                ShowCudaDownloadButton = true;
                 NvidiaGuide = "CUDA Toolkit下载失败，请重试";
             }
             finally
@@ -884,6 +899,12 @@ namespace ollez.ViewModels
             {
                 HasLocalNvidiaSetup = true;
                 _localNvidiaSetupPath = nvidiaSetupPath;
+                ShowNvidiaDownloadButton = false;
+            }
+            else
+            {
+                HasLocalNvidiaSetup = false;
+                ShowNvidiaDownloadButton = true;
             }
 
             var cudaSetupPath = Path.Combine(cudaDir, "CUDASetup.exe");
@@ -891,6 +912,12 @@ namespace ollez.ViewModels
             {
                 HasLocalCudaSetup = true;
                 _localCudaSetupPath = cudaSetupPath;
+                ShowCudaDownloadButton = false;
+            }
+            else
+            {
+                HasLocalCudaSetup = false;
+                ShowCudaDownloadButton = true;
             }
         }
 
