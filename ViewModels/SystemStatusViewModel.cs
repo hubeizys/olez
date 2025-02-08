@@ -366,7 +366,7 @@ namespace ollez.ViewModels
         private void NavigateToChat(string modelName)
         {
             var parameters = new NavigationParameters { { "SelectedModel", modelName } };
-            _regionManager.RequestNavigate("MainRegion", "ChatView", parameters);
+            _regionManager.RequestNavigate("ContentRegion", "ChatView", parameters);
         }
 
         private async void LoadOllamaConfig()

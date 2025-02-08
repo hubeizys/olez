@@ -108,7 +108,7 @@ namespace ollez.ViewModels
             _systemCheckService = systemCheckService ?? throw new ArgumentNullException(nameof(systemCheckService));
 
 
-            SendMessageCommand = new DelegateCommand(async () => await SendMessageAsync(), CanSendMessage);
+            SendMessageCommand = new DelegateCommand(async () => await SendMessageAsync());
             RefreshModelsCommand = new DelegateCommand(async () => await RefreshModelsAsync());
             NewSessionCommand = new DelegateCommand(async () => await CreateNewSessionAsync());
             NewChatCommand = new DelegateCommand(ExecuteNewChat);
