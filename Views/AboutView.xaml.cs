@@ -24,5 +24,14 @@ namespace ollez.Views
             }
             e.Handled = true;
         }
+
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            string email = (sender as Button)?.CommandParameter?.ToString();
+            if (!string.IsNullOrEmpty(email))
+            {
+                Clipboard.SetText(email);
+            }
+        }
     }
 }

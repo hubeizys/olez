@@ -221,9 +221,16 @@
                                 laozhu_shangxin@hotmail.com
                             </Hyperlink>
                         </TextBlock>
+                        <Button
+                            Margin="10,0,0,0"
+                            Click="CopyButton_Click"
+                            CommandParameter="laozhu_shangxin@hotmail.com"
+                            Content="复制"
+                            Style="{StaticResource MaterialDesignOutlinedButton}" />
                     </StackPanel>
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                         <TextBlock Style="{StaticResource MaterialDesignBody1TextBlock}" Text="源码：" />
+
                         <TextBlock IsEnabled="True" TextWrapping="Wrap">
                             <Hyperlink
                                 FontSize="22"
@@ -232,7 +239,15 @@
                                 https://github.com/hubeizys/olez
                             </Hyperlink>
                         </TextBlock>
+                        <Button
+                            Margin="10,0,0,0"
+                            Click="CopyButton_Click"
+                            CommandParameter="https://github.com/hubeizys/olez"
+                            Content="复制"
+                            Style="{StaticResource MaterialDesignOutlinedButton}" />
                     </StackPanel>
+
+
 
 
 
