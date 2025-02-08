@@ -305,6 +305,41 @@
                                     Text="已安装模型" />
                             </DockPanel>
 
+                            <!--  模型路径设置  -->
+                            <DockPanel Margin="0,0,0,16" LastChildFill="False">
+                                <TextBlock VerticalAlignment="Center" Text="模型存储路径：" />
+                                <Button
+                                    Command="{Binding SelectModelPathCommand}"
+                                    Content="修改路径"
+                                    DockPanel.Dock="Right"
+                                    Style="{StaticResource MaterialDesignFlatButton}" />
+                                <TextBlock
+                                    Margin="8,0"
+                                    VerticalAlignment="Center"
+                                    Text="{Binding SelectedModelPath}" />
+                            </DockPanel>
+                            
+                            <!--  提示信息  -->
+                            <materialDesign:Card
+                                Margin="0,0,0,16"
+                                Background="{DynamicResource PrimaryHueMidBrush}"
+                                Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                UniformCornerRadius="4">
+                                <DockPanel Margin="16,8">
+                                    <materialDesign:PackIcon
+                                        Width="24"
+                                        Height="24"
+                                        Margin="0,0,16,0"
+                                        VerticalAlignment="Center"
+                                        Kind="AlertCircleOutline" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                        Text="修改模型存储路径后需要重启电脑才能生效"
+                                        TextWrapping="Wrap" />
+                                </DockPanel>
+                            </materialDesign:Card>
+
                             <!--  使用WrapPanel实现Flow布局  -->
                             <WrapPanel Orientation="Horizontal">
                                 <ItemsControl x:Name="ModelsItemsControl" ItemsSource="{Binding OllamaInfo.InstalledModels}">

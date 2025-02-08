@@ -383,20 +383,6 @@
                                             Text="{Binding SelectedInstallPath}" />
                                     </DockPanel>
 
-                                    <!--  模型路径选择  -->
-                                    <DockPanel Margin="0,16,0,0">
-                                        <TextBlock VerticalAlignment="Center" Text="模型路径：" />
-                                        <Button
-                                            Command="{Binding SelectModelPathCommand}"
-                                            Content="选择路径"
-                                            DockPanel.Dock="Right"
-                                            Style="{StaticResource MaterialDesignFlatButton}" />
-                                        <TextBlock
-                                            Margin="8,0"
-                                            VerticalAlignment="Center"
-                                            Text="{Binding SelectedModelPath}" />
-                                    </DockPanel>
-
                                     <!--  安装按钮  -->
                                     <Button
                                         Margin="0,16,0,0"

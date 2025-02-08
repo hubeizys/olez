@@ -20,6 +20,8 @@ using ollez.Views;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Regions;
+using System.Windows;
+using System.IO;
 
 namespace ollez.ViewModels
 {
@@ -44,6 +46,7 @@ namespace ollez.ViewModels
             Endpoint = "http://localhost:11434",
             InstalledModels = new ObservableCollection<OllamaModel>(),
         };
+        private string _selectedModelPath = string.Empty;
 
         private ModelRecommendation _modelRecommendation = new()
         {
@@ -108,6 +111,18 @@ namespace ollez.ViewModels
             set => SetProperty(ref _checkingStatus, value);
         }
 
+        public string SelectedModelPath
+        {
+            get => _selectedModelPath;
+            set
+            {
+                if (SetProperty(ref _selectedModelPath, value))
+                {
+                    SaveOllamaConfig();
+                }
+            }
+        }
+
         public DelegateCommand CheckSystemCommand { get; }
         public DelegateCommand ToggleGuideCommand { get; }
         public DelegateCommand OpenSetupCommand { get; }
@@ -115,6 +130,7 @@ namespace ollez.ViewModels
         public DelegateCommand<string> DeleteModelCommand { get; }
         public DelegateCommand StartOllamaCommand { get; }
         public DelegateCommand StopOllamaCommand { get; }
+        public DelegateCommand SelectModelPathCommand { get; }
 
         public SystemStatusViewModel(
             ISystemCheckService systemCheckService,
@@ -129,6 +145,7 @@ namespace ollez.ViewModels
             _regionManager = regionManager;
             _chatDbService = chatDbService;
             _modelDownloadService = modelDownloadService;
+            _ = GetDefaultModelPath();
             // 初始化定时器
             _checkTimer = new DispatcherTimer
             {
@@ -139,6 +156,7 @@ namespace ollez.ViewModels
                 try
                 {
                     var ollamaInfo = await _systemCheckService.CheckOllamaAsync();
+              
                     if (!ollamaInfo.IsRunning && !IsChecking)
                     {
                         IsChecking = true;
@@ -171,6 +189,7 @@ namespace ollez.ViewModels
             );
             StartOllamaCommand = new DelegateCommand(async () => await StartOllama());
             StopOllamaCommand = new DelegateCommand(async () => await StopOllama());
+            SelectModelPathCommand = new DelegateCommand(ExecuteSelectModelPath);
             InitializeInstallationSteps();
 
             // 异步执行实际检查
@@ -516,5 +535,92 @@ namespace ollez.ViewModels
                 IsChecking = false;
             }
         }
+      
+
+        private void ExecuteSelectModelPath()
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "选择模型存储路径",
+                FileName = "models", // 默认文件夹名
+                Filter = "文件夹|*.this.directory",
+                CheckFileExists = false,
+                CheckPathExists = true,
+                ValidateNames = false
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                string folderPath = System.IO.Path.GetDirectoryName(dialog.FileName);
+                if (!string.IsNullOrEmpty(folderPath))
+                {
+                    try
+                    {
+                        // 使用 PowerShell 设置环境变量，需要管理员权限
+                        var setEnvCommand = $"[Environment]::SetEnvironmentVariable('OLLAMA_MODELS', '{folderPath}', 'Machine')";
+                        var startInfo = new ProcessStartInfo
+                        {
+                            FileName = "powershell",
+                            Arguments = $"-Command \"{setEnvCommand}\"",
+                            UseShellExecute = false,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            CreateNoWindow = true,
+                            Verb = "runas"
+                        };
+
+                        using (var process = new Process { StartInfo = startInfo })
+                        {
+                            process.Start();
+                            process.WaitForExit();
+                        }
+
+                        // 杀死所有 ollama 进程
+                        foreach (var proc in Process.GetProcessesByName("ollama"))
+                        {
+                            try
+                            {
+                                proc.Kill();
+                                proc.WaitForExit();
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"杀死 ollama 进程时出错: {ex.Message}");
+                            }
+                        }
+
+                        SelectedModelPath = folderPath;
+                        MessageBox.Show("模型路径已更新，需要重启电脑后才能生效。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"设置模型路径时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private async Task GetDefaultModelPath()
+        {
+            var task = Task.Run(() =>
+            {
+                var ollamaModels = Environment.GetEnvironmentVariable("OLLAMA_MODELS", EnvironmentVariableTarget.Machine);
+                if (!string.IsNullOrEmpty(ollamaModels))
+                {
+                    SelectedModelPath = ollamaModels;
+                    RaisePropertyChanged(nameof(SelectedModelPath));
+                }
+                else
+                {
+                    var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    SelectedModelPath = Path.Combine(userProfile, ".ollama", "models");
+                    RaisePropertyChanged(nameof(SelectedModelPath));
+                }
+            });
+            await task;
+        }
+
+
+      
     }
 }
