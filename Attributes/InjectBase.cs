@@ -9,7 +9,7 @@ namespace ollez.Attributes
     public class InjectBase
     {
         public InjectBase()
-        {   
+        {
             Services.LoggerInjector.InjectLoggers(this);
         }
     }

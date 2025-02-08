@@ -20,7 +20,7 @@ namespace ollez.Models
             get => _messageType;
             set => SetProperty(ref _messageType, value);
         }
-        
+
         public string Content
         {
             get => _content;
@@ -55,10 +55,10 @@ namespace ollez.Models
         public string Role => IsUser ? "user" : "assistant";
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        
+
         // 外键
         public string SessionId { get; set; } = string.Empty;
-        
+
         [NotMapped]
         public ChatSession? Session { get; set; }
 

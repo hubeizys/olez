@@ -34,10 +34,12 @@ namespace ollez.Services
             LogEntries = new ObservableCollection<LogEntry>();
             // 启用集合的线程同步
             BindingOperations.EnableCollectionSynchronization(LogEntries, new object());
-            
+
+
             _logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
             Log.Debug("LogService: 日志目录路径: {DirectoryPath}", _logDirectory);
-            
+
+
             if (!Directory.Exists(_logDirectory))
             {
                 Log.Debug("LogService: 创建日志目录");
@@ -67,7 +69,8 @@ namespace ollez.Services
 
             CurrentLogFile = FindLatestLogFile();
             Log.Debug("LogService: 当前日志文件: {FilePath}", CurrentLogFile);
-            
+
+
             if (string.IsNullOrEmpty(CurrentLogFile))
             {
                 Log.Debug("LogService: 未找到日志文件");
@@ -122,10 +125,13 @@ namespace ollez.Services
                 {
                     acquired = await _semaphore.WaitAsync(0);
                     if (!acquired) return;
-                    
+
+
                     await Task.Delay(500);
-                    
-                    if (File.Exists(e.FullPath) && 
+
+
+                    if (File.Exists(e.FullPath) &&
+
                         Path.GetFileName(e.FullPath).StartsWith(LOG_FILE_PREFIX, StringComparison.OrdinalIgnoreCase) &&
                         File.GetLastWriteTime(e.FullPath) > File.GetLastWriteTime(CurrentLogFile))
                     {
@@ -207,7 +213,8 @@ namespace ollez.Services
         private async Task ReadNewLines()
         {
             if (!_isMonitoring) return;
-            
+
+
             Log.Debug("LogService: 开始读取新日志行");
             try
             {

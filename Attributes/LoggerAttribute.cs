@@ -17,4 +17,4 @@ namespace ollez.Attributes
             LogFileName = logFileName;
         }
     }
-} 
+}

@@ -43,4 +43,4 @@ namespace ollez.Models
         }
         public GpuInfo[] Gpus { get; set; } = Array.Empty<GpuInfo>();
     }
-} 
+}

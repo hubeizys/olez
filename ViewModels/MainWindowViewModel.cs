@@ -14,7 +14,8 @@ namespace ollez.ViewModels
     {
         private readonly ISystemCheckService _systemCheckService;
         private readonly IRegionManager _regionManager;
-        
+
+
         private CudaInfo _cudaInfo = new();
         public CudaInfo CudaInfo
         {
@@ -51,8 +52,9 @@ namespace ollez.ViewModels
             _regionManager = regionManager;
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystemAsync());
             NavigateCommand = new DelegateCommand<string>(Navigate);
-            
+
             // 初始化时自动检查并导航到默认页面
+
             InitializeAsync();
         }
 
@@ -103,4 +105,5 @@ namespace ollez.ViewModels
             }
         }
     }
-} 
+}
+

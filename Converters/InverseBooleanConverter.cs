@@ -16,4 +16,4 @@ namespace ollez.Converters
             return !(bool)value;
         }
     }
-} 
+}

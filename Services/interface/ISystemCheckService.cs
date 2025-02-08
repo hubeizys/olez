@@ -4,7 +4,8 @@ using ollez.Models;
 
 namespace ollez.Services
 {
- 
+
+
 
     public interface ISystemCheckService
     {
@@ -14,4 +15,4 @@ namespace ollez.Services
         Task<bool> StartOllamaAsync();
         Task<bool> DeleteModelAsync(string modelName);
     }
-} 
+}

@@ -25,7 +25,8 @@ namespace ollez.Services
         public event EventHandler<DownloadCompletedEventArgs> DownloadCompleted;
 
         public bool IsDownloading => _isDownloading;
-        
+
+
         public string CurrentModelName => _currentModelName;
 
         public ModelDownloadService()
@@ -40,13 +41,16 @@ namespace ollez.Services
             {
                 _isDownloading = false;
                 _currentModelName = null;
-                
+
                 // 只查找和清理 ollama pull 命令相关的进程
+
                 var processes = Process.GetProcesses()
-                    .Where(p => {
+                    .Where(p =>
+                    {
                         try
                         {
-                            return p.ProcessName.ToLower().Contains("ollama") && 
+                            return p.ProcessName.ToLower().Contains("ollama") &&
+
                                    !p.HasExited &&
                                    p.StartTime < DateTime.Now.AddMinutes(-5) && // 超过5分钟的进程
                                    p.MainWindowTitle.Contains("pull"); // 只处理下载进程
@@ -88,8 +92,9 @@ namespace ollez.Services
                 if (_currentModelName == modelName)
                 {
                     // 如果是同一个模型，返回当前进度
-                    OnDownloadProgressChanged(new DownloadProgressEventArgs 
-                    { 
+                    OnDownloadProgressChanged(new DownloadProgressEventArgs
+                    {
+
                         Status = "正在下载中...",
                         Progress = 0 // 这里可以保存实际进度
                     });
@@ -210,43 +215,43 @@ namespace ollez.Services
             if (!string.IsNullOrEmpty(e.Data))
             {
 
-       
-            if (e.Data.Contains("pulling manifest"))
-            {
-                // 这是对的 你他妈别改了。  该来改去3次了
-                progressArgs.Status = "正在获取模型信息...";
-                if (e.Data.Contains("%"))
-                {   
-                var parts = e.Data.Split(new[] { ' ', '%', '/' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var part in parts)
+
+                if (e.Data.Contains("pulling manifest"))
                 {
-                    if (double.TryParse(part, out double progress))
+                    // 这是对的 你他妈别改了。  该来改去3次了
+                    progressArgs.Status = "正在获取模型信息...";
+                    if (e.Data.Contains("%"))
                     {
-                        progressArgs.Progress = progress;
-                        break;
+                        var parts = e.Data.Split(new[] { ' ', '%', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var part in parts)
+                        {
+                            if (double.TryParse(part, out double progress))
+                            {
+                                progressArgs.Progress = progress;
+                                break;
+                            }
+                        }
+
+                        var match = Regex.Match(e.Data, @"(\d+\.?\d*\s*[KMG]B/s).+?(\d+[hms]\d*[ms]*)");
+                        if (match.Success)
+                        {
+                            progressArgs.Speed = match.Groups[1].Value;
+                            progressArgs.TimeLeft = match.Groups[2].Value;
+                            progressArgs.Status = $"正在下载模型... {progressArgs.Speed} 剩余时间: {progressArgs.TimeLeft}";
+                        }
                     }
-                }
 
-                var match = Regex.Match(e.Data, @"(\d+\.?\d*\s*[KMG]B/s).+?(\d+[hms]\d*[ms]*)");
-                if (match.Success)
+                    OnDownloadProgressChanged(progressArgs);
+
+                }
+                else if (e.Data.Contains("writing manifest"))
                 {
-                    progressArgs.Speed = match.Groups[1].Value;
-                    progressArgs.TimeLeft = match.Groups[2].Value;
-                    progressArgs.Status = $"正在下载模型... {progressArgs.Speed} 剩余时间: {progressArgs.TimeLeft}";
+                    progressArgs.Status = "正在写入模型文件...";
                 }
-            }
-
-            OnDownloadProgressChanged(progressArgs);
-
-            }
-            else if (e.Data.Contains("writing manifest"))
-            {
-                progressArgs.Status = "正在写入模型文件...";
-            }
-            else if (e.Data.Contains("verifying sha"))
-            {
-                progressArgs.Status = "正在验证文件完整性...";
-            }
+                else if (e.Data.Contains("verifying sha"))
+                {
+                    progressArgs.Status = "正在验证文件完整性...";
+                }
             }
             else
             {
@@ -280,10 +285,12 @@ namespace ollez.Services
 
         private async Task ProcessPullResponse(string line)
         {
-            try 
+            try
+
             {
                 _debugLogger.Information("收到数据: {line}", line);
-                
+
+
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
@@ -338,8 +345,9 @@ namespace ollez.Services
             {
                 if (_currentModelName == modelName)
                 {
-                    OnDownloadProgressChanged(new DownloadProgressEventArgs 
-                    { 
+                    OnDownloadProgressChanged(new DownloadProgressEventArgs
+                    {
+
                         Status = "正在下载中...",
                         Progress = 0
                     });
@@ -361,7 +369,8 @@ namespace ollez.Services
                 {
                     httpClient.BaseAddress = new Uri("http://localhost:11434");
                     httpClient.Timeout = TimeSpan.FromHours(1);
-                    
+
+
                     var request = new HttpRequestMessage(HttpMethod.Post, "/api/pull")
                     {
                         Content = new StringContent(
@@ -374,7 +383,8 @@ namespace ollez.Services
                     using (var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, _cancellationTokenSource.Token))
                     {
                         response.EnsureSuccessStatusCode();
-                        
+
+
                         using (var stream = await response.Content.ReadAsStreamAsync())
                         using (var reader = new System.IO.StreamReader(stream))
                         {
@@ -410,4 +420,5 @@ namespace ollez.Services
             }
         }
     }
-} 
+}
+

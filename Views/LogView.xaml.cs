@@ -16,7 +16,8 @@ namespace ollez.Views
                 {
                     _viewModel.ScrollToEndRequested -= OnScrollToEndRequested;
                 }
-                
+
+
                 if (value is LogViewModel viewModel)
                 {
                     _viewModel = viewModel;

@@ -5,21 +5,21 @@
  * 描述：系统状态视图的视图模型
  */
 
+using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using System.Windows.Threading;
+using MaterialDesignThemes.Wpf;
+using ollez.Data;
+using ollez.Models;
+using ollez.Services;
+using ollez.Views;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Regions;
-using System;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using ollez.Services;
-using ollez.Models;
-using MaterialDesignThemes.Wpf;
-using ollez.Views;
-using System.Windows.Input;
-using ollez.Data;
-using System.Linq;
-using System.Windows.Threading;
 
 namespace ollez.ViewModels
 {
@@ -42,7 +42,7 @@ namespace ollez.ViewModels
             IsRunning = false,
             HasError = false,
             Endpoint = "http://localhost:11434",
-            InstalledModels = new ObservableCollection<OllamaModel>()
+            InstalledModels = new ObservableCollection<OllamaModel>(),
         };
 
         private ModelRecommendation _modelRecommendation = new()
@@ -52,9 +52,9 @@ namespace ollez.ViewModels
             {
                 Name = "初始化中...",
                 Description = "正在检查系统状态...",
-                MinimumVram = 0
+                MinimumVram = 0,
             },
-            RecommendationReason = "正在检查系统状态..."
+            RecommendationReason = "正在检查系统状态...",
         };
         private bool _isChecking;
         private bool _showInstallationGuide = false;
@@ -113,8 +113,16 @@ namespace ollez.ViewModels
         public DelegateCommand OpenSetupCommand { get; }
         public ICommand NavigateToChatCommand { get; }
         public DelegateCommand<string> DeleteModelCommand { get; }
+        public DelegateCommand StartOllamaCommand { get; }
+        public DelegateCommand StopOllamaCommand { get; }
 
-        public SystemStatusViewModel(ISystemCheckService systemCheckService, IHardwareMonitorService hardwareMonitorService, IRegionManager regionManager, IChatDbService chatDbService, IModelDownloadService modelDownloadService)
+        public SystemStatusViewModel(
+            ISystemCheckService systemCheckService,
+            IHardwareMonitorService hardwareMonitorService,
+            IRegionManager regionManager,
+            IChatDbService chatDbService,
+            IModelDownloadService modelDownloadService
+        )
         {
             _systemCheckService = systemCheckService;
             _hardwareMonitorService = hardwareMonitorService;
@@ -124,11 +132,11 @@ namespace ollez.ViewModels
             // 初始化定时器
             _checkTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(30) // 每30秒检查一次
+                Interval = TimeSpan.FromSeconds(30), // 每30秒检查一次
             };
-            _checkTimer.Tick += async (s, e) => 
+            _checkTimer.Tick += async (s, e) =>
             {
-                try 
+                try
                 {
                     var ollamaInfo = await _systemCheckService.CheckOllamaAsync();
                     if (!ollamaInfo.IsRunning && !IsChecking)
@@ -148,15 +156,24 @@ namespace ollez.ViewModels
 
             // 设置默认值
             InitializeDefaultValues();
-            
+
             CheckSystemCommand = new DelegateCommand(async () => await CheckSystem());
-            ToggleGuideCommand = new DelegateCommand(() => ShowInstallationGuide = !ShowInstallationGuide);
-            OpenSetupCommand = new DelegateCommand(async () => await ExecuteOpenSetup());
+            ToggleGuideCommand = new DelegateCommand(
+                () => ShowInstallationGuide = !ShowInstallationGuide
+            );
+            OpenSetupCommand = new DelegateCommand(
+                () => _regionManager.RequestNavigate("MainRegion", "SystemSetupView")
+            );
             NavigateToChatCommand = new DelegateCommand<string>(NavigateToChat);
-            DeleteModelCommand = new DelegateCommand<string>(async (modelName) => await DeleteModel(modelName));
+            DeleteModelCommand = new DelegateCommand<string>(
+                async (modelName) => await DeleteModel(modelName)
+            );
+            StartOllamaCommand = new DelegateCommand(async () => await StartOllama());
+            StopOllamaCommand = new DelegateCommand(async () => await StopOllama());
             InitializeInstallationSteps();
-            
+
             // 异步执行实际检查
+
             _ = Task.Run(async () => await CheckSystem());
             _checkTimer.Start();
         }
@@ -176,7 +193,7 @@ namespace ollez.ViewModels
                 GpuMemoryTotal = 0,
                 GpuMemoryUsed = 0,
                 GpuMemoryUsage = 0,
-                Drives = new ObservableCollection<ollez.Models.DriveInfo>()
+                Drives = new ObservableCollection<ollez.Models.DriveInfo>(),
             };
 
             // 设置默认的CUDA信息
@@ -187,7 +204,7 @@ namespace ollez.ViewModels
                 DriverVersion = "正在检测中...",
                 HasCudnn = false,
                 CudnnVersion = "正在检测中...",
-                Gpus = Array.Empty<GpuInfo>()
+                Gpus = Array.Empty<GpuInfo>(),
             };
 
             // 设置默认的Ollama信息
@@ -200,7 +217,7 @@ namespace ollez.ViewModels
                 BuildType = "正在检测中...",
                 InstallPath = "正在检测中...",
                 ModelsPath = "正在检测中...",
-                InstalledModels = new ObservableCollection<OllamaModel>()
+                InstalledModels = new ObservableCollection<OllamaModel>(),
             };
 
             // 设置默认的模型推荐信息
@@ -211,9 +228,9 @@ namespace ollez.ViewModels
                 {
                     Name = "正在分析系统配置...",
                     Description = "正在根据您的系统配置分析合适的模型...",
-                    MinimumVram = 0
+                    MinimumVram = 0,
                 },
-                RecommendationReason = "正在分析您的系统配置，稍后将为您推荐最适合的模型..."
+                RecommendationReason = "正在分析您的系统配置，稍后将为您推荐最适合的模型...",
             };
 
             // 初始化安装步骤状态
@@ -234,11 +251,7 @@ namespace ollez.ViewModels
                     "正在检查Ollama状态...",
                     "https://ollama.com/download"
                 ),
-                new InstallationStep(
-                    "下载推荐模型",
-                    "等待系统环境检查完成...",
-                    string.Empty
-                )
+                new InstallationStep("下载推荐模型", "等待系统环境检查完成...", string.Empty),
             };
         }
 
@@ -265,7 +278,7 @@ namespace ollez.ViewModels
                     "下载推荐模型",
                     "打开终端或命令提示符，运行以下命令下载推荐的模型：\nollama pull [模型名称]\n\n下载完成后即可开始使用。",
                     string.Empty
-                )
+                ),
             };
         }
 
@@ -274,15 +287,14 @@ namespace ollez.ViewModels
             IsChecking = true;
             try
             {
-              
-
                 // 创建所有检查任务
+
                 CheckingStatus = "正在检查硬件信息...";
                 var hardwareTask = _hardwareMonitorService.GetHardwareInfoAsync();
-                
+
                 CheckingStatus = "正在检查CUDA状态...";
                 var cudaTask = _systemCheckService.CheckCudaAsync();
-                
+
                 CheckingStatus = "正在检查Ollama状态...";
                 var ollamaTask = _systemCheckService.CheckOllamaAsync();
 
@@ -307,7 +319,8 @@ namespace ollez.ViewModels
                 InstallationSteps[0].IsCompleted = CudaInfo.IsAvailable;
                 InstallationSteps[1].IsCompleted = CudaInfo.IsAvailable;
                 InstallationSteps[2].IsCompleted = OllamaInfo.IsRunning;
-                InstallationSteps[3].IsCompleted = OllamaInfo.IsRunning && OllamaInfo.InstalledModels.Count > 0;
+                InstallationSteps[3].IsCompleted =
+                    OllamaInfo.IsRunning && OllamaInfo.InstalledModels.Count > 0;
             }
             finally
             {
@@ -318,16 +331,21 @@ namespace ollez.ViewModels
 
         private async Task ExecuteOpenSetup()
         {
-            var view = new SystemSetupView { DataContext = new SystemSetupViewModel(_hardwareMonitorService, _systemCheckService, _chatDbService, _modelDownloadService) };
+            var view = new SystemSetupView
+            {
+                DataContext = new SystemSetupViewModel(
+                    _hardwareMonitorService,
+                    _systemCheckService,
+                    _chatDbService,
+                    _modelDownloadService
+                ),
+            };
             await DialogHost.Show(view, "RootDialog");
         }
 
         private void NavigateToChat(string modelName)
         {
-            var parameters = new NavigationParameters
-            {
-                { "SelectedModel", modelName }
-            };
+            var parameters = new NavigationParameters { { "SelectedModel", modelName } };
             _regionManager.RequestNavigate("MainRegion", "ChatView", parameters);
         }
 
@@ -354,8 +372,9 @@ namespace ollez.ViewModels
             Debug.WriteLine("SystemStatusView - OnNavigatedTo");
             // 当导航到此视图时，确保数据已经加载
             _ = CheckSystem();
-            
+
             // 开始监控
+
             _hardwareMonitorService.StartMonitoring();
             _checkTimer.Start();
         }
@@ -376,36 +395,85 @@ namespace ollez.ViewModels
 
         private async Task DeleteModel(string modelName)
         {
-            if (string.IsNullOrEmpty(modelName)) return;
+            if (string.IsNullOrEmpty(modelName))
+                return;
 
+            try
+            {
+                IsChecking = true;
+                CheckingStatus = $"正在删除模型 {modelName}...";
 
-                try
+                // 调用系统服务删除模型
+                await _systemCheckService.DeleteModelAsync(modelName);
+
+                // 重新检查系统状态以更新UI
+                await CheckSystem();
+            }
+            catch (Exception ex)
+            {
+                // 显示错误消息
+                var errorContent = new TextBlock
                 {
-                    IsChecking = true;
-                    CheckingStatus = $"正在删除模型 {modelName}...";
-                    
-                    // 调用系统服务删除模型
-                    await _systemCheckService.DeleteModelAsync(modelName);
-                    
-                    // 重新检查系统状态以更新UI
-                    await CheckSystem();
-                }
-                catch (Exception ex)
+                    Text = $"删除模型时出错：{ex.Message}",
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new System.Windows.Thickness(0, 0, 0, 8),
+                };
+                await DialogHost.Show(errorContent, "RootDialog");
+            }
+            finally
+            {
+                IsChecking = false;
+            }
+        }
+
+        private async Task StartOllama()
+        {
+            try
+            {
+                IsChecking = true;
+                CheckingStatus = "正在启动 Ollama...";
+                await _systemCheckService.StartOllamaAsync();
+                await CheckSystem();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"启动 Ollama 时出错: {ex.Message}");
+            }
+            finally
+            {
+                IsChecking = false;
+            }
+        }
+
+        private async Task StopOllama()
+        {
+            try
+            {
+                IsChecking = true;
+                CheckingStatus = "正在停止 Ollama...";
+                var process = new Process
                 {
-                    // 显示错误消息
-                    var errorContent = new TextBlock
+                    StartInfo = new ProcessStartInfo
                     {
-                        Text = $"删除模型时出错：{ex.Message}",
-                        TextWrapping = TextWrapping.Wrap,
-                        Margin = new System.Windows.Thickness(0, 0, 0, 8)
-                    };
-                    await DialogHost.Show(errorContent, "RootDialog");
-                }
-                finally
-                {
-                    IsChecking = false;
-                }
-    
+                        FileName = "taskkill",
+                        Arguments = "/F /IM ollama.exe /IM ollamaapp.exe",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true,
+                    },
+                };
+                process.Start();
+                await process.WaitForExitAsync();
+                await CheckSystem();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"停止 Ollama 时出错: {ex.Message}");
+            }
+            finally
+            {
+                IsChecking = false;
+            }
         }
     }
 }

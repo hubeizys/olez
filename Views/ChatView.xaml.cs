@@ -68,8 +68,8 @@ namespace ollez.Views
             // 更新按钮图标
             var button = (Button)sender;
             var icon = (MaterialDesignThemes.Wpf.PackIcon)button.Content;
-            icon.Kind = _isSidebarExpanded ? 
-                MaterialDesignThemes.Wpf.PackIconKind.ChevronLeft : 
+            icon.Kind = _isSidebarExpanded ?
+                MaterialDesignThemes.Wpf.PackIconKind.ChevronLeft :
                 MaterialDesignThemes.Wpf.PackIconKind.ChevronRight;
 
             // 应用动画

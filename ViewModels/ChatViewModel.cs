@@ -106,13 +106,15 @@ namespace ollez.ViewModels
         {
             _chatService = chatService ?? throw new ArgumentNullException(nameof(chatService));
             _systemCheckService = systemCheckService ?? throw new ArgumentNullException(nameof(systemCheckService));
-            
+
+
             SendMessageCommand = new DelegateCommand(async () => await SendMessageAsync(), CanSendMessage);
             RefreshModelsCommand = new DelegateCommand(async () => await RefreshModelsAsync());
             NewSessionCommand = new DelegateCommand(async () => await CreateNewSessionAsync());
             NewChatCommand = new DelegateCommand(ExecuteNewChat);
             OpenSettingsCommand = new DelegateCommand(ExecuteOpenSettings);
-            
+
+
             InitializeAsync().ContinueWith(task =>
             {
                 if (task.IsFaulted && task.Exception != null)
@@ -137,7 +139,8 @@ namespace ollez.ViewModels
                 {
                     throw new InvalidOperationException("创建会话失败：会话ID为空");
                 }
-                
+
+
                 var newSession = new ChatSession
                 {
                     Id = sessionId,
@@ -145,13 +148,15 @@ namespace ollez.ViewModels
                     CreatedAt = DateTime.Now,
                     Messages = new ObservableCollection<ChatMessage>()
                 };
-                
+
+
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     ChatSessions.Add(newSession);
                     CurrentSession = newSession;
                 });
-                
+
+
                 _debugLogger.Information($"[ChatViewModel] 创建新会话成功: {sessionId}");
                 _debugLogger.Information($"[ChatViewModel] 当前会话: {CurrentSession.Id}");
                 Log.Information($"[ChatViewModel] 创建新会话成功: {sessionId}");
@@ -186,7 +191,8 @@ namespace ollez.ViewModels
         {
             _debugLogger.Information($"[UI Debug] 检查是否可以发送消息: InputMessage={InputMessage}, IsProcessing={IsProcessing}, " +
                                      $"SelectedModel={SelectedModel}, CurrentSession={CurrentSession}");
-            return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing && 
+            return !string.IsNullOrWhiteSpace(InputMessage) && !IsProcessing &&
+
                    !string.IsNullOrEmpty(SelectedModel) && CurrentSession != null;
         }
 
@@ -195,45 +201,48 @@ namespace ollez.ViewModels
             _debugLogger.Information($"[UI Debug] 收到新的chunk: '{chunk}'");
             _pendingContent.Append(chunk);
             _debugLogger.Information($"[UI Debug] 当前缓冲区大小: {_pendingContent.Length} 字符");
-            
+
+
             var now = DateTime.Now;
             var timeSinceLastUpdate = (now - _lastUpdateTime).TotalMilliseconds;
             // 时间间隔 now 和 last 时间一起打印
             _debugLogger.Information($"[UI Debug] 距离上次更新过去了: {timeSinceLastUpdate}ms, now: {now}, last: {_lastUpdateTime}");
 
-          
+
+
             if (timeSinceLastUpdate >= UI_UPDATE_INTERVAL_MS || isLastChunk)
             {
                 _lastUpdateTime = now;
                 _debugLogger.Information($"[UI Debug] 准备更新UI，当前缓冲区内容长度: {_pendingContent.Length}");
-                  try
-            {
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                try
                 {
-                    if (Messages.Count > 0)
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
                     {
-                        var lastMessage = Messages.Last();
-                        if (!lastMessage.IsUser)
+                        if (Messages.Count > 0)
                         {
-                            var newContent = lastMessage.Content + _pendingContent.ToString();
-                            lastMessage.Content = newContent; // 使用属性setter来触发MessageDocument更新
+                            var lastMessage = Messages.Last();
+                            if (!lastMessage.IsUser)
+                            {
+                                var newContent = lastMessage.Content + _pendingContent.ToString();
+                                lastMessage.Content = newContent; // 使用属性setter来触发MessageDocument更新
+                            }
                         }
-                    }
-                });
+                    });
 
-                _pendingContent.Clear();
+                    _pendingContent.Clear();
 
-            }
-            catch (Exception ex)
-            {
-                _debugLogger.Error($"[UI Debug] 更新UI时发生错误: {ex}");
-            }
+                }
+                catch (Exception ex)
+                {
+                    _debugLogger.Error($"[UI Debug] 更新UI时发生错误: {ex}");
+                }
             }
         }
 
         private async Task SendMessageAsync()
         {
-            if (string.IsNullOrWhiteSpace(InputMessage) || IsProcessing || 
+            if (string.IsNullOrWhiteSpace(InputMessage) || IsProcessing ||
+
                 string.IsNullOrEmpty(SelectedModel) || CurrentSession == null)
             {
                 _debugLogger.Error($"[UI Debug] 无法发送消息: InputMessage为空={string.IsNullOrWhiteSpace(InputMessage)}, " +
@@ -256,7 +265,8 @@ namespace ollez.ViewModels
 
                 Messages.Add(userMessage);
                 CurrentSession.Messages.Add(userMessage);
-                
+
+
                 var message = InputMessage;
                 InputMessage = string.Empty;
                 IsProcessing = true;

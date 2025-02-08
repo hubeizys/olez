@@ -79,12 +79,14 @@ namespace ollez.ViewModels
             _systemCheckService = systemCheckService;
             _chatDbService = chatDbService;
             _modelDownloadService = modelDownloadService;
-            
+
             // 订阅下载事件
+
             _modelDownloadService.DownloadProgressChanged += ModelDownloadService_DownloadProgressChanged;
             _modelDownloadService.DownloadCompleted += ModelDownloadService_DownloadCompleted;
-            
+
             // 初始化下载状态
+
             IsDownloadingModel = _modelDownloadService.IsDownloading;
             if (IsDownloadingModel)
             {
@@ -96,9 +98,11 @@ namespace ollez.ViewModels
                     targetModel.IsDownloading = true;
                 }
             }
-            
+
+
             _currentStep = 0;
-            
+
+
             NextCommand = new DelegateCommand(ExecuteNext, CanExecuteNext);
             PreviousCommand = new DelegateCommand(ExecutePrevious, CanExecutePrevious);
             SkipCommand = new DelegateCommand(ExecuteSkip, CanExecuteSkip);
@@ -116,10 +120,12 @@ namespace ollez.ViewModels
             SearchModelsCommand = new DelegateCommand(ExecuteSearchModels);
             InstallModelCommand = new DelegateCommand<string>(ExecuteInstallModel);
             InstallDeepseekModelCommand = new DelegateCommand<string>(ExecuteInstallDeepseekModel);
-            
+
+
             SearchResults = new ObservableCollection<OllamaModel>();
             DeepseekModels = new ObservableCollection<DeepseekModel>(DeepseekModel.GetDefaultModels());
-            
+
+
             InitializeAsync();
         }
 
@@ -147,12 +153,14 @@ namespace ollez.ViewModels
                     // 查找CUDA安装路径
                     var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
                     var possibleCudaPaths = Directory.GetDirectories(programFiles, "NVIDIA GPU Computing Toolkit\\CUDA*");
-                    
+
+
                     if (possibleCudaPaths.Length > 0)
                     {
                         var latestCudaPath = possibleCudaPaths.OrderByDescending(p => p).First();
-                        
+
                         // 使用PowerShell设置环境变量
+
                         var setEnvCommand = $"[Environment]::SetEnvironmentVariable('CUDA_PATH', '{latestCudaPath}', 'Machine')";
                         var startInfo = new ProcessStartInfo
                         {
@@ -180,7 +188,8 @@ namespace ollez.ViewModels
                         {
                             var setPathCommand = $"[Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';{binPath}', 'Machine')";
                             startInfo.Arguments = $"-Command \"{setPathCommand}\"";
-                            
+
+
                             using (var process = new Process { StartInfo = startInfo })
                             {
                                 process.Start();
@@ -210,7 +219,8 @@ namespace ollez.ViewModels
         {
             _installCheckCts?.Cancel();
             _installCheckCts = new CancellationTokenSource();
-            
+
+
             Task.Run(async () =>
             {
                 while (!_installCheckCts.Token.IsCancellationRequested)
@@ -291,8 +301,9 @@ namespace ollez.ViewModels
             {
                 AvailableDrives.Add($"{drive.Name} (可用空间: {drive.AvailableSpace:F1} GB)");
             }
-            
+
             // 默认选择第一个非C盘且空间足够的驱动器
+
             SelectedDrive = AvailableDrives.FirstOrDefault(d => !d.StartsWith("C:")) ?? AvailableDrives.FirstOrDefault() ?? string.Empty;
         }
 
@@ -621,7 +632,8 @@ namespace ollez.ViewModels
         {
             var appDir = AppDomain.CurrentDomain.BaseDirectory;
             var cudaDir = Path.Combine(appDir, "cuda");
-            
+
+
             if (Directory.Exists(cudaDir))
             {
                 Process.Start("explorer.exe", cudaDir);
@@ -636,7 +648,8 @@ namespace ollez.ViewModels
         {
             var appDir = AppDomain.CurrentDomain.BaseDirectory;
             var ollamaDir = Path.Combine(appDir, "ollama");
-            
+
+
             if (Directory.Exists(ollamaDir))
             {
                 Process.Start("explorer.exe", ollamaDir);
@@ -956,7 +969,8 @@ namespace ollez.ViewModels
         {
             var appDir = AppDomain.CurrentDomain.BaseDirectory;
             var cudaDir = Path.Combine(appDir, "cuda");
-            
+
+
             var nvidiaSetupPath = Path.Combine(cudaDir, "NVIDIASetup.exe");
             if (File.Exists(nvidiaSetupPath))
             {
@@ -1174,7 +1188,8 @@ namespace ollez.ViewModels
                 ModelDownloadProgress = e.Progress;
                 ModelDownloadStatus = e.Status;
                 CommandOutput = e.Status;
-                
+
+
                 var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();
                 var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
                 if (targetModel != null)
@@ -1190,19 +1205,22 @@ namespace ollez.ViewModels
             {
                 ModelDownloadStatus = e.Message;
                 IsDownloadingModel = false;
-                
+
+
                 var modelSize = _currentDownloadingModel?.Split(':').LastOrDefault();
                 var targetModel = DeepseekModels.FirstOrDefault(m => m.Size == modelSize);
                 if (targetModel != null)
                 {
                     targetModel.IsDownloading = false;
                 }
-                
+
+
                 if (e.Success)
                 {
                     CheckInstalledModels();
                 }
-                
+
+
                 _currentDownloadingModel = null;
             });
         }
@@ -1286,9 +1304,11 @@ namespace ollez.ViewModels
             {
                 return ollamaModels;
             }
-            
+
+
             var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             return Path.Combine(userProfile, ".ollama", "models");
         }
     }
-} 
+}
+

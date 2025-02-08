@@ -13,4 +13,4 @@ namespace ollez.Models
         public ModelRequirements RecommendedModel { get; set; } = new();
         public string RecommendationReason { get; set; } = string.Empty;
     }
-} 
+}

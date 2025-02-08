@@ -15,13 +15,13 @@ public class DebugTraceListener : TraceListener
         var stack = new StackTrace(true);
         var frame = stack.GetFrame(5); // 定位到实际触发位置
         var method = frame.GetMethod();
-        
+
         var log = $"[WPF-BINDING-ERROR][{DateTime.Now:HH:mm:ss.fff}]" +
                   $"\nMessage: {message}" +
                   $"\nSource: {frame.GetFileName()}:{frame.GetFileLineNumber()}" +
                   $"\nControl Type: {method.DeclaringType?.FullName}" +
                   $"\nVisual Tree Path:\n{GetVisualTreePath()}";
-        
+
         System.Diagnostics.Debug.WriteLine(log);
 
     }

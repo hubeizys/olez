@@ -22,4 +22,4 @@ namespace ollez.Models
             IsCompleted = isCompleted;
         }
     }
-} 
+}

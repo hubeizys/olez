@@ -54,8 +54,8 @@
                     TextWrapping="Wrap" />
             </StackPanel>
         </materialDesign:Card>
-
-        <ScrollViewer Visibility="{Binding IsChecking, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+        <!--  Visibility="{Binding IsChecking, Converter={StaticResource InverseBooleanToVisibilityConverter}}"  -->
+        <ScrollViewer>
             <ScrollViewer.Style>
                 <Style TargetType="ScrollViewer">
                     <Style.Triggers>
@@ -88,9 +88,7 @@
 
                     <!--  安装指引面板  -->
                     <materialDesign:Card Grid.Row="0" Margin="0,0,0,16">
-                        <Expander
-                            ExpandDirection="Up"
-                            IsExpanded="{Binding ShowInstallationGuide}">
+                        <Expander ExpandDirection="Up" IsExpanded="{Binding ShowInstallationGuide}">
                             <Expander.Header>
                                 <DockPanel>
                                     <materialDesign:PackIcon
@@ -112,9 +110,7 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.Template>
                                     <ControlTemplate>
-                                        <ScrollViewer 
-                                            VirtualizingPanel.IsVirtualizing="True"
-                                            VirtualizingPanel.VirtualizationMode="Recycling">
+                                        <ScrollViewer VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
                                             <ItemsPresenter />
                                         </ScrollViewer>
                                     </ControlTemplate>
@@ -300,14 +296,12 @@
                                 <ItemsControl x:Name="ModelsItemsControl" ItemsSource="{Binding OllamaInfo.InstalledModels}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
-                                            <VirtualizingStackPanel  Orientation="Horizontal" />
+                                            <VirtualizingStackPanel Orientation="Horizontal" />
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.Template>
                                         <ControlTemplate>
-                                            <ScrollViewer 
-                                                VirtualizingPanel.IsVirtualizing="True"
-                                                VirtualizingPanel.VirtualizationMode="Recycling">
+                                            <ScrollViewer VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
                                                 <ItemsPresenter />
                                             </ScrollViewer>
                                         </ControlTemplate>
@@ -327,9 +321,9 @@
                                                     <Button.ContextMenu>
                                                         <ContextMenu>
                                                             <MenuItem
-                                                                Header="删除模型"
                                                                 Command="{Binding DataContext.DeleteModelCommand, Source={x:Reference RootView}}"
-                                                                CommandParameter="{Binding Name}">
+                                                                CommandParameter="{Binding Name}"
+                                                                Header="删除模型">
                                                                 <MenuItem.Icon>
                                                                     <materialDesign:PackIcon Kind="Delete" />
                                                                 </MenuItem.Icon>
@@ -382,7 +376,7 @@
                     <Grid Grid.Row="4">
                         <Grid.Resources>
                             <Style TargetType="materialDesign:Card">
-                                <Setter Property="materialDesign:TransitionAssist.DisableTransitions" Value="True"/>
+                                <Setter Property="materialDesign:TransitionAssist.DisableTransitions" Value="True" />
                             </Style>
                         </Grid.Resources>
                         <Grid.RowDefinitions>
@@ -863,6 +857,19 @@
                                             Margin="8,0,0,0"
                                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                                             Text="Ollama状态" />
+                                        <Button
+                                            Margin="8,0,4,0"
+                                            Command="{Binding StartOllamaCommand}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="启动 Ollama">
+                                            <materialDesign:PackIcon Kind="Play" />
+                                        </Button>
+                                        <Button
+                                            Command="{Binding StopOllamaCommand}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="停止 Ollama">
+                                            <materialDesign:PackIcon Kind="Stop" />
+                                        </Button>
                                     </DockPanel>
 
                                     <Grid Margin="0,16,0,0">
@@ -1035,6 +1042,7 @@
                             </StackPanel>
                         </materialDesign:Card>
                     </Grid>
+
                 </Grid>
 
                 <Button

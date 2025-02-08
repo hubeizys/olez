@@ -14,7 +14,8 @@ namespace ollez.ViewModels
     {
         private readonly ILogService _logService;
         public event EventHandler? ScrollToEndRequested;
-        
+
+
         public ObservableCollection<LogEntry> LogEntries => _logService.LogEntries;
 
         private string _currentLogFile = string.Empty;
@@ -44,21 +45,25 @@ namespace ollez.ViewModels
         {
             Log.Debug("LogViewModel: 构造函数被调用");
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
-            
-            ClearCommand = new DelegateCommand(() => 
+
+
+            ClearCommand = new DelegateCommand(() =>
+
             {
                 Log.Debug("LogViewModel: 清除命令被执行");
                 LogEntries.Clear();
                 _logService.StartMonitoring();
             });
-            
+
+
             LogEntries.CollectionChanged += (s, e) =>
             {
                 if (IsLoggingCollectionChanges)
                 {
                     Log.Debug("LogViewModel: 集合变更事件触发 - 动作类型: {Action}, 当前日志条数: {Count}", e.Action, LogEntries.Count);
                 }
-                
+
+
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add && AutoScroll)
                 {
                     ScrollToEndRequested?.Invoke(this, EventArgs.Empty);

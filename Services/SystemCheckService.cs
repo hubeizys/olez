@@ -377,23 +377,23 @@ namespace ollez.Services
             try
             {
                 // 清理多余的 Ollama 进程
-              var existingProcesses = Process.GetProcessesByName("ollama");
-              foreach (var proc in existingProcesses)
-              {
-                  try
-                  {
-                      if (!proc.HasExited && Process.GetProcessesByName("ollama").Length > 1)
-                      {
-                          proc.Kill();
-                          await proc.WaitForExitAsync();
-                          Debug.WriteLine("已清理多余的 Ollama 进程");
-                      }
-                  }
-                  catch (Exception ex)
-                  {
-                      Debug.WriteLine($"清理 Ollama 进程时出错: {ex.Message}");
-                  }
-              }
+                var existingProcesses = Process.GetProcessesByName("ollama");
+                foreach (var proc in existingProcesses)
+                {
+                    try
+                    {
+                        if (!proc.HasExited && Process.GetProcessesByName("ollama").Length > 1)
+                        {
+                            proc.Kill();
+                            await proc.WaitForExitAsync();
+                            Debug.WriteLine("已清理多余的 Ollama 进程");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"清理 Ollama 进程时出错: {ex.Message}");
+                    }
+                }
                 var response = await _httpClient.GetAsync($"{_ollamaEndpoint}/api/version");
                 if (response.IsSuccessStatusCode)
                 {

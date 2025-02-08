@@ -46,4 +46,4 @@ namespace ollez.Services
             return config.CreateLogger();
         }
     }
-} 
+}

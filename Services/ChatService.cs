@@ -47,8 +47,9 @@ namespace ollez.Services
         public async Task<IAsyncEnumerable<string>> SendMessageStreamAsync(string message, string model)
         {
             Log.Information($"[ChatService] 开始发送消息: Model={model}, Message={message}");
-            
+
             // 保存用户消息到数据库
+
             if (!string.IsNullOrEmpty(_currentSessionId))
             {
                 await _chatDbService.AddMessageAsync(_currentSessionId, message, true);
@@ -100,22 +101,26 @@ namespace ollez.Services
             {
                 var line = await reader.ReadLineAsync();
                 if (line == null) continue;
-                
+
+
                 lineCount++;
-                
+
+
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     Log.Information($"[ChatService] 读取第 {lineCount} 行原始数据: {line}");
                     string? content = null;
                     bool isDone = false;
-                    
+
+
                     try
                     {
                         using var doc = JsonDocument.Parse(line);
                         var messageElement = doc.RootElement.GetProperty("message");
                         content = messageElement.GetProperty("content").GetString();
                         Log.Information($"[ChatService] 解析JSON后的内容: {content}");
-                        
+
+
                         if (doc.RootElement.TryGetProperty("done", out var doneElement))
                         {
                             isDone = doneElement.GetBoolean();
@@ -131,7 +136,8 @@ namespace ollez.Services
                         Log.Error($"[ChatService] 解析响应数据失败: {ex.Message}, 原始数据: {line}");
                         throw;
                     }
-                    
+
+
                     if (!isDone && !string.IsNullOrEmpty(content))
                     {
                         yield return content;

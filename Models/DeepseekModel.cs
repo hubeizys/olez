@@ -11,20 +11,23 @@ namespace ollez.Models
         private double _downloadProgress;
         private bool _isDownloading;
 
-        public string Size 
-        { 
+        public string Size
+        {
+
             get => _size;
             set => SetProperty(ref _size, value);
         }
 
-        public double RequiredVRAM 
-        { 
+        public double RequiredVRAM
+        {
+
             get => _requiredVRAM;
             set => SetProperty(ref _requiredVRAM, value);
         }
 
-        public bool IsInstalled 
-        { 
+        public bool IsInstalled
+        {
+
             get => _isInstalled;
             set => SetProperty(ref _isInstalled, value);
         }
@@ -55,4 +58,4 @@ namespace ollez.Models
             };
         }
     }
-} 
+}

@@ -4,7 +4,8 @@ using ollez.Models;
 
 namespace ollez.Services
 {
-   
+
+
 
     public interface ILogService
     {
