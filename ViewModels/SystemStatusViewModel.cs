@@ -451,19 +451,59 @@ namespace ollez.ViewModels
             {
                 IsChecking = true;
                 CheckingStatus = "正在停止 Ollama...";
-                var process = new Process
+                
+                // 先停止 ollama.exe
+                var processOllama = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = "taskkill",
-                        Arguments = "/F /IM ollama.exe /IM ollamaapp.exe",
+                        Arguments = "/F /IM ollama.exe",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
-                        CreateNoWindow = true,
-                    },
+                        RedirectStandardError = true,
+                        Verb = "runas",
+                        CreateNoWindow = true
+                    }
                 };
-                process.Start();
-                await process.WaitForExitAsync();
+                
+                // 再停止 ollama app.exe
+                var processOllamaApp = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "taskkill",
+                        Arguments = "/F /IM \"ollama app.exe\"",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        Verb = "runas",
+                        CreateNoWindow = true
+                    }
+                };
+
+                try
+                {
+                    processOllama.Start();
+                    await processOllama.WaitForExitAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"停止 ollama.exe 时出错: {ex.Message}");
+                }
+
+                try
+                {
+                    processOllamaApp.Start();
+                    await processOllamaApp.WaitForExitAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"停止 ollama app.exe 时出错: {ex.Message}");
+                }
+
+                // 等待一会儿确保进程完全退出
+                await Task.Delay(1000);
                 await CheckSystem();
             }
             catch (Exception ex)
