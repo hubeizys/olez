@@ -125,7 +125,7 @@
                                     </TextBlock>
 
                                     <!--  本地安装包状态  -->
-                                    <StackPanel
+                                    <!-- <StackPanel
                                         Grid.Row="2"
                                         Margin="0,16,0,0"
                                         Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}">
@@ -143,10 +143,10 @@
                                                 Content="查看文件"
                                                 Style="{StaticResource MaterialDesignFlatButton}" />
                                         </DockPanel>
-                                    </StackPanel>
+                                    </StackPanel> -->
 
                                     <!--  NVIDIA驱动下载状态和进度  -->
-                                    <StackPanel
+                                    <!-- <StackPanel
                                         Grid.Row="2"
                                         Margin="0,16,0,0"
                                         Visibility="{Binding IsDownloadingNvidia, Converter={StaticResource BoolToVis}}">
@@ -170,7 +170,7 @@
                                                     Kind="Download" />
                                             </Button>
                                         </Grid>
-                                    </StackPanel>
+                                    </StackPanel> -->
                                 </Grid>
                             </materialDesign:Card>
 
@@ -178,38 +178,38 @@
                             <materialDesign:Card Background="{DynamicResource MaterialDesignBackground}">
                                 <StackPanel Margin="16">
 
-                                    <Button
+                                    <!-- <Button
                                         Margin="0,0,0,8"
                                         HorizontalAlignment="Left"
                                         Command="{Binding DownloadNvidiaCommand}"
                                         Content="下载NVIDIA驱动"
                                         Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Visibility="{Binding ShowNvidiaDownloadButton, Converter={StaticResource BoolToVis}}" />
+                                        Visibility="{Binding ShowNvidiaDownloadButton, Converter={StaticResource BoolToVis}}" /> -->
 
                                     <DockPanel Visibility="{Binding HasLocalNvidiaSetup, Converter={StaticResource BoolToVis}}">
-                                        <Button
+                                        <!-- <Button
                                             Margin="0,0,0,8"
                                             HorizontalAlignment="Left"
                                             Command="{Binding InstallNvidiaCommand}"
                                             Content="安装NVIDIA驱动"
-                                            Style="{StaticResource MaterialDesignRaisedButton}" />
-                                        <TextBlock
+                                            Style="{StaticResource MaterialDesignRaisedButton}" /> -->
+                                        <!-- <TextBlock
                                             Margin="16,0,0,0"
                                             VerticalAlignment="Center"
                                             Foreground="#666666"
                                             Text="已安装，点击重新安装"
-                                            Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToVis}}" />
+                                            Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToVis}}" /> -->
                                     </DockPanel>
 
                                     <Button
                                         Margin="0,0,0,8"
                                         HorizontalAlignment="Left"
                                         Command="{Binding DownloadCudaCommand}"
-                                        Content="下载CUDA Toolkit"
+                                        Content="下载并安装CUDA Toolkit"
                                         Style="{StaticResource MaterialDesignRaisedButton}"
                                         Visibility="{Binding ShowCudaDownloadButton, Converter={StaticResource BoolToVis}}" />
 
-                                    <DockPanel Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}">
+                                    <!-- <DockPanel Visibility="{Binding HasLocalCudaSetup, Converter={StaticResource BoolToVis}}">
                                         <Button
                                             Margin="0,0,0,8"
                                             HorizontalAlignment="Left"
@@ -222,7 +222,7 @@
                                             Foreground="#666666"
                                             Text="已安装，点击重新安装"
                                             Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource BoolToVis}}" />
-                                    </DockPanel>
+                                    </DockPanel> -->
                                 </StackPanel>
                             </materialDesign:Card>
                         </StackPanel>

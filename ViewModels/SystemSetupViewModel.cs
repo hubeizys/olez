@@ -113,7 +113,7 @@ namespace ollez.ViewModels
             OpenOllamaFolderCommand = new DelegateCommand(ExecuteOpenOllamaFolder);
             DownloadOllamaCommand = new DelegateCommand(async () => await ExecuteDownloadOllama());
             DownloadNvidiaCommand = new DelegateCommand(async () => await ExecuteDownloadNvidia());
-            DownloadCudaCommand = new DelegateCommand(async () => await ExecuteDownloadCuda());
+            DownloadCudaCommand = new DelegateCommand(async () => await ExecuteDownloadCudaBylocationSetup());
             InstallNvidiaCommand = new DelegateCommand(ExecuteInstallNvidia);
             InstallCudaCommand = new DelegateCommand(ExecuteInstallCuda);
             SetupEnvCommand = new DelegateCommand(async () => await ExecuteSetupEnv(), CanExecuteSetupEnv);
@@ -820,6 +820,24 @@ namespace ollez.ViewModels
             {
                 IsDownloadingNvidia = false;
             }
+        }
+
+        // cuda_12.8.0_windows_network.exe
+        private async Task ExecuteDownloadCudaBylocationSetup()
+        {
+            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+            var cudaDir = Path.Combine(appDir, "cuda");
+            var cudaSetupPath = Path.Combine(cudaDir, "cuda_12.8.0_windows_network.exe");
+            // 执行本地的cuda_12.8.0_windows_network.exe
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cudaSetupPath,
+                UseShellExecute = true,
+                Verb = "runas"
+            };
+            Process.Start(startInfo);
+            HasLocalCudaSetup = true;
+            UpdateNvidiaGuide();
         }
 
         private async Task ExecuteDownloadCuda()
