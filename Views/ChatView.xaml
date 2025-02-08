@@ -173,19 +173,39 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <RichTextBox
-                                            IsReadOnly="True"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Padding="0"
-                                            Foreground="{Binding IsUser, Converter={StaticResource MessageForegroundConverter}}"
-                                            converters:DocumentBindingBehavior.Document="{Binding MessageDocument}">
-                                            <RichTextBox.Resources>
-                                                <Style TargetType="{x:Type Paragraph}">
-                                                    <Setter Property="Margin" Value="0"/>
-                                                </Style>
-                                            </RichTextBox.Resources>
-                                        </RichTextBox>
+                                        <Grid>
+                                            <RichTextBox
+                                                IsReadOnly="True"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Padding="0"
+                                                Foreground="{Binding IsUser, Converter={StaticResource MessageForegroundConverter}}"
+                                                converters:DocumentBindingBehavior.Document="{Binding MessageDocument}">
+                                                <RichTextBox.Resources>
+                                                    <Style TargetType="{x:Type Paragraph}">
+                                                        <Setter Property="Margin" Value="0"/>
+                                                    </Style>
+                                                </RichTextBox.Resources>
+                                            </RichTextBox>
+                                            
+                                            <StackPanel 
+                                                Orientation="Horizontal" 
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Visibility="{Binding IsThinking, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                <ProgressBar
+                                                    Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                                    Value="0"
+                                                    IsIndeterminate="True"
+                                                    Width="20"
+                                                    Height="20"
+                                                    Margin="0,0,8,0"/>
+                                                <TextBlock 
+                                                    Text="正在思考..."
+                                                    VerticalAlignment="Center"
+                                                    Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                                            </StackPanel>
+                                        </Grid>
                                     </Border>
 
                                     <!-- 用户头像 -->
