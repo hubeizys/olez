@@ -14,14 +14,17 @@
             <Setter Property="PanningRatio" Value="1" />
         </Style>
     </UserControl.Resources>
-    <ScrollViewer Style="{StaticResource CustomScrollViewerStyle}" HorizontalScrollBarVisibility="Disabled">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" Style="{StaticResource CustomScrollViewerStyle}">
         <StackPanel Margin="16" HorizontalAlignment="Stretch">
             <TextBlock
                 Margin="0,0,0,24"
                 Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                 Text="关于" />
 
-            <materialDesign:Card Margin="0,0,0,16" Padding="16" HorizontalAlignment="Stretch">
+            <materialDesign:Card
+                Margin="0,0,0,16"
+                Padding="16"
+                HorizontalAlignment="Stretch">
                 <StackPanel>
                     <DockPanel>
                         <materialDesign:PackIcon
@@ -44,7 +47,10 @@
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Margin="0,0,0,16" Padding="16" HorizontalAlignment="Stretch">
+            <materialDesign:Card
+                Margin="0,0,0,16"
+                Padding="16"
+                HorizontalAlignment="Stretch">
                 <StackPanel>
                     <DockPanel>
                         <materialDesign:PackIcon
@@ -142,7 +148,10 @@
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Margin="0,0,0,16" Padding="16" HorizontalAlignment="Stretch">
+            <materialDesign:Card
+                Margin="0,0,0,16"
+                Padding="16"
+                HorizontalAlignment="Stretch">
                 <StackPanel>
                     <DockPanel>
                         <materialDesign:PackIcon
@@ -172,7 +181,10 @@
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Margin="0,0,0,16" Padding="16" HorizontalAlignment="Stretch">
+            <materialDesign:Card
+                Margin="0,0,0,16"
+                Padding="16"
+                HorizontalAlignment="Stretch">
                 <StackPanel>
                     <DockPanel>
                         <materialDesign:PackIcon
@@ -190,14 +202,42 @@
                         Margin="0,16,0,0"
                         Style="{StaticResource MaterialDesignBody1TextBlock}"
                         TextWrapping="Wrap">
-                        名称：凶残的朱哥
+                        作者(dy)：凶残的朱哥
                     </TextBlock>
                     <TextBlock
-                        Margin="0,8,0,0"
+                        Margin="0,16,0,0"
                         Style="{StaticResource MaterialDesignBody1TextBlock}"
                         TextWrapping="Wrap">
-                        邮件：laozhu_shangxin@hotmail.com
+                        作者(破小站)：破壁人neptune
                     </TextBlock>
+                    <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource MaterialDesignBody1TextBlock}" Text="邮件：" />
+                        <TextBlock>
+                            <Hyperlink
+                                Focusable="False"
+                                FontSize="22"
+                                NavigateUri="mailto:laozhu_shangxin@hotmail.com"
+                                RequestNavigate="Hyperlink_RequestNavigate">
+                                laozhu_shangxin@hotmail.com
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource MaterialDesignBody1TextBlock}" Text="源码：" />
+                        <TextBlock IsEnabled="True" TextWrapping="Wrap">
+                            <Hyperlink
+                                FontSize="22"
+                                NavigateUri="https://github.com/hubeizys/olez"
+                                RequestNavigate="Hyperlink_RequestNavigate">
+                                https://github.com/hubeizys/olez
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+
+
+
+
+
                 </StackPanel>
             </materialDesign:Card>
         </StackPanel>

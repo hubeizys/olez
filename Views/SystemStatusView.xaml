@@ -210,7 +210,7 @@
                                 </DockPanel>
 
                                 <!--  CUDA 状态  -->
-                                <DockPanel Margin="0,0,0,8">
+                                <DockPanel Margin="0,0,0,8" LastChildFill="False">
                                     <materialDesign:PackIcon
                                         Width="20"
                                         Height="20"
@@ -241,7 +241,7 @@
                                 </DockPanel>
 
                                 <!--  CUDNN 状态  -->
-                                <DockPanel>
+                                <DockPanel LastChildFill="False">
                                     <materialDesign:PackIcon
                                         Width="20"
                                         Height="20"
@@ -318,7 +318,7 @@
                                     VerticalAlignment="Center"
                                     Text="{Binding SelectedModelPath}" />
                             </DockPanel>
-                            
+
                             <!--  提示信息  -->
                             <materialDesign:Card
                                 Margin="0,0,0,16"

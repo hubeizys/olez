@@ -25,9 +25,16 @@ namespace ollez.Services
         public event EventHandler<DownloadCompletedEventArgs> DownloadCompleted;
 
         public bool IsDownloading => _isDownloading;
-
-
         public string CurrentModelName => _currentModelName;
+
+        private class PullProgressInfo
+        {
+            public string Status { get; set; }
+            public string Digest { get; set; }
+            public long Total { get; set; }
+            public long Completed { get; set; }
+            public string Error { get; set; }
+        }
 
         public ModelDownloadService()
         {
@@ -43,14 +50,12 @@ namespace ollez.Services
                 _currentModelName = null;
 
                 // 只查找和清理 ollama pull 命令相关的进程
-
                 var processes = Process.GetProcesses()
                     .Where(p =>
                     {
                         try
                         {
                             return p.ProcessName.ToLower().Contains("ollama") &&
-
                                    !p.HasExited &&
                                    p.StartTime < DateTime.Now.AddMinutes(-5) && // 超过5分钟的进程
                                    p.MainWindowTitle.Contains("pull"); // 只处理下载进程
@@ -177,34 +182,34 @@ namespace ollez.Services
             }
         }
 
-        public async Task StopDownload()
-        {
-            if (!_isDownloading)
-                return;
+        // public async Task StopDownload()
+        // {
+        //     if (!_isDownloading)
+        //         return;
 
-            try
-            {
-                _cancellationTokenSource?.Cancel();
-                if (_process != null && !_process.HasExited)
-                {
-                    _process.Kill();
-                    await _process.WaitForExitAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"停止下载时出错: {ex.Message}");
-            }
-            finally
-            {
-                _isDownloading = false;
-                _currentModelName = null;
-                _process?.Dispose();
-                _process = null;
-                _cancellationTokenSource?.Dispose();
-                _cancellationTokenSource = null;
-            }
-        }
+        //     try
+        //     {
+        //         _cancellationTokenSource?.Cancel();
+        //         if (_process != null && !_process.HasExited)
+        //         {
+        //             _process.Kill();
+        //             await _process.WaitForExitAsync();
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Debug.WriteLine($"停止下载时出错: {ex.Message}");
+        //     }
+        //     finally
+        //     {
+        //         _isDownloading = false;
+        //         _currentModelName = null;
+        //         _process?.Dispose();
+        //         _process = null;
+        //         _cancellationTokenSource?.Dispose();
+        //         _cancellationTokenSource = null;
+        //     }
+        // }
 
         private void ProcessOutputDataReceived(object sender, DataReceivedEventArgs e)
         {
@@ -260,36 +265,27 @@ namespace ollez.Services
         }
 
 
-        protected virtual void OnDownloadProgressChanged(DownloadProgressEventArgs e)
-        {
-            DownloadProgressChanged?.Invoke(this, e);
-        }
+        // protected virtual void OnDownloadProgressChanged(DownloadProgressEventArgs e)
+        // {
+        //     DownloadProgressChanged?.Invoke(this, e);
+        // }
 
-        protected virtual void OnDownloadCompleted(bool success, string message)
-        {
-            DownloadCompleted?.Invoke(this, new DownloadCompletedEventArgs
-            {
-                Success = success,
-                Message = message
-            });
-        }
+        // protected virtual void OnDownloadCompleted(bool success, string message)
+        // {
+        //     DownloadCompleted?.Invoke(this, new DownloadCompletedEventArgs
+        //     {
+        //         Success = success,
+        //         Message = message
+        //     });
+        // }
 
-        private class PullProgressInfo
-        {
-            public string Status { get; set; }
-            public string Digest { get; set; }
-            public long Total { get; set; }
-            public long Completed { get; set; }
-            public string Pulling { get; set; }
-        }
+
 
         private async Task ProcessPullResponse(string line)
         {
             try
-
             {
                 _debugLogger.Information("收到数据: {line}", line);
-
 
                 var options = new JsonSerializerOptions
                 {
@@ -306,24 +302,40 @@ namespace ollez.Services
                 {
                     case "pulling manifest":
                         progressArgs.Status = "正在获取模型信息...";
+                        progressArgs.Progress = 0;
                         break;
-                    case "pulling":
+                    case var status when status?.StartsWith("pulling ") == true:
                         if (progressInfo.Total > 0)
                         {
                             var progress = (progressInfo.Completed * 100.0) / progressInfo.Total;
                             var speedMB = progressInfo.Completed / 1024.0 / 1024.0;
+                            var totalMB = progressInfo.Total / 1024.0 / 1024.0;
                             progressArgs.Progress = progress;
-                            progressArgs.Speed = $"{speedMB:F2}MB";
-                            progressArgs.Status = $"正在下载模型片段 {progressInfo.Pulling}... {progress:F2}%";
+                            progressArgs.Total = progressInfo.Total;
+                            progressArgs.Completed = progressInfo.Completed;
+                            progressArgs.Speed = $"{speedMB:F2}MB/s";
+                            progressArgs.Status = $"正在下载模型片段... {progress:F2}% ({speedMB:F2}MB/{totalMB:F2}MB)";
+                        }
+                        else
+                        {
+                            progressArgs.Status = "正在准备下载...";
+                            progressArgs.Progress = 0;
+                            progressArgs.Total = 0;
+                            progressArgs.Completed = 0;
                         }
                         break;
                     case "verifying sha256 digest":
                         progressArgs.Status = "正在验证文件完整性...";
+                        progressArgs.Progress = 99;
                         break;
                     case "writing manifest":
                         progressArgs.Status = "正在写入模型文件...";
+                        progressArgs.Progress = 99.5;
                         break;
                     case "success":
+                        progressArgs.Status = "下载完成";
+                        progressArgs.Progress = 100;
+                        OnDownloadProgressChanged(progressArgs);
                         OnDownloadCompleted(true, "下载完成");
                         return;
                     default:
@@ -339,6 +351,20 @@ namespace ollez.Services
             }
         }
 
+        protected virtual void OnDownloadProgressChanged(DownloadProgressEventArgs e)
+        {
+            DownloadProgressChanged?.Invoke(this, e);
+        }
+
+        protected virtual void OnDownloadCompleted(bool success, string message)
+        {
+            DownloadCompleted?.Invoke(this, new DownloadCompletedEventArgs
+            {
+                Success = success,
+                Message = message
+            });
+        }
+
         public async Task StartDownload(string modelName)
         {
             if (_isDownloading)
@@ -347,7 +373,6 @@ namespace ollez.Services
                 {
                     OnDownloadProgressChanged(new DownloadProgressEventArgs
                     {
-
                         Status = "正在下载中...",
                         Progress = 0
                     });
@@ -370,7 +395,6 @@ namespace ollez.Services
                     httpClient.BaseAddress = new Uri("http://localhost:11434");
                     httpClient.Timeout = TimeSpan.FromHours(1);
 
-
                     var request = new HttpRequestMessage(HttpMethod.Post, "/api/pull")
                     {
                         Content = new StringContent(
@@ -383,7 +407,6 @@ namespace ollez.Services
                     using (var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, _cancellationTokenSource.Token))
                     {
                         response.EnsureSuccessStatusCode();
-
 
                         using (var stream = await response.Content.ReadAsStreamAsync())
                         using (var reader = new System.IO.StreamReader(stream))
@@ -415,6 +438,35 @@ namespace ollez.Services
             {
                 _isDownloading = false;
                 _currentModelName = null;
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
+            }
+        }
+
+        public async Task StopDownload()
+        {
+            if (!_isDownloading)
+                return;
+
+            try
+            {
+                _cancellationTokenSource?.Cancel();
+                if (_process != null && !_process.HasExited)
+                {
+                    _process.Kill();
+                    await _process.WaitForExitAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"停止下载时出错: {ex.Message}");
+            }
+            finally
+            {
+                _isDownloading = false;
+                _currentModelName = null;
+                _process?.Dispose();
+                _process = null;
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
             }
