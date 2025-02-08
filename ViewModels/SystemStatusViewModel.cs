@@ -162,7 +162,8 @@ namespace ollez.ViewModels
                 () => ShowInstallationGuide = !ShowInstallationGuide
             );
             OpenSetupCommand = new DelegateCommand(
-                () => _regionManager.RequestNavigate("MainRegion", "SystemSetupView")
+                // () => _regionManager.RequestNavigate("MainRegion", "SystemSetupView")
+                async () => await ExecuteOpenSetup()
             );
             NavigateToChatCommand = new DelegateCommand<string>(NavigateToChat);
             DeleteModelCommand = new DelegateCommand<string>(
