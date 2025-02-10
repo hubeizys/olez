@@ -4,7 +4,7 @@ namespace ollez.ViewModels
 {
     public class AboutViewModel : BindableBase
     {
-        private string _version = "0.0.1";
+        private string _version = "0.0.2";
         public string Version
         {
             get => _version;

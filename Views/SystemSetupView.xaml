@@ -115,7 +115,8 @@
                                         Margin="0,4,0,0"
                                         Foreground="#D32F2F"
                                         Style="{StaticResource MaterialDesignBody2TextBlock}"
-                                        TextWrapping="Wrap">
+                                        TextWrapping="Wrap"
+                                        Visibility="{Binding CudaInfo.IsAvailable, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                                         <materialDesign:PackIcon
                                             Width="16"
                                             Height="16"

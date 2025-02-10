@@ -746,13 +746,13 @@ namespace ollez.ViewModels
 
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CUDA_PATH", EnvironmentVariableTarget.Machine)))
             {
-                NvidiaGuide = "NVIDIA驱动和CUDA已安装，请点击\"设置环境变量\"按钮完成配置";
+                NvidiaGuide = "NVIDIA驱动和CUDA已安装，请点击下一步";
                 ShowGuideIndicator = true;
                 IsEnvControlsEnabled = true;
                 return;
             }
 
-            NvidiaGuide = "NVIDIA驱动和CUDA环境已配置完成";
+            NvidiaGuide = "NVIDIA驱动和CUDA环境已配置完成，请点击下一步";
             ShowGuideIndicator = false;
             IsEnvControlsEnabled = false;
         }
