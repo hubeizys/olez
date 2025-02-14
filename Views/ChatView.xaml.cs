@@ -13,7 +13,7 @@ namespace ollez.Views
     {
         private bool _autoScroll = true;
         private double _previousScrollOffset;
-        private bool _isSidebarExpanded = false;  // 修改为 false
+        private bool _isSidebarExpanded = true;  // 修改为 true
         private const double EXPANDED_WIDTH = 280;
         private const double COLLAPSED_WIDTH = 0;
 
@@ -73,7 +73,7 @@ namespace ollez.Views
                 MaterialDesignThemes.Wpf.PackIconKind.ChevronRight;
 
             // 应用动画
-            // LeftColumn.BeginAnimation(ColumnDefinition.WidthProperty, animation);
+            LeftColumn.BeginAnimation(ColumnDefinition.WidthProperty, animation);
         }
     }
 }

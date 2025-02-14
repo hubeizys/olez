@@ -36,11 +36,11 @@ namespace ollez
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.Debug(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-                //.WriteTo.File(logPath,
-                //  rollingInterval: RollingInterval.Day,
-                //  outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
-                //  shared: true,
-                //  flushToDiskInterval: TimeSpan.FromSeconds(1))
+                .WriteTo.File(logPath,
+                  rollingInterval: RollingInterval.Day,
+                  outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                  shared: true,
+                  flushToDiskInterval: TimeSpan.FromSeconds(1))
                 .CreateLogger();
 
             Log.Information("应用程序启动");
